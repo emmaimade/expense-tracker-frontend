@@ -4,6 +4,7 @@ import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import ErrorIcon from '@mui/icons-material/Error';
 import Logo from './Logo';
 function Login () {
     const navigate = useNavigate();
@@ -103,6 +104,7 @@ function Login () {
               />
               {errors.email && (
                 <span className="mt-1 text-sm text-red-600">
+                  <ErrorIcon className="inline mr-1" fontSize="small" />
                   {errors.email}
                 </span>
               )}
