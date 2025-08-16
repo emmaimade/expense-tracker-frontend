@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-import ErrorIcon from "@mui/icons-material/Error";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import Logo from "./Logo";
+import AlertMessage from "./ui/AlertMessage";
+import FormInput from "./ui/FormInput";
+import PasswordInput from "./ui/PasswordInput";
+import GoogleAuthButton from "./ui/GoogleAuthButton";
+import getPasswordStrength from "../utils/passwordUtils";
 
 function Signup() {
   const navigate = useNavigate();
@@ -17,24 +18,9 @@ function Signup() {
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [generalError, setGeneralError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  // Password strength validation
-  const getPasswordStrength = (password) => {
-    const checks = {
-      length: password.length >= 8,
-      uppercase: /[A-Z]/.test(password),
-      lowercase: /[a-z]/.test(password),
-      number: /\d/.test(password),
-      special: /[!@#$%^&*(),.?":{}|<>]/.test(password),
-    };
-
-    const score = Object.values(checks).filter(Boolean).length;
-    return { checks, score };
-  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -122,61 +108,9 @@ function Signup() {
     setIsSubmitting(true);
 
     try {
-      // Simulate API call - replace with your actual signup endpoint
-      // const response = await fetch('/api/auth/signup', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({
-      //     firstName: formData.firstName.trim(),
-      //     lastName: formData.lastName.trim(),
-      //     email: formData.email.trim().toLowerCase(),
-      //     password: formData.password
-      //   }),
-      // });
-
-      // const data = await response.json();
-
-      // if (!response.ok) {
-      //   // Handle specific error responses
-      //   switch (response.status) {
-      //     case 400:
-      //       if (data.field) {
-      //         // Field-specific error
-      //         setErrors(prev => ({
-      //           ...prev,
-      //           [data.field]: data.message
-      //         }));
-      //       } else {
-      //         setGeneralError(data.message || 'Invalid request. Please check your input.');
-      //       }
-      //       break;
-      //     case 409:
-      //       setErrors(prev => ({
-      //         ...prev,
-      //         email: 'An account with this email already exists. Please use a different email or sign in.'
-      //       }));
-      //       break;
-      //     case 422:
-      //       setGeneralError('Please check your input and try again.');
-      //       break;
-      //     case 429:
-      //       setGeneralError('Too many signup attempts. Please wait a few minutes and try again.');
-      //       break;
-      //     case 500:
-      //       setGeneralError('Server error. Please try again later.');
-      //       break;
-      //     default:
-      //       setGeneralError(data.message || 'Signup failed. Please try again.');
-      //   }
-      //   return;
-      // }
-
+      // Your API call logic here    
       // Handle successful signup
       setSuccessMessage('Account created successfully! Redirecting to login...');
-      
-      // console.log('Account created successfully:', data);
       
       // Redirect to login after a short delay
       setTimeout(() => {
@@ -190,14 +124,7 @@ function Signup() {
     } catch (error) {
       console.error('Signup error:', error);
       
-      // // Handle network and other errors
-      // if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      //   setGeneralError('Unable to connect to server. Please check your internet connection.');
-      // } else if (error.name === 'AbortError') {
-      //   setGeneralError('Request timed out. Please try again.');
-      // } else {
-      //   setGeneralError('An unexpected error occurred. Please try again.');
-      // }
+      // Handle network and other errors
     } finally {
       setIsSubmitting(false);
     }
@@ -231,16 +158,6 @@ function Signup() {
     }
   };
 
-  const togglePasswordVisibility = () => {
-    setShowPassword((prev) => !prev);
-  };
-
-  const toggleConfirmPasswordVisibility = () => {
-    setShowConfirmPassword((prev) => !prev);
-  };
-
-  const passwordStrength = getPasswordStrength(formData.password);
-
   return (
     <div className="max-w-xl mx-auto mt-10 p-6 bg-white shadow-md rounded-lg">
       <div className="Logo size-12 flex justify-center mx-auto mb-6">
@@ -252,58 +169,22 @@ function Signup() {
       </p>
 
       {/* Success Message */}
-      {successMessage && (
-        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md flex items-start">
-          <CheckCircleIcon
-            className="text-green-500 mt-0.5 mr-2 flex-shrink-0"
-            fontSize="small"
-          />
-          <span className="text-sm text-green-700">{successMessage}</span>
-        </div>
-      )}
-
-      {/* General Error Alert */}
-      {generalError && (
-        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-start">
-          <ErrorIcon
-            className="text-red-500 mt-0.5 mr-2 flex-shrink-0"
-            fontSize="small"
-          />
-          <span className="text-sm text-red-700">{generalError}</span>
-        </div>
-      )}
+      <AlertMessage
+        type="success"
+        message={successMessage}
+      />
+      {/* General Error Message */}
+      <AlertMessage
+        type="error"
+        message={generalError}
+      />
 
       {/* Google OAuth Button */}
-      <button
-        type="button"
-        className={`w-full flex justify-center items-center px-4 py-3 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 mt-4 transition-colors ${
-          isSubmitting
-            ? "opacity-50 cursor-not-allowed"
-            : "hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-        }`}
+      <GoogleAuthButton
         onClick={handleGoogleAuth}
         disabled={isSubmitting}
-      >
-        <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-          <path
-            fill="#4285F4"
-            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-          />
-          <path
-            fill="#34A853"
-            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-          />
-          <path
-            fill="#FBBC05"
-            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-          />
-          <path
-            fill="#EA4335"
-            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-          />
-        </svg>
-        Continue with Google
-      </button>
+        className="mt-4"
+      />
 
       {/* Divider */}
       <div className="my-6">
@@ -321,222 +202,59 @@ function Signup() {
       <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
         {/* Name Fields */}
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label
-              htmlFor="firstName"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              First Name
-            </label>
-            <input
-              type="text"
-              id="firstName"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleInputChange}
-              disabled={isSubmitting}
-              className={`block w-full h-12 px-3 rounded-md border shadow-sm focus:ring-1 sm:text-sm transition-colors ${
-                errors.firstName
-                  ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                  : "border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-              } ${isSubmitting ? "bg-gray-50 cursor-not-allowed" : ""}`}
-              placeholder="John"
-            />
-            {errors.firstName && (
-              <p className="mt-1 text-sm text-red-600 flex items-center">
-                <ErrorIcon className="mr-1" fontSize="small" />
-                {errors.firstName}
-              </p>
-            )}
-          </div>
-          <div>
-            <label
-              htmlFor="lastName"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Last Name
-            </label>
-            <input
-              type="text"
-              id="lastName"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleInputChange}
-              disabled={isSubmitting}
-              className={`block w-full h-12 px-3 rounded-md border shadow-sm focus:ring-1 sm:text-sm transition-colors ${
-                errors.lastName
-                  ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                  : "border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-              } ${isSubmitting ? "bg-gray-50 cursor-not-allowed" : ""}`}
-              placeholder="Doe"
-            />
-            {errors.lastName && (
-              <p className="mt-1 text-sm text-red-600 flex items-center">
-                <ErrorIcon className="mr-1" fontSize="small" />
-                {errors.lastName}
-              </p>
-            )}
-          </div>
+          <FormInput
+            label="First Name"
+            name="firstName"
+            value={formData.firstName}
+            onChange={handleInputChange}
+            error={errors.firstName}
+            placeholder="John"
+            disabled={isSubmitting}
+          />
+          <FormInput
+            label="Last Name"
+            name="lastName"
+            value={formData.lastName}
+            onChange={handleInputChange}
+            error={errors.lastName}
+            placeholder="Doe"
+            disabled={isSubmitting}
+          />
         </div>
 
         {/* Email Field */}
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Email Address
-          </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleInputChange}
-            disabled={isSubmitting}
-            className={`block w-full h-12 px-3 rounded-md border shadow-sm focus:ring-1 sm:text-sm transition-colors ${
-              errors.email
-                ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                : "border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-            } ${isSubmitting ? "bg-gray-50 cursor-not-allowed" : ""}`}
-            placeholder="john@example.com"
-          />
-          {errors.email && (
-            <p className="mt-1 text-sm text-red-600 flex items-center">
-              <ErrorIcon className="mr-1" fontSize="small" />
-              {errors.email}
-            </p>
-          )}
-        </div>
+        <FormInput
+          label="Email"
+          name="email"
+          type="email"
+          value={formData.email}
+          onChange={handleInputChange}
+          error={errors.email}
+          placeholder="email@example.com"
+          disabled={isSubmitting}
+        />
 
         {/* Password Fields */}
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Password
-            </label>
-            <div className="relative mt-1 rounded-md shadow-md">
-              <input
-                type={showPassword ? "text" : "password"}
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleInputChange}
-                disabled={isSubmitting}
-                className={`block w-full h-12 px-3 pr-10 rounded-md border shadow-sm focus:ring-1 sm:text-sm transition-colors ${
-                  errors.password
-                    ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                    : "border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                } ${isSubmitting ? "bg-gray-50 cursor-not-allowed" : ""}`}
-                placeholder="Enter password"
-              />
-              <button
-                type="button"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                onClick={togglePasswordVisibility}
-                disabled={isSubmitting}
-              >
-                {showPassword ? (
-                  <VisibilityOffIcon
-                    className="text-gray-400 hover:text-gray-500"
-                    fontSize="small"
-                  />
-                ) : (
-                  <VisibilityIcon
-                    className="text-gray-400 hover:text-gray-500"
-                    fontSize="small"
-                  />
-                )}
-              </button>
-            </div>
-            {errors.password && (
-              <p className="mt-1 text-sm text-red-600 flex items-center">
-                <ErrorIcon className="mr-1" fontSize="small" />
-                {errors.password}
-              </p>
-            )}
-
-            {/* Password Strength Indicator */}
-            {formData.password && !errors.password && (
-              <div className="mt-2">
-                <div className="flex space-x-1 mb-1">
-                  {[1, 2, 3, 4, 5].map((level) => (
-                    <div
-                      key={level}
-                      className={`h-1 flex-1 rounded ${
-                        level <= passwordStrength.score
-                          ? passwordStrength.score <= 2
-                            ? "bg-red-400"
-                            : passwordStrength.score <= 3
-                            ? "bg-yellow-400"
-                            : "bg-green-400"
-                          : "bg-gray-200"
-                      }`}
-                    />
-                  ))}
-                </div>
-                <p className="text-xs text-gray-500">
-                  Strength:{" "}
-                  {passwordStrength.score <= 2
-                    ? "Weak"
-                    : passwordStrength.score <= 3
-                    ? "Medium"
-                    : "Strong"}
-                </p>
-              </div>
-            )}
-          </div>
-          <div>
-            <label
-              htmlFor="confirmPassword"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Confirm Password
-            </label>
-            <div className="mt-1 relative rounded-md shadow-md">
-              <input
-                type={showConfirmPassword ? "text" : "password"}
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                disabled={isSubmitting}
-                className={`block w-full h-12 px-3 pr-10 rounded-md border shadow-sm focus:ring-1 sm:text-sm transition-colors ${
-                  errors.confirmPassword
-                    ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                    : "border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                } ${isSubmitting ? "bg-gray-50 cursor-not-allowed" : ""}`}
-                placeholder="Re-enter password"
-              />
-              <button
-                type="button"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                onClick={toggleConfirmPasswordVisibility}
-                disabled={isSubmitting}
-              >
-                {showConfirmPassword ? (
-                  <VisibilityOffIcon
-                    className="text-gray-400 hover:text-gray-500"
-                    fontSize="small"
-                  />
-                ) : (
-                  <VisibilityIcon
-                    className="text-gray-400 hover:text-gray-500"
-                    fontSize="small"
-                  />
-                )}
-              </button>
-            </div>
-            {errors.confirmPassword && (
-              <p className="mt-1 text-sm text-red-600 flex items-center">
-                <ErrorIcon className="mr-1" fontSize="small" />
-                {errors.confirmPassword}
-              </p>
-            )}
-          </div>
+          <PasswordInput
+            label="Password"
+            name="password"
+            value={formData.password}
+            onChange={handleInputChange}
+            error={errors.password}
+            placeholder="Enter your password"
+            disabled={isSubmitting}
+            showStrength={true}
+          />
+          <PasswordInput
+            label="Confirm Password"
+            name="confirmPassword"
+            value={formData.confirmPassword}
+            onChange={handleInputChange}
+            error={errors.confirmPassword}
+            placeholder="Confirm your password"
+            disabled={isSubmitting}
+          />
         </div>
 
         {/* Sign Up Button */}
