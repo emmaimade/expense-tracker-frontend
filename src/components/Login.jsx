@@ -1,19 +1,71 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import Logo from './Logo';
 function Login () {
     const navigate = useNavigate();
+    const [formData, setFormData] = useState({
+        email: '',
+        password: '',
+        rememberMe: false,
+    });
+    const [errors, setErrors] = useState({});
+    const [showPassword, setShowPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleSignUp = () => {
         navigate('/register');
     };
 
+    const validateForm = () => {
+      let isValid = true;
+      const newErrors = {};
+
+      if (!formData.email.trim()) {
+        newErrors.email = 'Email is required';
+        isValid = false;
+      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+        newErrors.email = 'Email is invalid';
+        isValid = false;
+      }
+
+      if (!formData.password) {
+        newErrors.password = 'Password is required';
+        isValid = false;
+      } else if (formData.password.length < 8) {
+        newErrors.password = 'Password must be at least 8 characters long';
+        isValid = false;
+      }
+
+      setErrors(newErrors);
+      return isValid;
+    }
+
+    const handleChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value,
+        }));
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
+        if (!validateForm()) return
+        setIsLoading(true);
         // Handle login logic here
         console.log("Login submitted");
-        navigate('/dashboard'); // Redirect to dashboard after login
+        setTimeout(() => {
+          setIsLoading(false);
+          navigate("/dashboard"); // Redirect to dashboard after login
+        }, 1000);
+    };
+
+    const togglePasswordVisibility = () => {
+        setShowPassword(prev => !prev);
     }
 
     return (
@@ -38,9 +90,22 @@ function Login () {
               <input
                 type="email"
                 id="email"
-                className="block w-full pl-10 h-12 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                name="email"
+                onChange={handleChange}
+                value={formData.email}
+                disabled={isLoading}
+                className={`block w-full pl-10 h-12 rounded-md border shadow-sm focus:ring-indigo-500 sm:text-sm ${
+                  errors.email
+                    ? "border-red-500 focus:border-red-500"
+                    : "border-gray-300 focus:border-indigo-500"
+                } ${isLoading ? "bg-gray-50 cursor-not-allowed" : ""}`}
                 placeholder="you@example.com"
               />
+              {errors.email && (
+                <span className="mt-1 text-sm text-red-600">
+                  {errors.email}
+                </span>
+              )}
             </div>
           </div>
 
@@ -56,24 +121,55 @@ function Login () {
                 <LockIcon className="text-gray-400" fontSize="small" />
               </div>
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 id="password"
-                className="block w-full pl-10 h-12 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                name="password"
+                onChange={handleChange}
+                value={formData.password}
+                disabled={isLoading}
+                className={`block w-full pl-10 h-12 rounded-md border shadow-sm focus:ring-indigo-500 sm:text-sm ${
+                  errors.password
+                    ? "border-red-500 focus:border-red-500"
+                    : "border-gray-300 focus:border-indigo-500"
+                } ${isLoading ? "bg-gray-50 cursor-not-allowed" : ""}`}
                 placeholder="password"
               />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                onClick={togglePasswordVisibility}
+                disabled={isLoading}
+              >
+                {showPassword ? (
+                  <VisibilityOffIcon
+                    className="text-gray-400"
+                    fontSize="small"
+                  />
+                ) : (
+                  <VisibilityIcon className="text-gray-400" fontSize="small" />
+                )}
+              </button>
+              {errors.password && (
+                <span className="mt-1 text-sm text-red-600">
+                  {errors.password}
+                </span>
+              )}
             </div>
           </div>
 
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <input
-                id="remember-me"
-                name="remember-me"
+                id="rememberMe"
+                name="rememberMe"
                 type="checkbox"
+                onChange={handleChange}
+                checked={formData.rememberMe}
+                disabled={isLoading}
                 className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
               />
               <label
-                htmlFor="remember-me"
+                htmlFor="rememberMe"
                 className="ml-2 block text-sm text-gray-900"
               >
                 Remember me
@@ -83,6 +179,12 @@ function Login () {
               <a
                 href="#"
                 className="font-medium text-indigo-600 hover:text-indigo-500"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (!isLoading) {
+                    navigate("/forgot-password");
+                  }
+                }}
               >
                 Forgot your password?
               </a>
@@ -90,9 +192,40 @@ function Login () {
           </div>
           <button
             type="submit"
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md shadow-sm"
+            disabled={isLoading}
+            className={`w-full text-white py-2 px-4 rounded-md shadow-sm ${
+              isLoading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2"
+            }`}
           >
-            Sign in
+            {isLoading ? (
+              <div className="flex items-center justify-center">
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Signing in...
+              </div>
+            ) : (
+              "Sign in"
+            )}
           </button>
         </form>
 
