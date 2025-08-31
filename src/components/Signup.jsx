@@ -95,40 +95,105 @@ function Signup() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    // Clear previous messages
-    setGeneralError('');
-    setSuccessMessage('');
-    
-    if (!validateForm()) {
+  e.preventDefault();
+  
+  // Clear previous messages
+  setGeneralError('');
+  setSuccessMessage('');
+  
+  if (!validateForm()) {
+    return;
+  }
+
+  setIsSubmitting(true);
+
+  try {
+    // API call to register user
+    const response = await fetch('https://expense-tracker-api-hvss.onrender.com/user/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      // Handle specific API errors
+      if (response.status === 400) {
+        if (data.message && data.message.toLowerCase().includes('email')) {
+          setGeneralError('This email is already registered. Please use a different email.');
+        } else if (data.errors) {
+          // Handle field-specific validation errors from backend
+          const backendErrors = {};
+          if (Array.isArray(data.errors)) {
+            data.errors.forEach(error => {
+              backendErrors[error.field] = error.message;
+            });
+          }
+          setErrors(prev => ({ ...prev, ...backendErrors }));
+          return;
+        } else {
+          setGeneralError(data.message || 'Invalid input. Please check your details.');
+        }
+      } else if (response.status === 409) {
+        setGeneralError('This email is already registered. Please use a different email.');
+      } else if (response.status === 422) {
+        setGeneralError('Invalid data format. Please check your input.');
+      } else if (response.status >= 500) {
+        setGeneralError('Server error. Please try again later.');
+      } else {
+        setGeneralError(data.message || 'Failed to create account. Please try again.');
+      }
       return;
     }
 
-    setIsSubmitting(true);
-
-    try {
-      // Your API call logic here    
-      // Handle successful signup
-      setSuccessMessage('Account created successfully! Redirecting to login...');
-      
-      // Redirect to login after a short delay
-      setTimeout(() => {
-        navigate('/login', { 
-          state: { 
-            message: 'Account created successfully! Please sign in with your credentials.' 
-          }
-        });
-      }, 2000);
-
-    } catch (error) {
-      console.error('Signup error:', error);
-      
-      // Handle network and other errors
-    } finally {
-      setIsSubmitting(false);
+    // Handle successful signup
+    setSuccessMessage('Account created successfully! Redirecting to dashboard...');
+    
+    // Store authentication data
+    if (data.token || data.accessToken) {
+      localStorage.setItem('authToken', data.token || data.accessToken);
     }
-  };
+
+    // Store user info if provided
+    if (data.user) {
+      localStorage.setItem('user', JSON.stringify(data.user));
+    }
+    
+    // Redirect to dashboard after showing success message
+    setTimeout(() => {
+      navigate("/dashboard", {
+        state: {
+          message: `Welcome ${data.user?.firstName || 'to your dashboard'}!`,
+        },
+      });
+    }, 2000);
+
+  } catch (error) {
+    console.error('Signup error:', error);
+    
+    // Handle different types of errors
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      setGeneralError('Network error. Please check your internet connection and try again.');
+    } else if (error.name === 'AbortError') {
+      setGeneralError('Request timeout. Please try again.');
+    } else if (error.message.includes('JSON')) {
+      setGeneralError('Server response error. Please try again later.');
+    } else {
+      setGeneralError('An unexpected error occurred. Please try again later.');
+    }
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleGoogleAuth = async () => {
     try {

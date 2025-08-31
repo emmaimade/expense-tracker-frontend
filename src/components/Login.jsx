@@ -50,16 +50,117 @@ function Login () {
         }));
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (!validateForm()) return
-        setIsLoading(true);
-        // Handle login logic here
-        console.log("Login submitted");
-        setTimeout(() => {
-          setIsLoading(false);
-          navigate("/dashboard"); // Redirect to dashboard after login
-        }, 1000);
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      if (!validateForm()) return;
+
+      setIsLoading(true);
+      setErrors({}); // Clear previous errors
+
+      try {
+        // API call to login user
+        const response = await fetch(
+          "https://expense-tracker-api-hvss.onrender.com/user/login",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({
+              email: formData.email.trim().toLowerCase(),
+              password: formData.password,
+            }),
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          // Handle specific API errors
+          if (response.status === 401) {
+            setErrors({
+              email: "Invalid email or password",
+              password: "Invalid email or password",
+            });
+          } else if (response.status === 400) {
+            if (data.errors) {
+              // Handle field-specific validation errors
+              const backendErrors = {};
+              if (Array.isArray(data.errors)) {
+                data.errors.forEach((error) => {
+                  backendErrors[error.field] = error.message;
+                });
+              }
+              setErrors(backendErrors);
+            } else {
+              setErrors({ email: data.message || "Invalid credentials" });
+            }
+          } else if (response.status === 404) {
+            setErrors({ email: "No account found with this email address" });
+          } else if (response.status === 429) {
+            setErrors({
+              email: "Too many login attempts. Please try again later.",
+            });
+          } else if (response.status >= 500) {
+            setErrors({ email: "Server error. Please try again later." });
+          } else {
+            setErrors({
+              email: data.message || "Login failed. Please try again.",
+            });
+          }
+          return;
+        }
+
+        // Handle successful login
+        console.log("Login successful:", data);
+
+        // Store authentication data
+        if (data.token || data.accessToken) {
+          const token = data.token || data.accessToken;
+          localStorage.setItem("authToken", token);
+
+          // If remember me is checked, set a longer expiration
+          if (formData.rememberMe) {
+            localStorage.setItem("rememberMe", "true");
+          }
+        }
+
+        // Store user info if provided
+        if (data.user) {
+          localStorage.setItem("user", JSON.stringify(data.user));
+        }
+
+        // Redirect to dashboard
+        navigate("/dashboard", {
+          state: {
+            message: `Welcome back${
+              data.user?.firstName ? `, ${data.user.firstName}` : ""
+            }!`,
+          },
+        });
+      } catch (error) {
+        console.error("Login error:", error);
+
+        // Handle different types of errors
+        if (error.name === "TypeError" && error.message.includes("fetch")) {
+          setErrors({
+            email: "Network error. Please check your connection and try again.",
+          });
+        } else if (error.name === "AbortError") {
+          setErrors({ email: "Request timeout. Please try again." });
+        } else if (error.message.includes("JSON")) {
+          setErrors({
+            email: "Server response error. Please try again later.",
+          });
+        } else {
+          setErrors({
+            email: "An unexpected error occurred. Please try again.",
+          });
+        }
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     const handleGoogleLogin = () => {
