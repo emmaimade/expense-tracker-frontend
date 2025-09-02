@@ -110,8 +110,6 @@ const Dashboard = () => {
     }
   };
 
-  // console.log("Recent Transaction", recentTransactions);
-
   // Fetch total spent this month from backend
   const fetchTotalSpent = async () => {
     const authToken = localStorage.getItem('authToken');
@@ -366,7 +364,6 @@ const Dashboard = () => {
           {activeTab === "dashboard" && (
             <DashboardContent
               stats={stats}
-              recentTransactions={recentTransactions}
               totalSpentThisMonth={totalSpentThisMonth}
               topCategories={topCategories}
               setActiveTab={handleSetActiveTab}
@@ -376,7 +373,6 @@ const Dashboard = () => {
           {activeTab === "expenses" && (
             <ExpensesContent
               recentTransactions={recentTransactions}
-              totalSpentThisMonth={totalSpentThisMonth}
               topCategories={topCategories}
               setActiveTab={handleSetActiveTab}
               onDataChange={refreshData}

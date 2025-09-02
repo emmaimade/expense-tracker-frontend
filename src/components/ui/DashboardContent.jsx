@@ -3,8 +3,7 @@ import { useState, useEffect } from 'react';
 import StatCard from './StatCard';
 
 const DashboardContent = ({ 
-  stats = [], 
-  recentTransactions, 
+  stats = [],  
   totalSpentThisMonth, 
   setActiveTab,
   onDataChange 
@@ -154,7 +153,7 @@ const DashboardContent = ({
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
           <div className="flex items-center gap-2">
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-            <span className="text-blue-800 text-sm">Loading weekly data...</span>
+            <span className="text-blue-800 text-sm">Loading data...</span>
           </div>
         </div>
       )}
