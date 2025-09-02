@@ -1,0 +1,948 @@
+import { useState } from 'react';
+import { Plus, Filter, Calendar, Download, Upload, Search, Edit, Trash2, X } from 'lucide-react';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+
+const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataChange }) => {
+  const [filterBy, setFilterBy] = useState('all');
+  const [dateRange, setDateRange] = useState('month');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [newExpense, setNewExpense] = useState({
+    name: '',
+    category: '',
+    amount: '',
+    date: new Date().toISOString().split('T')[0]
+  });
+
+  // Calculate category data for pie chart
+  const categoryData = recentTransactions
+    .filter(tx => tx.type === 'expense')
+    .reduce((acc, tx) => {
+      const existing = acc.find(item => item.name === tx.category);
+      if (existing) {
+        existing.value += Math.abs(tx.amount);
+      } else {
+        acc.push({ name: tx.category, value: Math.abs(tx.amount) });
+      }
+      return acc;
+    }, []);
+
+  // Colors for pie chart
+  const COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+
+  // Calculate monthly spending data from real transactions
+  const calculateMonthlyData = () => {
+    const monthlyTotals = {};
+    const currentDate = new Date();
+    
+    // Initialize last 6 months with 0
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+      monthlyTotals[monthKey] = {
+        month: monthName,
+        amount: 0,
+        year: date.getFullYear()
+      };
+    }
+
+    // Sum up expenses by month
+    recentTransactions
+      .filter(tx => tx.type === 'expense')
+      .forEach(tx => {
+        const transactionDate = new Date(tx.date);
+        const monthKey = `${transactionDate.getFullYear()}-${String(transactionDate.getMonth() + 1).padStart(2, '0')}`;
+        
+        if (monthlyTotals[monthKey]) {
+          monthlyTotals[monthKey].amount += Math.abs(tx.amount);
+        }
+      });
+
+    // Convert to array and sort by date
+    return Object.keys(monthlyTotals)
+      .sort()
+      .map(key => ({
+        month: monthlyTotals[key].month,
+        amount: Math.round(monthlyTotals[key].amount)
+      }));
+  };
+
+  const monthlyData = calculateMonthlyData();
+
+  // Filter transactions based on search and category
+  const filteredTransactions = recentTransactions.filter(transaction => {
+    const matchesSearch = transaction.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = filterBy === 'all' || transaction.category.toLowerCase() === filterBy.toLowerCase();
+    return matchesSearch && matchesCategory;
+  });
+
+  // Debug function to log API details
+  const logApiCall = (method, url, body = null) => {
+    console.log('=== API Call Debug ===');
+    console.log('Method:', method);
+    console.log('URL:', url);
+    console.log('Headers:', {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('authToken') ? '[TOKEN_EXISTS]' : '[NO_TOKEN]'}`,
+    });
+    if (body) {
+      console.log('Body:', JSON.stringify(body, null, 2));
+    }
+    console.log('===================');
+  };
+
+  const handleAddExpense = async (e) => {
+    e.preventDefault();
+    
+    // Basic validation
+    if (!newExpense.name || !newExpense.category || !newExpense.amount || parseFloat(newExpense.amount) <= 0) {
+      alert('Please fill all fields with valid values.');
+      return;
+    }
+
+    // Check if auth token exists
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) {
+      alert('Authentication token not found. Please log in again.');
+      return;
+    }
+
+    setLoading(true);
+    
+    const requestBody = {
+      description: newExpense.name,
+      category: newExpense.category,
+      amount: parseFloat(newExpense.amount),
+      date: newExpense.date,
+      type: 'expense'
+    };
+
+    try {
+      logApiCall('POST', 'https://expense-tracker-api-hvss.onrender.com/expense/', requestBody);
+
+      const response = await fetch('https://expense-tracker-api-hvss.onrender.com/expense/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`,
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+
+      // Get response text first to see what we're receiving
+      const responseText = await response.text();
+      console.log('Response text:', responseText);
+
+      if (!response.ok) {
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        try {
+          const errorData = JSON.parse(responseText);
+          errorMessage = errorData.message || errorData.detail || errorData.error || errorMessage;
+        } catch (parseError) {
+          console.log('Could not parse error response as JSON');
+        }
+        throw new Error(errorMessage);
+      }
+
+      // Try to parse response as JSON
+      let responseData;
+      try {
+        responseData = responseText ? JSON.parse(responseText) : null;
+        console.log('Parsed response:', responseData);
+      } catch (parseError) {
+        console.log('Response is not JSON, treating as success');
+      }
+
+      alert('Expense added successfully!');
+      setIsAddModalOpen(false);
+      setNewExpense({
+        name: '',
+        category: '',
+        amount: '',
+        date: new Date().toISOString().split('T')[0]
+      });
+      
+      // Call parent component's data refresh function if provided
+      if (onDataChange) {
+        onDataChange();
+      }
+      
+    } catch (error) {
+      console.error('Error adding expense:', error);
+      alert(`Failed to add expense: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditTransaction = (transaction) => {
+    setSelectedTransaction(transaction);
+    setNewExpense({
+      name: transaction.name,
+      category: transaction.category,
+      amount: Math.abs(transaction.amount).toString(),
+      date: transaction.date
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateExpense = async (e) => {
+    e.preventDefault();
+    
+    if (!newExpense.name || !newExpense.category || !newExpense.amount || parseFloat(newExpense.amount) <= 0) {
+      alert('Please fill all fields with valid values.');
+      return;
+    }
+
+    if (!selectedTransaction?.id) {
+      alert('No transaction selected for update.');
+      return;
+    }
+
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) {
+      alert('Authentication token not found. Please log in again.');
+      return;
+    }
+
+    setLoading(true);
+
+    const requestBody = {
+      description: newExpense.name,
+      category: newExpense.category,
+      amount: parseFloat(newExpense.amount),
+      date: newExpense.date,
+      type: 'expense'
+    };
+
+    try {
+      const url = `https://expense-tracker-api-hvss.onrender.com/expense/${selectedTransaction.id}`;
+      logApiCall('PATCH', url, requestBody);
+
+      const response = await fetch(url, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`,
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      console.log('Update response status:', response.status);
+      
+      const responseText = await response.text();
+      console.log('Update response text:', responseText);
+
+      if (!response.ok) {
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        try {
+          const errorData = JSON.parse(responseText);
+          errorMessage = errorData.message || errorData.detail || errorData.error || errorMessage;
+        } catch (parseError) {
+          console.log('Could not parse error response as JSON');
+        }
+        throw new Error(errorMessage);
+      }
+
+      alert('Expense updated successfully!');
+      setIsEditModalOpen(false);
+      setSelectedTransaction(null);
+      setNewExpense({
+        name: '',
+        category: '',
+        amount: '',
+        date: new Date().toISOString().split('T')[0]
+      });
+      
+      if (onDataChange) {
+        onDataChange();
+      }
+      
+    } catch (error) {
+      console.error('Error updating expense:', error);
+      alert(`Failed to update expense: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteTransaction = async (transactionId) => {
+    if (!transactionId) {
+      alert('Invalid transaction ID.');
+      return;
+    }
+
+    if (!window.confirm('Are you sure you want to delete this transaction?')) {
+      return;
+    }
+
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) {
+      alert('Authentication token not found. Please log in again.');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const url = `https://expense-tracker-api-hvss.onrender.com/expense/${transactionId}`;
+      logApiCall('DELETE', url);
+
+      const response = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+        },
+      });
+
+      console.log('Delete response status:', response.status);
+      
+      const responseText = await response.text();
+      console.log('Delete response text:', responseText);
+
+      if (!response.ok) {
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        try {
+          const errorData = JSON.parse(responseText);
+          errorMessage = errorData.message || errorData.detail || errorData.error || errorMessage;
+        } catch (parseError) {
+          console.log('Could not parse error response as JSON');
+        }
+        throw new Error(errorMessage);
+      }
+
+      alert('Transaction deleted successfully!');
+      
+      if (onDataChange) {
+        onDataChange();
+      }
+      
+    } catch (error) {
+      console.error('Error deleting transaction:', error);
+      alert(`Failed to delete transaction: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderCustomizedLabel = ({
+    cx,
+    cy,
+    midAngle,
+    innerRadius,
+    outerRadius,
+    percent,
+    name,
+  }) => {
+    const RADIS = outerRadius + 25;
+    const x = cx + RADIS * Math.cos((-midAngle * Math.PI) / 180);
+    const y = cy + RADIS * Math.sin((-midAngle * Math.PI) / 180);
+
+    return (
+      <g>
+        <text
+          x={x}
+          y={y}
+          fill="black"
+          textAnchor={x > cx ? "start" : "end"}
+          dominantBaseline="central"
+        >
+          <tspan x={x} dy="-0.5em" fontWeight="medium">{`${name}`}</tspan>
+          <tspan x={x} dy="1.2em">{`${(percent * 100).toFixed(0)}%`}</tspan>
+        </text>
+      </g>
+    );
+  };
+
+  const handleDateRangeClick = () => {}
+
+  return (
+    <div className="space-y-6">
+      {/* Loading indicator */}
+      {loading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl">
+            <div className="flex items-center gap-3">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+              <p className="text-gray-900">Processing request...</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Header Actions */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Expenses</h1>
+            <p className="text-gray-600 mt-1">Manage and track your spending</p>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              disabled={loading}
+              className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Plus className="w-4 h-4" />
+              Add Expense
+            </button>
+            <button className="flex items-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+              <Upload className="w-4 h-4" />
+              Import
+            </button>
+            <button className="flex items-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+              <Download className="w-4 h-4" />
+              Export
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Analytics Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Spending by Category Chart */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Spending by Category
+            </h2>
+            <select
+              value={dateRange}
+              onChange={(e) => setDateRange(e.target.value)}
+              className="text-sm border border-gray-300 rounded-lg px-3 py-1"
+            >
+              <option value="week">This Week</option>
+              <option value="month">This Month</option>
+              <option value="quarter">This Quarter</option>
+              <option value="year">This Year</option>
+            </select>
+          </div>
+          <div className="h-80">
+            {categoryData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={categoryData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={renderCustomizedLabel}
+                    outerRadius={85}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {categoryData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value) => [`$${value.toFixed(2)}`, "Amount"]}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-gray-600 text-center mt-20">
+                No expense data available
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Spending Trends - Now using real data */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Monthly Spending Trends
+            </h2>
+            <div className="text-sm text-gray-500">
+              Last 6 months
+            </div>
+          </div>
+          <div className="h-80">
+            {monthlyData.length > 0 && monthlyData.some(month => month.amount > 0) ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthlyData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip 
+                    formatter={(value) => [`$${value}`, "Amount"]} 
+                    labelFormatter={(label) => `Month: ${label}`}
+                  />
+                  <Bar dataKey="amount" fill="#4f46e5" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-gray-600">
+                <p className="text-center">No monthly spending data available</p>
+                <p className="text-sm text-center mt-2">Start adding expenses to see trends</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Category Budget Overview */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          Category Budgets
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {categoryData.length > 0 ? (
+            categoryData.map((category, index) => {
+              const budget = 500; // Mock budget (replace with API data)
+              const spent = category.value;
+              const percentage = Math.min((spent / budget) * 100, 100);
+              const remaining = Math.max(budget - spent, 0);
+
+              return (
+                <div
+                  key={category.name}
+                  className="p-4 border border-gray-200 rounded-lg"
+                >
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-medium text-gray-900">
+                      {category.name}
+                    </span>
+                    <span className="text-sm text-gray-600">
+                      ${spent.toFixed(0)} / ${budget}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className={`h-2 rounded-full ${
+                        percentage > 100 ? "bg-red-500" : "bg-indigo-600"
+                      }`}
+                      style={{ width: `${Math.min(percentage, 100)}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {percentage.toFixed(0)}% used • ${remaining.toFixed(0)}{" "}
+                    remaining
+                  </p>
+                </div>
+              );
+            })
+          ) : (
+            <p className="text-gray-600">No category data available</p>
+          )}
+        </div>
+      </div>
+
+      {/* Transactions Section */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <h2 className="text-lg font-semibold text-gray-900">
+            All Transactions
+          </h2>
+
+          {/* Filters and Search */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search transactions..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+
+            {/* Category Filter */}
+            <select
+              value={filterBy}
+              onChange={(e) => setFilterBy(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="all">All Categories</option>
+              <option value="Food">Food</option>
+              <option value="Transportation">Transportation</option>
+              <option value="Leisure">Leisure</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Utilities">Utilities</option>
+              <option value="Clothing">Clothing</option>
+              <option value="Healthcare">Health</option>
+              <option value="Education">Education</option>
+              <option value="Other">Others</option>
+            </select>
+
+            {/* Date Filter */}
+            <button onClick={handleDateRangeClick} className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+              <Calendar className="w-4 h-4" />
+              <span className="text-sm">Date Range</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Transactions Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="text-left py-3 px-2 text-sm font-medium text-gray-600">
+                  Transaction
+                </th>
+                <th className="text-left py-3 px-2 text-sm font-medium text-gray-600">
+                  Category
+                </th>
+                <th className="text-left py-3 px-2 text-sm font-medium text-gray-600">
+                  Date
+                </th>
+                <th className="text-right py-3 px-2 text-sm font-medium text-gray-600">
+                  Amount
+                </th>
+                <th className="text-center py-3 px-2 text-sm font-medium text-gray-600">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {filteredTransactions.length > 0 ? (
+                filteredTransactions.map((transaction) => (
+                  <tr key={transaction.id} className="hover:bg-gray-50">
+                    <td className="py-4 px-2">
+                      <div className="font-medium text-gray-900">
+                        {transaction.name}
+                      </div>
+                    </td>
+                    <td className="py-4 px-2">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                        {transaction.category}
+                      </span>
+                    </td>
+                    <td className="py-4 px-2 text-sm text-gray-600">
+                      {transaction.date}
+                    </td>
+                    <td className="py-4 px-2 text-right">
+                      <span
+                        className={`font-medium ${
+                          transaction.type === "expense"
+                            ? "text-red-600"
+                            : "text-green-600"
+                        }`}
+                      >
+                        {transaction.type === "expense" ? "-" : "+"}$
+                        {Math.abs(transaction.amount).toFixed(2)}
+                      </span>
+                    </td>
+                    <td className="py-4 px-2 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          className="p-1 hover:bg-gray-100 rounded transition-colors disabled:opacity-50"
+                          onClick={() => handleEditTransaction(transaction)}
+                          disabled={loading}
+                        >
+                          <Edit className="w-4 h-4 text-gray-600" />
+                        </button>
+                        <button
+                          className="p-1 hover:bg-gray-100 rounded transition-colors disabled:opacity-50"
+                          onClick={() =>
+                            handleDeleteTransaction(transaction.id)
+                          }
+                          disabled={loading}
+                        >
+                          <Trash2 className="w-4 h-4 text-red-600" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" className="py-4 text-center text-gray-600">
+                    No transactions found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
+          <p className="text-sm text-gray-600">
+            Showing 1 to {filteredTransactions.length} of{" "}
+            {filteredTransactions.length} transactions
+          </p>
+          <div className="flex gap-2">
+            <button className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 transition-colors disabled:opacity-50">
+              Previous
+            </button>
+            <button className="px-3 py-1 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700 transition-colors">
+              1
+            </button>
+            <button className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 transition-colors">
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Add Expense Modal */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Add New Expense
+              </h3>
+              <button
+                onClick={() => setIsAddModalOpen(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                disabled={loading}
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddExpense} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Transaction Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newExpense.name}
+                  onChange={(e) =>
+                    setNewExpense({ ...newExpense, name: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="e.g., Grocery Shopping"
+                  disabled={loading}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Category
+                </label>
+                <select
+                  required
+                  value={newExpense.category}
+                  onChange={(e) =>
+                    setNewExpense({ ...newExpense, category: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  disabled={loading}
+                >
+                  <option value="">Select a category</option>
+                  <option value="Food">Food</option>
+                  <option value="Transportation">Transportation</option>
+                  <option value="Leisure">Leisure</option>
+                  <option value="Electronics">Electronics</option>
+                  <option value="Utilities">Utilities</option>
+                  <option value="Clothing">Clothing</option>
+                  <option value="Healthcare">Health</option>
+                  <option value="Education">Education</option>
+                  <option value="Other">Others</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Amount
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                    $
+                  </span>
+                  <input
+                    type="number"
+                    required
+                    step="0.01"
+                    min="0"
+                    value={newExpense.amount}
+                    onChange={(e) =>
+                      setNewExpense({ ...newExpense, amount: e.target.value })
+                    }
+                    className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="0.00"
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Date
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={newExpense.date}
+                  onChange={(e) =>
+                    setNewExpense({ ...newExpense, date: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsAddModalOpen(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  disabled={loading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                  disabled={loading}
+                >
+                  {loading ? 'Adding...' : 'Add Expense'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Expense Modal */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Edit Expense
+              </h3>
+              <button
+                onClick={() => {
+                  setIsEditModalOpen(false);
+                  setSelectedTransaction(null);
+                }}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                disabled={loading}
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateExpense} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Transaction Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newExpense.name}
+                  onChange={(e) =>
+                    setNewExpense({ ...newExpense, name: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="e.g., Grocery Shopping"
+                  disabled={loading}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Category
+                </label>
+                <select
+                  required
+                  value={newExpense.category}
+                  onChange={(e) =>
+                    setNewExpense({ ...newExpense, category: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  disabled={loading}
+                >
+                  <option value="">Select a category</option>
+                  <option value="Food">Food</option>
+                  <option value="Transportation">Transportation</option>
+                  <option value="Leisure">Leisure</option>
+                  <option value="Electronics">Electronics</option>
+                  <option value="Utilities">Utilities</option>
+                  <option value="Clothing">Clothing</option>
+                  <option value="Healthcare">Health</option>
+                  <option value="Education">Education</option>
+                  <option value="Other">Others</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Amount
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                    $
+                  </span>
+                  <input
+                    type="number"
+                    required
+                    step="0.01"
+                    min="0"
+                    value={newExpense.amount}
+                    onChange={(e) =>
+                      setNewExpense({ ...newExpense, amount: e.target.value })
+                    }
+                    className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="0.00"
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Date
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={newExpense.date}
+                  onChange={(e) =>
+                    setNewExpense({ ...newExpense, date: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEditModalOpen(false);
+                    setSelectedTransaction(null);
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  disabled={loading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                  disabled={loading}
+                >
+                  {loading ? 'Updating...' : 'Update Expense'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ExpensesContent;
