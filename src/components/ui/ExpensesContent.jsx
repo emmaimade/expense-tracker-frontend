@@ -25,6 +25,35 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
     date: new Date().toISOString().split('T')[0]
   });
 
+  // Function to filter transactions based on date range
+  const getDateFilteredTransactions = (range) => {
+    const now = new Date();
+    let startDate;
+
+    switch (range) {
+      case 'week':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+        break;
+      case 'month':
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        break;
+      case 'quarter':
+        const quarterStartMonth = Math.floor(now.getMonth() / 3) * 3;
+        startDate = new Date(now.getFullYear(), quarterStartMonth, 1);
+        break;
+      case 'year':
+        startDate = new Date(now.getFullYear(), 0, 1);
+        break;
+      default:
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+
+    return recentTransactions.filter(tx => {
+      const txDate = new Date(tx.date);
+      return txDate >= startDate && txDate <= now;
+    });
+  };
+
   // Validate if a date is not in the future
   const isDateValid = (dateString) => {
     const selectedDate = new Date(dateString);
@@ -241,8 +270,8 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
     }
   };
 
-  // Calculate category data for pie chart
-  const categoryData = recentTransactions
+  // Calculate category data for pie chart based on selected date range
+  const categoryData = getDateFilteredTransactions(dateRange)
     .filter(tx => tx.type === 'expense')
     .reduce((acc, tx) => {
       const existing = acc.find(item => item.name === tx.category);
@@ -588,6 +617,22 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
     setIsDateRangeModalOpen(true);
   };
 
+  // Get readable label for date range
+  const getDateRangeLabel = (range) => {
+    switch (range) {
+      case 'week':
+        return 'This Week';
+      case 'month':
+        return 'This Month';
+      case 'quarter':
+        return 'This Quarter';
+      case 'year':
+        return 'This Year';
+      default:
+        return 'This Month';
+    }
+  };
+
   return (
     <div className="space-y-6">
       <ToastContainer
@@ -800,9 +845,14 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <p className="text-gray-600 text-center mt-20">
-                No expense data available
-              </p>
+              <div className="flex flex-col items-center justify-center h-full text-gray-600">
+                <p className="text-center">
+                  No expense data available for {getDateRangeLabel(dateRange).toLowerCase()}
+                </p>
+                <p className="text-sm text-center mt-2">
+                  Try selecting a different time period or adding some expenses
+                </p>
+              </div>
             )}
           </div>
         </div>
@@ -896,7 +946,9 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
               );
             })
           ) : (
-            <p className="text-gray-600">No category data available</p>
+            <p className="text-gray-600">
+              No category data available for {getDateRangeLabel(dateRange).toLowerCase()}
+            </p>
           )}
         </div>
       </div>
