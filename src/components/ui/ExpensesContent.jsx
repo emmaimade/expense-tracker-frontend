@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Plus, Filter, Calendar, Download, Upload, Search, Edit, Trash2, X } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataChange }) => {
   const [filterBy, setFilterBy] = useState('all');
@@ -15,12 +17,21 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
   });
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [newExpense, setNewExpense] = useState({
     name: '',
     category: '',
     amount: '',
     date: new Date().toISOString().split('T')[0]
   });
+
+  // Validate if a date is not in the future
+  const isDateValid = (dateString) => {
+    const selectedDate = new Date(dateString);
+    const today = new Date();
+    today.setHours(23, 59, 59, 999); // Set to end of today
+    return selectedDate <= today;
+  };
 
   // Debug function to log API details
   const logApiCall = (method, url, body = null) => {
@@ -63,11 +74,23 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
         endDate = new Date(today.getFullYear(), today.getMonth(), new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate());
     }
 
+    // Validate dates - ensure end date is not in the future
+    if (endDate > today) {
+      endDate = today;
+    }
+
+    if (startDate > endDate) {
+      toast.error('Start date cannot be after end date.');
+      setError('Start date cannot be after end date.');
+      return;
+    }
+
     setCustomDateRange({
       startDate: startDate.toISOString().split('T')[0],
       endDate: endDate.toISOString().split('T')[0]
     });
 
+    setError(null); // Clear any previous errors
     fetchCustomDateRangeTransactions(rangeType);
   };
 
@@ -75,7 +98,8 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
   const fetchCustomDateRangeTransactions = async (rangeType = 'custom') => {
     const authToken = localStorage.getItem('authToken');
     if (!authToken) {
-      alert('Authentication token not found. Please log in again.');
+      toast.error('Authentication token not found. Please log in again.');
+      setError('Authentication token not found. Please log in again.');
       return;
     }
 
@@ -85,18 +109,34 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
     if (rangeType === 'custom') {
       const { startDate, endDate } = customDateRange;
       if (!startDate || !endDate) {
-        alert('Please select both start and end dates.');
+        toast.error('Please select both start and end dates.');
+        setError('Please select both start and end dates.');
         return;
       }
+      
+      // Validate that dates are not in the future
+      if (!isDateValid(startDate)) {
+        toast.error('Start date cannot be in the future.');
+        setError('Start date cannot be in the future.');
+        return;
+      }
+      
+      if (!isDateValid(endDate)) {
+        toast.error('End date cannot be in the future.');
+        setError('End date cannot be in the future.');
+        return;
+      }
+      
       if (new Date(startDate) > new Date(endDate)) {
-        alert('Start date must be before or equal to end date.');
+        toast.error('Start date must be before or equal to end date.');
+        setError('Start date must be before or equal to end date.');
         return;
       }
       effectiveStartDate = startDate;
       effectiveEndDate = endDate;
       url = `https://expense-tracker-api-hvss.onrender.com/expense/custom?startDate=${startDate}&endDate=${endDate}`;
     } else if (rangeType === 'reset') {
-      // Default 6-month range (April 1, 2025, to September 30, 2025)
+      // Default 6-month range
       const today = new Date();
       effectiveStartDate = new Date(today.getFullYear(), today.getMonth() - 5, 1).toISOString().split('T')[0];
       effectiveEndDate = new Date(today.getFullYear(), today.getMonth(), new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()).toISOString().split('T')[0];
@@ -119,12 +159,14 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
           effectiveEndDate = customDateRange.endDate;
           break;
         default:
-          alert('Invalid range type.');
+          toast.error('Invalid range type.');
+          setError('Invalid range type.');
           return;
       }
     }
 
     setLoading(true);
+    setError(null); // Clear previous errors
     logApiCall('GET', url);
 
     try {
@@ -166,14 +208,14 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
       let transformedData = [];
       if (Array.isArray(data.expenses)) {
         if (data.expenses.length === 0) {
-          alert(`No transactions found for ${rangeType === 'custom' ? 'the selected date range' : rangeType === 'reset' ? 'the default range' : rangeType.replace('-', ' ')}.`);
+          toast.info(`No transactions found for ${rangeType === 'custom' ? 'the selected date range' : rangeType === 'reset' ? 'the default range' : rangeType.replace('-', ' ')}.`);
           transformedData = [];
         } else {
           transformedData = data.expenses.map(transformTransaction);
         }
       } else {
-        console.warn('Invalid data structure:', data);
-        alert('Invalid response from server. Please try again.');
+        toast.error('Invalid response from server. Please try again.');
+        setError('Invalid response from server. Please try again.');
         transformedData = [];
       }
 
@@ -192,7 +234,8 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
       setIsDateRangeModalOpen(false);
     } catch (error) {
       console.error('Error fetching transactions:', error);
-      alert(`Failed to fetch transactions: ${error.message}`);
+      toast.error(`Failed to fetch transactions: ${error.message}`);
+      setError(`Failed to fetch transactions: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -223,13 +266,18 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
       startDate = new Date(customDateRange.startDate);
       endDate = new Date(customDateRange.endDate);
     } else {
-      // Default to last 6 months from current date (September 3, 2025)
-      const currentDate = new Date('2025-09-03');
+      // Default to last 6 months from current date
+      const currentDate = new Date();
       startDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 5, 1);
       endDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate());
     }
 
-    // Ensure startDate is before endDate
+    // Ensure startDate is before endDate and endDate is not in future
+    const today = new Date();
+    if (endDate > today) {
+      endDate = today;
+    }
+    
     if (startDate > endDate) {
       console.warn('Invalid date range: startDate after endDate');
       return [];
@@ -278,17 +326,24 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
     return matchesSearch && matchesCategory;
   });
 
+  // Handle adding a new expense
   const handleAddExpense = async (e) => {
     e.preventDefault();
     
     if (!newExpense.name || !newExpense.category || !newExpense.amount || parseFloat(newExpense.amount) <= 0) {
-      alert('Please fill all fields with valid values.');
+      toast.error('Please fill all fields with valid values.');
+      return;
+    }
+
+    // Validate that the expense date is not in the future
+    if (!isDateValid(newExpense.date)) {
+      toast.error('Expense date cannot be in the future.');
       return;
     }
 
     const authToken = localStorage.getItem('authToken');
     if (!authToken) {
-      alert('Authentication token not found. Please log in again.');
+      toast.error('Authentication token not found. Please log in again.');
       return;
     }
 
@@ -329,7 +384,7 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
         throw new Error(errorMessage);
       }
 
-      alert('Expense added successfully!');
+      toast.success('Expense added successfully!');
       setIsAddModalOpen(false);
       setNewExpense({
         name: '',
@@ -343,7 +398,7 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
       }
     } catch (error) {
       console.error('Error adding expense:', error);
-      alert(`Failed to add expense: ${error.message}`);
+      toast.error(`Failed to add expense: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -364,18 +419,24 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
     e.preventDefault();
     
     if (!newExpense.name || !newExpense.category || !newExpense.amount || parseFloat(newExpense.amount) <= 0) {
-      alert('Please fill all fields with valid values.');
+      toast.error('Please fill all fields with valid values.');
+      return;
+    }
+
+    // Validate that the expense date is not in the future
+    if (!isDateValid(newExpense.date)) {
+      toast.error('Expense date cannot be in the future.');
       return;
     }
 
     if (!selectedTransaction?.id) {
-      alert('No transaction selected for update.');
+      toast.error('No transaction selected for update.');
       return;
     }
 
     const authToken = localStorage.getItem('authToken');
     if (!authToken) {
-      alert('Authentication token not found. Please log in again.');
+      toast.error('Authentication token not found. Please log in again.');
       return;
     }
 
@@ -417,7 +478,7 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
         throw new Error(errorMessage);
       }
 
-      alert('Expense updated successfully!');
+      toast.success('Expense updated successfully!');
       setIsEditModalOpen(false);
       setSelectedTransaction(null);
       setNewExpense({
@@ -432,7 +493,7 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
       }
     } catch (error) {
       console.error('Error updating expense:', error);
-      alert(`Failed to update expense: ${error.message}`);
+      toast.error(`Failed to update expense: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -440,7 +501,7 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
 
   const handleDeleteTransaction = async (transactionId) => {
     if (!transactionId) {
-      alert('Invalid transaction ID.');
+      toast.error('Invalid transaction ID.');
       return;
     }
 
@@ -450,7 +511,7 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
 
     const authToken = localStorage.getItem('authToken');
     if (!authToken) {
-      alert('Authentication token not found. Please log in again.');
+      toast.error('Authentication token not found. Please log in again.');
       return;
     }
 
@@ -482,13 +543,13 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
         throw new Error(errorMessage);
       }
 
-      alert('Transaction deleted successfully!');
+      toast.success('Transaction deleted successfully!');
       if (onDataChange) {
         onDataChange();
       }
     } catch (error) {
       console.error('Error deleting transaction:', error);
-      alert(`Failed to delete transaction: ${error.message}`);
+      toast.error(`Failed to delete transaction: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -529,6 +590,13 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
 
   return (
     <div className="space-y-6">
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        closeOnClick
+        pauseOnHover
+      />
       {/* Loading indicator */}
       {loading && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -550,7 +618,10 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
                 Select Date Range
               </h3>
               <button
-                onClick={() => setIsDateRangeModalOpen(false)}
+                onClick={() => {
+                  setIsDateRangeModalOpen(false);
+                  setError(null); // Clear error on close
+                }}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 disabled={loading}
               >
@@ -562,24 +633,24 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() => setQuickDateRange('weekly')}
-                  className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+                  onClick={() => setQuickDateRange("weekly")}
+                  className="px-2 py-0.5 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50"
                   disabled={loading}
                 >
                   Last 7 Days
                 </button>
                 <button
                   type="button"
-                  onClick={() => setQuickDateRange('monthly')}
-                  className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+                  onClick={() => setQuickDateRange("monthly")}
+                  className="px-2 py-0.5 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50"
                   disabled={loading}
                 >
                   Last Month
                 </button>
                 <button
                   type="button"
-                  onClick={() => setQuickDateRange('three-months')}
-                  className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+                  onClick={() => setQuickDateRange("three-months")}
+                  className="px-2 py-0.5 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50"
                   disabled={loading}
                 >
                   Last 3 Months
@@ -592,7 +663,13 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
                 <input
                   type="date"
                   value={customDateRange.startDate}
-                  onChange={(e) => setCustomDateRange({ ...customDateRange, startDate: e.target.value })}
+                  onChange={(e) => {
+                    setCustomDateRange({
+                      ...customDateRange,
+                      startDate: e.target.value,
+                    });
+                    setError(null); // Clear error on input change
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   disabled={loading}
                 />
@@ -604,32 +681,41 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
                 <input
                   type="date"
                   value={customDateRange.endDate}
-                  onChange={(e) => setCustomDateRange({ ...customDateRange, endDate: e.target.value })}
+                  onChange={(e) => {
+                    setCustomDateRange({
+                      ...customDateRange,
+                      endDate: e.target.value,
+                    });
+                    setError(null); // Clear error on input change
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   disabled={loading}
                 />
               </div>
-              <div className="flex gap-3 pt-4">
+              <div className="flex gap-2 pt-4">
                 <button
                   type="button"
-                  onClick={() => setIsDateRangeModalOpen(false)}
-                  className="flex-1 px-3 py-1.5 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                  onClick={() => {
+                    setIsDateRangeModalOpen(false);
+                    setError(null); // Clear error on cancel
+                  }}
+                  className="flex-1 px-3 py-1.5 border border-gray-300 text-sm rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
                   disabled={loading}
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
-                  onClick={() => fetchCustomDateRangeTransactions('custom')}
-                  className="flex-1 px-3 py-1.5 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                  onClick={() => fetchCustomDateRangeTransactions("custom")}
+                  className="flex-1 px-3 py-1.5 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50"
                   disabled={loading}
                 >
-                  {loading ? 'Fetching...' : 'Apply Custom Range'}
+                  {loading ? "Fetching..." : "Apply Custom Range"}
                 </button>
                 <button
                   type="button"
-                  onClick={() => fetchCustomDateRangeTransactions('reset')}
-                  className="flex-1 px-3 py-1.5 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  onClick={() => fetchCustomDateRangeTransactions("reset")}
+                  className="flex-1 px-3 py-1.5 border border-gray-300 text-sm rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
                   disabled={loading}
                 >
                   Reset
@@ -728,20 +814,27 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
               Monthly Spending Trends
             </h2>
             <div className="text-sm text-gray-500">
-              {customDateRange.startDate && customDateRange.endDate 
-                ? `${new Date(customDateRange.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - ${new Date(customDateRange.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-                : 'Last 6 months'}
+              {customDateRange.startDate && customDateRange.endDate
+                ? `${new Date(customDateRange.startDate).toLocaleDateString(
+                    "en-US",
+                    { month: "short", day: "numeric", year: "numeric" }
+                  )} - ${new Date(customDateRange.endDate).toLocaleDateString(
+                    "en-US",
+                    { month: "short", day: "numeric", year: "numeric" }
+                  )}`
+                : "Last 6 months"}
             </div>
           </div>
           <div className="h-80">
-            {monthlyData.length > 0 && monthlyData.some(month => month.amount > 0) ? (
+            {monthlyData.length > 0 &&
+            monthlyData.some((month) => month.amount > 0) ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={monthlyData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis />
-                  <Tooltip 
-                    formatter={(value) => [`$${value}`, "Amount"]} 
+                  <Tooltip
+                    formatter={(value) => [`$${value}`, "Amount"]}
                     labelFormatter={(label) => `Month: ${label}`}
                   />
                   <Bar dataKey="amount" fill="#4f46e5" />
@@ -749,8 +842,12 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
               </ResponsiveContainer>
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-gray-600">
-                <p className="text-center">No monthly spending data available</p>
-                <p className="text-sm text-center mt-2">Start adding expenses to see trends</p>
+                <p className="text-center">
+                  No monthly spending data available
+                </p>
+                <p className="text-sm text-center mt-2">
+                  Start adding expenses to see trends
+                </p>
               </div>
             )}
           </div>
@@ -837,10 +934,10 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
               <option value="Clothing">Clothing</option>
               <option value="Healthcare">Health</option>
               <option value="Education">Education</option>
-              <option value="Other">Others</option>
+              <option value="Others">Others</option>
             </select>
-            <button 
-              onClick={handleDateRangeClick} 
+            <button
+              onClick={handleDateRangeClick}
               className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               disabled={loading}
             >
@@ -887,7 +984,7 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
                       </span>
                     </td>
                     <td className="py-4 px-2 text-sm text-gray-600">
-                      {new Date(transaction.date).toLocaleDateString('en-US')}
+                      {new Date(transaction.date).toLocaleDateString("en-US")}
                     </td>
                     <td className="py-4 px-2 text-right">
                       <span
@@ -912,7 +1009,9 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
                         </button>
                         <button
                           className="p-1 hover:bg-gray-100 rounded transition-colors disabled:opacity-50"
-                          onClick={() => handleDeleteTransaction(transaction.id)}
+                          onClick={() =>
+                            handleDeleteTransaction(transaction.id)
+                          }
                           disabled={loading}
                         >
                           <Trash2 className="w-4 h-4 text-red-600" />
@@ -1009,7 +1108,7 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
                   <option value="Clothing">Clothing</option>
                   <option value="Healthcare">Health</option>
                   <option value="Education">Education</option>
-                  <option value="Other">Others</option>
+                  <option value="Others">Others</option>
                 </select>
               </div>
 
@@ -1067,7 +1166,7 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
                   className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
                   disabled={loading}
                 >
-                  {loading ? 'Adding...' : 'Add Expense'}
+                  {loading ? "Adding..." : "Add Expense"}
                 </button>
               </div>
             </form>
@@ -1135,7 +1234,7 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
                   <option value="Clothing">Clothing</option>
                   <option value="Healthcare">Health</option>
                   <option value="Education">Education</option>
-                  <option value="Other">Others</option>
+                  <option value="Others">Others</option>
                 </select>
               </div>
 
@@ -1196,7 +1295,7 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
                   className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
                   disabled={loading}
                 >
-                  {loading ? 'Updating...' : 'Update Expense'}
+                  {loading ? "Updating..." : "Update Expense"}
                 </button>
               </div>
             </form>
