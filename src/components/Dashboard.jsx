@@ -155,9 +155,12 @@ const Dashboard = () => {
   }, []);
 
   // Function to refresh all data (called after successful operations)
-  const refreshData = async () => {
-    console.log('Refreshing dashboard data...');
-    await Promise.all([fetchTransactions(), fetchTotalSpent()]);
+  const refreshData = async (newTransactions) => {
+    if (newTransactions) {
+      setRecentTransactions(newTransactions);
+    } else {
+      await Promise.all([fetchTransactions(), fetchTotalSpent()]);
+    }
   };
 
   // Debug state update

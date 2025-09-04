@@ -8,6 +8,11 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDateRangeModalOpen, setIsDateRangeModalOpen] = useState(false);
+  const [customDateRange, setCustomDateRange] = useState({
+    startDate: '',
+    endDate: ''
+  });
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [loading, setLoading] = useState(false);
   const [newExpense, setNewExpense] = useState({
@@ -16,6 +21,182 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
     amount: '',
     date: new Date().toISOString().split('T')[0]
   });
+
+  // Debug function to log API details
+  const logApiCall = (method, url, body = null) => {
+    console.log('=== API Call Debug ===');
+    console.log('Method:', method);
+    console.log('URL:', url);
+    console.log('Headers:', {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('authToken') ? '[TOKEN_EXISTS]' : '[NO_TOKEN]'}`,
+    });
+    if (body) {
+      console.log('Body:', JSON.stringify(body, null, 2));
+    }
+    console.log('===================');
+  };
+
+  // Set date range for quick-select options
+  const setQuickDateRange = (rangeType) => {
+    const today = new Date(); // Current date
+    let startDate, endDate;
+
+    switch (rangeType) {
+      case 'weekly':
+        endDate = today;
+        startDate = new Date(today);
+        startDate.setDate(today.getDate() - 7); // Last 7 days
+        break;
+      case 'monthly':
+        endDate = today;
+        startDate = new Date(today);
+        startDate.setDate(today.getDate() - 30); // Last 30 days
+        break;
+      case 'three-months':
+        endDate = today;
+        startDate = new Date(today);
+        startDate.setDate(today.getDate() - 90); // Last 90 days
+        break;
+      default:
+        startDate = new Date(today.getFullYear(), today.getMonth() - 5, 1);
+        endDate = new Date(today.getFullYear(), today.getMonth(), new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate());
+    }
+
+    setCustomDateRange({
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0]
+    });
+
+    fetchCustomDateRangeTransactions(rangeType);
+  };
+
+  // Fetch transactions for custom or quick-select date range
+  const fetchCustomDateRangeTransactions = async (rangeType = 'custom') => {
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) {
+      alert('Authentication token not found. Please log in again.');
+      return;
+    }
+
+    let url;
+    let effectiveStartDate, effectiveEndDate;
+
+    if (rangeType === 'custom') {
+      const { startDate, endDate } = customDateRange;
+      if (!startDate || !endDate) {
+        alert('Please select both start and end dates.');
+        return;
+      }
+      if (new Date(startDate) > new Date(endDate)) {
+        alert('Start date must be before or equal to end date.');
+        return;
+      }
+      effectiveStartDate = startDate;
+      effectiveEndDate = endDate;
+      url = `https://expense-tracker-api-hvss.onrender.com/expense/custom?startDate=${startDate}&endDate=${endDate}`;
+    } else if (rangeType === 'reset') {
+      // Default 6-month range (April 1, 2025, to September 30, 2025)
+      const today = new Date();
+      effectiveStartDate = new Date(today.getFullYear(), today.getMonth() - 5, 1).toISOString().split('T')[0];
+      effectiveEndDate = new Date(today.getFullYear(), today.getMonth(), new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()).toISOString().split('T')[0];
+      url = `https://expense-tracker-api-hvss.onrender.com/expense/custom?startDate=${effectiveStartDate}&endDate=${effectiveEndDate}`;
+    } else {
+      switch (rangeType) {
+        case 'weekly':
+          url = 'https://expense-tracker-api-hvss.onrender.com/expense/weekly';
+          effectiveStartDate = customDateRange.startDate;
+          effectiveEndDate = customDateRange.endDate;
+          break;
+        case 'monthly':
+          url = 'https://expense-tracker-api-hvss.onrender.com/expense/monthly';
+          effectiveStartDate = customDateRange.startDate;
+          effectiveEndDate = customDateRange.endDate;
+          break;
+        case 'three-months':
+          url = 'https://expense-tracker-api-hvss.onrender.com/expense/three-months';
+          effectiveStartDate = customDateRange.startDate;
+          effectiveEndDate = customDateRange.endDate;
+          break;
+        default:
+          alert('Invalid range type.');
+          return;
+      }
+    }
+
+    setLoading(true);
+    logApiCall('GET', url);
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      console.log('Response status:', response.status);
+
+      if (!response.ok) {
+        const responseText = await response.text();
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        try {
+          const errorData = JSON.parse(responseText);
+          errorMessage = errorData.message || errorData.detail || errorData.error || errorMessage;
+        } catch (parseError) {
+          console.log('Could not parse error response as JSON');
+        }
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+      console.log('Fetched data:', data);
+
+      // Transform data to match expected format
+      const transformTransaction = (tx) => ({
+        id: tx._id || null,
+        name: tx.description || 'Unknown',
+        category: tx.category || 'Uncategorized',
+        amount: tx.amount || 0,
+        date: tx.date || new Date().toISOString(),
+        type: tx.type || 'expense',
+      });
+
+      let transformedData = [];
+      if (Array.isArray(data.expenses)) {
+        if (data.expenses.length === 0) {
+          alert(`No transactions found for ${rangeType === 'custom' ? 'the selected date range' : rangeType === 'reset' ? 'the default range' : rangeType.replace('-', ' ')}.`);
+          transformedData = [];
+        } else {
+          transformedData = data.expenses.map(transformTransaction);
+        }
+      } else {
+        console.warn('Invalid data structure:', data);
+        alert('Invalid response from server. Please try again.');
+        transformedData = [];
+      }
+
+      console.log('Transformed transactions:', transformedData);
+
+      // Update parent component's transactions
+      if (onDataChange) {
+        onDataChange(transformedData);
+      }
+
+      // Clear customDateRange for reset
+      if (rangeType === 'reset') {
+        setCustomDateRange({ startDate: '', endDate: '' });
+      }
+
+      setIsDateRangeModalOpen(false);
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+      alert(`Failed to fetch transactions: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Calculate category data for pie chart
   const categoryData = recentTransactions
@@ -36,18 +217,35 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
   // Calculate monthly spending data from real transactions
   const calculateMonthlyData = () => {
     const monthlyTotals = {};
-    const currentDate = new Date();
-    
-    // Initialize last 6 months with 0
-    for (let i = 5; i >= 0; i--) {
-      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+    let startDate, endDate;
+
+    if (customDateRange.startDate && customDateRange.endDate) {
+      startDate = new Date(customDateRange.startDate);
+      endDate = new Date(customDateRange.endDate);
+    } else {
+      // Default to last 6 months from current date (September 3, 2025)
+      const currentDate = new Date('2025-09-03');
+      startDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 5, 1);
+      endDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate());
+    }
+
+    // Ensure startDate is before endDate
+    if (startDate > endDate) {
+      console.warn('Invalid date range: startDate after endDate');
+      return [];
+    }
+
+    // Initialize months in the date range
+    let currentDate = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+    while (currentDate <= endDate) {
+      const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+      const monthName = currentDate.toLocaleDateString('en-US', { month: 'short' });
       monthlyTotals[monthKey] = {
         month: monthName,
         amount: 0,
-        year: date.getFullYear()
+        year: currentDate.getFullYear()
       };
+      currentDate.setMonth(currentDate.getMonth() + 1);
     }
 
     // Sum up expenses by month
@@ -80,31 +278,14 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
     return matchesSearch && matchesCategory;
   });
 
-  // Debug function to log API details
-  const logApiCall = (method, url, body = null) => {
-    console.log('=== API Call Debug ===');
-    console.log('Method:', method);
-    console.log('URL:', url);
-    console.log('Headers:', {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('authToken') ? '[TOKEN_EXISTS]' : '[NO_TOKEN]'}`,
-    });
-    if (body) {
-      console.log('Body:', JSON.stringify(body, null, 2));
-    }
-    console.log('===================');
-  };
-
   const handleAddExpense = async (e) => {
     e.preventDefault();
     
-    // Basic validation
     if (!newExpense.name || !newExpense.category || !newExpense.amount || parseFloat(newExpense.amount) <= 0) {
       alert('Please fill all fields with valid values.');
       return;
     }
 
-    // Check if auth token exists
     const authToken = localStorage.getItem('authToken');
     if (!authToken) {
       alert('Authentication token not found. Please log in again.');
@@ -134,9 +315,6 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
       });
 
       console.log('Response status:', response.status);
-      console.log('Response ok:', response.ok);
-
-      // Get response text first to see what we're receiving
       const responseText = await response.text();
       console.log('Response text:', responseText);
 
@@ -151,15 +329,6 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
         throw new Error(errorMessage);
       }
 
-      // Try to parse response as JSON
-      let responseData;
-      try {
-        responseData = responseText ? JSON.parse(responseText) : null;
-        console.log('Parsed response:', responseData);
-      } catch (parseError) {
-        console.log('Response is not JSON, treating as success');
-      }
-
       alert('Expense added successfully!');
       setIsAddModalOpen(false);
       setNewExpense({
@@ -169,11 +338,9 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
         date: new Date().toISOString().split('T')[0]
       });
       
-      // Call parent component's data refresh function if provided
       if (onDataChange) {
         onDataChange();
       }
-      
     } catch (error) {
       console.error('Error adding expense:', error);
       alert(`Failed to add expense: ${error.message}`);
@@ -188,7 +355,7 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
       name: transaction.name,
       category: transaction.category,
       amount: Math.abs(transaction.amount).toString(),
-      date: transaction.date
+      date: transaction.date.split('T')[0]
     });
     setIsEditModalOpen(true);
   };
@@ -236,7 +403,6 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
       });
 
       console.log('Update response status:', response.status);
-      
       const responseText = await response.text();
       console.log('Update response text:', responseText);
 
@@ -264,7 +430,6 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
       if (onDataChange) {
         onDataChange();
       }
-      
     } catch (error) {
       console.error('Error updating expense:', error);
       alert(`Failed to update expense: ${error.message}`);
@@ -303,7 +468,6 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
       });
 
       console.log('Delete response status:', response.status);
-      
       const responseText = await response.text();
       console.log('Delete response text:', responseText);
 
@@ -319,11 +483,9 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
       }
 
       alert('Transaction deleted successfully!');
-      
       if (onDataChange) {
         onDataChange();
       }
-      
     } catch (error) {
       console.error('Error deleting transaction:', error);
       alert(`Failed to delete transaction: ${error.message}`);
@@ -361,7 +523,9 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
     );
   };
 
-  const handleDateRangeClick = () => {}
+  const handleDateRangeClick = () => {
+    setIsDateRangeModalOpen(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -372,6 +536,105 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
             <div className="flex items-center gap-3">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
               <p className="text-gray-900">Processing request...</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Date Range Modal */}
+      {isDateRangeModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Select Date Range
+              </h3>
+              <button
+                onClick={() => setIsDateRangeModalOpen(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                disabled={loading}
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              {/* Quick-Select Buttons */}
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setQuickDateRange('weekly')}
+                  className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+                  disabled={loading}
+                >
+                  Last 7 Days
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuickDateRange('monthly')}
+                  className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+                  disabled={loading}
+                >
+                  Last Month
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuickDateRange('three-months')}
+                  className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+                  disabled={loading}
+                >
+                  Last 3 Months
+                </button>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Start Date
+                </label>
+                <input
+                  type="date"
+                  value={customDateRange.startDate}
+                  onChange={(e) => setCustomDateRange({ ...customDateRange, startDate: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  disabled={loading}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  End Date
+                </label>
+                <input
+                  type="date"
+                  value={customDateRange.endDate}
+                  onChange={(e) => setCustomDateRange({ ...customDateRange, endDate: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  disabled={loading}
+                />
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsDateRangeModalOpen(false)}
+                  className="flex-1 px-3 py-1.5 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                  disabled={loading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fetchCustomDateRangeTransactions('custom')}
+                  className="flex-1 px-3 py-1.5 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                  disabled={loading}
+                >
+                  {loading ? 'Fetching...' : 'Apply Custom Range'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fetchCustomDateRangeTransactions('reset')}
+                  className="flex-1 px-3 py-1.5 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  disabled={loading}
+                >
+                  Reset
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -458,14 +721,16 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
           </div>
         </div>
 
-        {/* Spending Trends - Now using real data */}
+        {/* Spending Trends */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">
               Monthly Spending Trends
             </h2>
             <div className="text-sm text-gray-500">
-              Last 6 months
+              {customDateRange.startDate && customDateRange.endDate 
+                ? `${new Date(customDateRange.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - ${new Date(customDateRange.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                : 'Last 6 months'}
             </div>
           </div>
           <div className="h-80">
@@ -548,7 +813,6 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
 
           {/* Filters and Search */}
           <div className="flex flex-col sm:flex-row gap-3">
-            {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
@@ -559,8 +823,6 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
               />
             </div>
-
-            {/* Category Filter */}
             <select
               value={filterBy}
               onChange={(e) => setFilterBy(e.target.value)}
@@ -577,9 +839,11 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
               <option value="Education">Education</option>
               <option value="Other">Others</option>
             </select>
-
-            {/* Date Filter */}
-            <button onClick={handleDateRangeClick} className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+            <button 
+              onClick={handleDateRangeClick} 
+              className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              disabled={loading}
+            >
               <Calendar className="w-4 h-4" />
               <span className="text-sm">Date Range</span>
             </button>
@@ -623,7 +887,7 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
                       </span>
                     </td>
                     <td className="py-4 px-2 text-sm text-gray-600">
-                      {transaction.date}
+                      {new Date(transaction.date).toLocaleDateString('en-US')}
                     </td>
                     <td className="py-4 px-2 text-right">
                       <span
@@ -648,9 +912,7 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
                         </button>
                         <button
                           className="p-1 hover:bg-gray-100 rounded transition-colors disabled:opacity-50"
-                          onClick={() =>
-                            handleDeleteTransaction(transaction.id)
-                          }
+                          onClick={() => handleDeleteTransaction(transaction.id)}
                           disabled={loading}
                         >
                           <Trash2 className="w-4 h-4 text-red-600" />
