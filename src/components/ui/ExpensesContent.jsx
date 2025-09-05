@@ -11,7 +11,14 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDateRangeModalOpen, setIsDateRangeModalOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [customDateRange, setCustomDateRange] = useState({
+    startDate: '',
+    endDate: ''
+  });
+  const [exportOptions, setExportOptions] = useState({
+    fileFormat: 'csv',
+    category: 'all',
     startDate: '',
     endDate: ''
   });
@@ -38,8 +45,7 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
         startDate = new Date(now.getFullYear(), now.getMonth(), 1);
         break;
       case 'quarter':
-        const quarterStartMonth = Math.floor(now.getMonth() / 3) * 3;
-        startDate = new Date(now.getFullYear(), quarterStartMonth, 1);
+        startDate = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
         break;
       case 'year':
         startDate = new Date(now.getFullYear(), 0, 1);
@@ -58,7 +64,7 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
   const isDateValid = (dateString) => {
     const selectedDate = new Date(dateString);
     const today = new Date();
-    today.setHours(23, 59, 59, 999); // Set to end of today
+    today.setHours(23, 59, 59, 999);
     return selectedDate <= today;
   };
 
@@ -78,32 +84,31 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
   };
 
   // Set date range for quick-select options
-  const setQuickDateRange = (rangeType) => {
-    const today = new Date(); // Current date
+  const setQuickDateRange = (rangeType, target = 'filter') => {
+    const today = new Date();
     let startDate, endDate;
 
     switch (rangeType) {
       case 'weekly':
         endDate = today;
         startDate = new Date(today);
-        startDate.setDate(today.getDate() - 7); // Last 7 days
+        startDate.setDate(today.getDate() - 7);
         break;
       case 'monthly':
         endDate = today;
         startDate = new Date(today);
-        startDate.setDate(today.getDate() - 30); // Last 30 days
+        startDate.setDate(today.getDate() - 30);
         break;
       case 'three-months':
         endDate = today;
         startDate = new Date(today);
-        startDate.setDate(today.getDate() - 90); // Last 90 days
+        startDate.setDate(today.getDate() - 90);
         break;
       default:
         startDate = new Date(today.getFullYear(), today.getMonth() - 5, 1);
         endDate = new Date(today.getFullYear(), today.getMonth(), new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate());
     }
 
-    // Validate dates - ensure end date is not in the future
     if (endDate > today) {
       endDate = today;
     }
@@ -114,13 +119,23 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
       return;
     }
 
-    setCustomDateRange({
+    const dateRangeUpdate = {
       startDate: startDate.toISOString().split('T')[0],
       endDate: endDate.toISOString().split('T')[0]
-    });
+    };
 
-    setError(null); // Clear any previous errors
-    fetchCustomDateRangeTransactions(rangeType);
+    if (target === 'filter') {
+      setCustomDateRange(dateRangeUpdate);
+      setError(null);
+      fetchCustomDateRangeTransactions(rangeType);
+    } else if (target === 'export') {
+      setExportOptions(prev => ({
+        ...prev,
+        startDate: dateRangeUpdate.startDate,
+        endDate: dateRangeUpdate.endDate
+      }));
+      setError(null);
+    }
   };
 
   // Fetch transactions for custom or quick-select date range
@@ -143,7 +158,6 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
         return;
       }
       
-      // Validate that dates are not in the future
       if (!isDateValid(startDate)) {
         toast.error('Start date cannot be in the future.');
         setError('Start date cannot be in the future.');
@@ -165,7 +179,6 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
       effectiveEndDate = endDate;
       url = `https://expense-tracker-api-hvss.onrender.com/expense/custom?startDate=${startDate}&endDate=${endDate}`;
     } else if (rangeType === 'reset') {
-      // Default 6-month range
       const today = new Date();
       effectiveStartDate = new Date(today.getFullYear(), today.getMonth() - 5, 1).toISOString().split('T')[0];
       effectiveEndDate = new Date(today.getFullYear(), today.getMonth(), new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()).toISOString().split('T')[0];
@@ -195,7 +208,7 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
     }
 
     setLoading(true);
-    setError(null); // Clear previous errors
+    setError(null);
     logApiCall('GET', url);
 
     try {
@@ -224,7 +237,6 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
       const data = await response.json();
       console.log('Fetched data:', data);
 
-      // Transform data to match expected format
       const transformTransaction = (tx) => ({
         id: tx._id || null,
         name: tx.description || 'Unknown',
@@ -250,12 +262,10 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
 
       console.log('Transformed transactions:', transformedData);
 
-      // Update parent component's transactions
       if (onDataChange) {
         onDataChange(transformedData);
       }
 
-      // Clear customDateRange for reset
       if (rangeType === 'reset') {
         setCustomDateRange({ startDate: '', endDate: '' });
       }
@@ -295,13 +305,11 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
       startDate = new Date(customDateRange.startDate);
       endDate = new Date(customDateRange.endDate);
     } else {
-      // Default to last 6 months from current date
       const currentDate = new Date();
       startDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 5, 1);
       endDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate());
     }
 
-    // Ensure startDate is before endDate and endDate is not in future
     const today = new Date();
     if (endDate > today) {
       endDate = today;
@@ -312,7 +320,6 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
       return [];
     }
 
-    // Initialize months in the date range
     let currentDate = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
     while (currentDate <= endDate) {
       const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
@@ -325,7 +332,6 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
       currentDate.setMonth(currentDate.getMonth() + 1);
     }
 
-    // Sum up expenses by month
     recentTransactions
       .filter(tx => tx.type === 'expense')
       .forEach(tx => {
@@ -337,7 +343,6 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
         }
       });
 
-    // Convert to array and sort by date
     return Object.keys(monthlyTotals)
       .sort()
       .map(key => ({
@@ -364,7 +369,6 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
       return;
     }
 
-    // Validate that the expense date is not in the future
     if (!isDateValid(newExpense.date)) {
       toast.error('Expense date cannot be in the future.');
       return;
@@ -400,7 +404,6 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
 
       console.log('Response status:', response.status);
       const responseText = await response.text();
-      console.log('Response text:', responseText);
 
       if (!response.ok) {
         let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
@@ -452,7 +455,6 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
       return;
     }
 
-    // Validate that the expense date is not in the future
     if (!isDateValid(newExpense.date)) {
       toast.error('Expense date cannot be in the future.');
       return;
@@ -494,7 +496,6 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
 
       console.log('Update response status:', response.status);
       const responseText = await response.text();
-      console.log('Update response text:', responseText);
 
       if (!response.ok) {
         let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
@@ -559,7 +560,6 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
 
       console.log('Delete response status:', response.status);
       const responseText = await response.text();
-      console.log('Delete response text:', responseText);
 
       if (!response.ok) {
         let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
@@ -579,6 +579,107 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
     } catch (error) {
       console.error('Error deleting transaction:', error);
       toast.error(`Failed to delete transaction: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle exporting expenses
+  const handleExportExpenses = async () => {
+    try {
+      const authToken = localStorage.getItem('authToken');
+      if (!authToken) {
+        toast.error('Authentication token not found. Please log in again.');
+        return;
+      }
+
+      let effectiveStartDate = exportOptions.startDate;
+      let effectiveEndDate = exportOptions.endDate;
+
+      // Set default date range (last 30 days) if not provided
+      if (!effectiveStartDate || !effectiveEndDate) {
+        const today = new Date();
+        effectiveEndDate = today.toISOString().split('T')[0];
+        const start = new Date(today);
+        start.setDate(today.getDate() - 30);
+        effectiveStartDate = start.toISOString().split('T')[0];
+        setExportOptions(prev => ({
+          ...prev,
+          startDate: effectiveStartDate,
+          endDate: effectiveEndDate
+        }));
+      }
+
+      if (!isDateValid(effectiveStartDate)) {
+        toast.error('Start date cannot be in the future.');
+        setError('Start date cannot be in the future.');
+        return;
+      }
+      if (!isDateValid(effectiveEndDate)) {
+        toast.error('End date cannot be in the future.');
+        setError('End date cannot be in the future.');
+        return;
+      }
+      if (new Date(effectiveStartDate) > new Date(effectiveEndDate)) {
+        toast.error('Start date must be before or equal to end date.');
+        setError('Start date must be before or equal to end date.');
+        return;
+      }
+
+      let url = 'https://expense-tracker-api-hvss.onrender.com/expense/export';
+      const params = new URLSearchParams();
+      params.append('startDate', effectiveStartDate);
+      params.append('endDate', effectiveEndDate);
+      if (exportOptions.category !== 'all') {
+        params.append('category', exportOptions.category);
+      }
+      params.append('fileFormat', exportOptions.fileFormat);
+      url += `?${params.toString()}`;
+
+      setLoading(true);
+      logApiCall('GET', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+        },
+      });
+
+      console.log('Export response status:', response.status);
+      console.log('Export data', response.data);
+      console.log('Export URL:', url);
+
+      if (!response.ok) {
+        const responseText = await response.text();
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        try {
+          const errorData = JSON.parse(responseText);
+          errorMessage = errorData.error || errorMessage;
+        } catch (parseError) {
+          console.log('Could not parse error response as JSON');
+        }
+        throw new Error(errorMessage);
+      }
+
+      const blob = await response.blob();
+      const fileName = exportOptions.fileFormat === 'csv' ? 'expenses.csv' : 'expenses.pdf';
+      const urlObj = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = urlObj;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(urlObj);
+
+      toast.success(`Expenses exported successfully as ${exportOptions.fileFormat.toUpperCase()}!`);
+      setIsExportModalOpen(false);
+      setExportOptions({ fileFormat: 'csv', category: 'all', startDate: '', endDate: '' });
+    } catch (error) {
+      console.error('Error exporting expenses:', error);
+      toast.error(`Failed to export expenses: ${error.message}`);
+      setError(`Failed to export expenses: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -642,7 +743,6 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
         closeOnClick
         pauseOnHover
       />
-      {/* Loading indicator */}
       {loading && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-xl">
@@ -665,7 +765,7 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
               <button
                 onClick={() => {
                   setIsDateRangeModalOpen(false);
-                  setError(null); // Clear error on close
+                  setError(null);
                 }}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 disabled={loading}
@@ -674,11 +774,10 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
               </button>
             </div>
             <div className="p-6 space-y-4">
-              {/* Quick-Select Buttons */}
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() => setQuickDateRange("weekly")}
+                  onClick={() => setQuickDateRange("weekly", "filter")}
                   className="px-2 py-0.5 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50"
                   disabled={loading}
                 >
@@ -686,7 +785,7 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
                 </button>
                 <button
                   type="button"
-                  onClick={() => setQuickDateRange("monthly")}
+                  onClick={() => setQuickDateRange("monthly", "filter")}
                   className="px-2 py-0.5 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50"
                   disabled={loading}
                 >
@@ -694,7 +793,7 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
                 </button>
                 <button
                   type="button"
-                  onClick={() => setQuickDateRange("three-months")}
+                  onClick={() => setQuickDateRange("three-months", "filter")}
                   className="px-2 py-0.5 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50"
                   disabled={loading}
                 >
@@ -713,7 +812,7 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
                       ...customDateRange,
                       startDate: e.target.value,
                     });
-                    setError(null); // Clear error on input change
+                    setError(null);
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   disabled={loading}
@@ -731,7 +830,7 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
                       ...customDateRange,
                       endDate: e.target.value,
                     });
-                    setError(null); // Clear error on input change
+                    setError(null);
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   disabled={loading}
@@ -742,7 +841,7 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
                   type="button"
                   onClick={() => {
                     setIsDateRangeModalOpen(false);
-                    setError(null); // Clear error on cancel
+                    setError(null);
                   }}
                   className="flex-1 px-3 py-1.5 border border-gray-300 text-sm rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
                   disabled={loading}
@@ -771,6 +870,147 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
         </div>
       )}
 
+      {/* Export Modal */}
+      {isExportModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Export Expenses
+              </h3>
+              <button
+                onClick={() => {
+                  setIsExportModalOpen(false);
+                  setError(null);
+                }}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                disabled={loading}
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Export Format
+                </label>
+                <select
+                  value={exportOptions.fileFormat}
+                  onChange={(e) => setExportOptions({ ...exportOptions, fileFormat: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  disabled={loading}
+                >
+                  <option value="csv">CSV</option>
+                  <option value="pdf">PDF</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Category
+                </label>
+                <select
+                  value={exportOptions.category}
+                  onChange={(e) => setExportOptions({ ...exportOptions, category: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  disabled={loading}
+                >
+                  <option value="all">All Categories</option>
+                  <option value="Food">Food</option>
+                  <option value="Transportation">Transportation</option>
+                  <option value="Leisure">Leisure</option>
+                  <option value="Electronics">Electronics</option>
+                  <option value="Utilities">Utilities</option>
+                  <option value="Clothing">Clothing</option>
+                  <option value="Health">Health</option>
+                  <option value="Education">Education</option>
+                  <option value="Others">Others</option>
+                </select>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setQuickDateRange("weekly", "export")}
+                  className="px-2 py-0.5 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50"
+                  disabled={loading}
+                >
+                  Last 7 Days
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuickDateRange("monthly", "export")}
+                  className="px-2 py-0.5 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50"
+                  disabled={loading}
+                >
+                  Last Month
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuickDateRange("three-months", "export")}
+                  className="px-2 py-0.5 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50"
+                  disabled={loading}
+                >
+                  Last 3 Months
+                </button>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Start Date
+                </label>
+                <input
+                  type="date"
+                  value={exportOptions.startDate}
+                  onChange={(e) => {
+                    setExportOptions({ ...exportOptions, startDate: e.target.value });
+                    setError(null);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  disabled={loading}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  End Date
+                </label>
+                <input
+                  type="date"
+                  value={exportOptions.endDate}
+                  onChange={(e) => {
+                    setExportOptions({ ...exportOptions, endDate: e.target.value });
+                    setError(null);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  disabled={loading}
+                />
+              </div>
+              {error && (
+                <p className="text-red-600 text-sm">{error}</p>
+              )}
+              <div className="flex gap-2 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsExportModalOpen(false);
+                    setError(null);
+                  }}
+                  className="flex-1 px-3 py-1.5 border border-gray-300 text-sm rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  disabled={loading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleExportExpenses}
+                  className="flex-1 px-3 py-1.5 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                  disabled={loading}
+                >
+                  {loading ? "Exporting..." : "Export"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header Actions */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -791,7 +1031,11 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
               <Upload className="w-4 h-4" />
               Import
             </button>
-            <button className="flex items-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+            <button
+              onClick={() => setIsExportModalOpen(true)}
+              disabled={loading}
+              className="flex items-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <Download className="w-4 h-4" />
               Export
             </button>
@@ -801,7 +1045,6 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
 
       {/* Analytics Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Spending by Category Chart */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">
@@ -857,7 +1100,6 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
           </div>
         </div>
 
-        {/* Spending Trends */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">
@@ -904,7 +1146,6 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
         </div>
       </div>
 
-      {/* Category Budget Overview */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
           Category Budgets
@@ -912,7 +1153,7 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {categoryData.length > 0 ? (
             categoryData.map((category, index) => {
-              const budget = 500; // Mock budget (replace with API data)
+              const budget = 500;
               const spent = category.value;
               const percentage = Math.min((spent / budget) * 100, 100);
               const remaining = Math.max(budget - spent, 0);
@@ -953,14 +1194,11 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
         </div>
       </div>
 
-      {/* Transactions Section */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
             All Transactions
           </h2>
-
-          {/* Filters and Search */}
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -984,7 +1222,7 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
               <option value="Electronics">Electronics</option>
               <option value="Utilities">Utilities</option>
               <option value="Clothing">Clothing</option>
-              <option value="Healthcare">Health</option>
+              <option value="Health">Health</option>
               <option value="Education">Education</option>
               <option value="Others">Others</option>
             </select>
@@ -999,19 +1237,18 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
           </div>
         </div>
 
-        {/* Transactions Table */}
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200">
                 <th className="text-left py-3 px-2 text-sm font-medium text-gray-600">
-                  Transaction
+                  Date
+                </th>
+                <th className="text-left py-3 px-2 text-sm font-medium text-gray-600">
+                  Description
                 </th>
                 <th className="text-left py-3 px-2 text-sm font-medium text-gray-600">
                   Category
-                </th>
-                <th className="text-left py-3 px-2 text-sm font-medium text-gray-600">
-                  Date
                 </th>
                 <th className="text-right py-3 px-2 text-sm font-medium text-gray-600">
                   Amount
@@ -1025,6 +1262,9 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
               {filteredTransactions.length > 0 ? (
                 filteredTransactions.map((transaction) => (
                   <tr key={transaction.id} className="hover:bg-gray-50">
+                    <td className="py-4 px-2 text-sm text-gray-600">
+                      {new Date(transaction.date).toLocaleDateString("en-US")}
+                    </td>
                     <td className="py-4 px-2">
                       <div className="font-medium text-gray-900">
                         {transaction.name}
@@ -1034,9 +1274,6 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                         {transaction.category}
                       </span>
-                    </td>
-                    <td className="py-4 px-2 text-sm text-gray-600">
-                      {new Date(transaction.date).toLocaleDateString("en-US")}
                     </td>
                     <td className="py-4 px-2 text-right">
                       <span
@@ -1083,7 +1320,6 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
           </table>
         </div>
 
-        {/* Pagination */}
         <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
           <p className="text-sm text-gray-600">
             Showing 1 to {filteredTransactions.length} of{" "}
@@ -1103,7 +1339,6 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
         </div>
       </div>
 
-      {/* Add Expense Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
@@ -1158,7 +1393,7 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
                   <option value="Electronics">Electronics</option>
                   <option value="Utilities">Utilities</option>
                   <option value="Clothing">Clothing</option>
-                  <option value="Healthcare">Health</option>
+                  <option value="Health">Health</option>
                   <option value="Education">Education</option>
                   <option value="Others">Others</option>
                 </select>
@@ -1226,7 +1461,6 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
         </div>
       )}
 
-      {/* Edit Expense Modal */}
       {isEditModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
@@ -1284,7 +1518,7 @@ const ExpensesContent = ({ recentTransactions = [], topCategories = [], onDataCh
                   <option value="Electronics">Electronics</option>
                   <option value="Utilities">Utilities</option>
                   <option value="Clothing">Clothing</option>
-                  <option value="Healthcare">Health</option>
+                  <option value="Health">Health</option>
                   <option value="Education">Education</option>
                   <option value="Others">Others</option>
                 </select>
