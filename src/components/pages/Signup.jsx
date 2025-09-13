@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Logo from "./Logo";
-import AlertMessage from "./ui/AlertMessage";
-import FormInput from "./ui/FormInput";
-import PasswordInput from "./ui/PasswordInput";
-import GoogleAuthButton from "./ui/GoogleAuthButton";
-import getPasswordStrength from "../utils/passwordUtils";
+import Logo from "../common/Logo";
+import AlertMessage from "../common/AlertMessage";
+import FormInput from "../common/FormInput";
+import PasswordInput from "../common/PasswordInput";
+import GoogleAuthButton from "../auth/GoogleAuthButton";
+import getPasswordStrength from "../../utils/passwordUtils";
 
 function Signup() {
   const navigate = useNavigate();

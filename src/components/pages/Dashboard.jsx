@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { Menu, X, Bell, User, LogOut, Wallet, CreditCard, TrendingUp, DollarSign } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import Sidebar from './ui/Sidebar';
-import DashboardContent from './ui/DashboardContent';
-import ExpensesContent from './ui/ExpensesContent';
-import AnalyticsContent from './ui/AnalyticsContent';
+import Sidebar from '../layout/SideBar';
+import DashboardContent from '../dashboard/DashboardContent';
+import ExpensesContent from '../expenses/ExpensesContent';
+import AnalyticsContent from '../analytics/AnalyticsContent';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');

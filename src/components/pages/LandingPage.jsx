@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { AccountBalanceWallet, BarChart, Security, Menu, Close } from "@mui/icons-material";
-import Logo from "./Logo";
+import Logo from "../common/Logo";
 
 const LandingPage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

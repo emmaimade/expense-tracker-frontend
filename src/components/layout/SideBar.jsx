@@ -1,5 +1,5 @@
 import { Home, CreditCard, BarChart3, Settings } from 'lucide-react';
-import Logo from '../Logo';
+import Logo from '../common/Logo';
 
 const Sidebar = ({ activeTab, setActiveTab, setIsSidebarOpen, className = "" }) => {
   const sidebarItems = [
