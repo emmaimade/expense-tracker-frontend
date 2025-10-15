@@ -33,9 +33,10 @@ export const expenseService = {
       endpoint = `/expense/${rangeType}`;
     }
     
-    const data = await apiService.get(endpoint);
+    const response = await apiService.get(endpoint);
+    const transactionsArray = response?.data?.expenses || response?.expenses || response?.data?.transactions || [];
     
-    return data.expenses?.map(tx => ({
+    return transactionsArray?.filter(tx => tx !== null && tx !== undefined).map(tx => ({
       id: tx._id,
       name: tx.description || 'Unknown',
       category: tx.category || 'Uncategorized',
