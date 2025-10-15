@@ -1,9 +1,32 @@
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
-const BudgetOverview = ({ totalSpentThisMonth, budgetLimit = 4000 }) => {
-  const budgetPercentage = (parseFloat(totalSpentThisMonth || '0') / budgetLimit) * 100;
-  const remainingBudget = budgetLimit - parseFloat(totalSpentThisMonth || '0');
-  const isOverBudget = budgetPercentage > 100;
+const BudgetOverview = ({ budgetData }) => {
+  // ✅ Check if budgetData exists (loading state handled by parent)
+  if (!budgetData) {
+    return (
+      <div className="text-center py-10 bg-white rounded-xl shadow-sm border border-gray-100">
+        <p className="text-indigo-600 font-medium">Loading Budget Data...</p>
+      </div>
+    );
+  }
+
+  // ✅ Destructure budget data from props
+  const {
+    totalSpentThisMonth,
+    budgetLimit,
+    totalRemaining,
+    percentageUsed,
+    isOverBudget
+  } = budgetData;
+
+  // ✅ Convert to numbers and provide defaults
+  const totalSpent = Number(totalSpentThisMonth) || 0;
+  const limit = Number(budgetLimit) || 0;
+  const remaining = Number(totalRemaining) || 0;
+  const percentage = Number(percentageUsed) || 0;
+  
+  // ✅ Handle case where budgetLimit might be 0
+  const progressWidth = limit === 0 ? 0 : Math.min(percentage, 100);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -28,13 +51,16 @@ const BudgetOverview = ({ totalSpentThisMonth, budgetLimit = 4000 }) => {
             isOverBudget ? "text-red-600" : "text-gray-900"
           }`}
         >
-          ${totalSpentThisMonth}
+          ${totalSpent.toLocaleString(undefined, { 
+            minimumFractionDigits: 2, 
+            maximumFractionDigits: 2 
+          })}
         </p>
         <p className="text-sm text-gray-500 mt-1">
           Total spent •{" "}
           {isOverBudget
             ? "Over budget"
-            : `$${remainingBudget.toFixed(2)} remaining`}
+            : `$${remaining.toFixed(2)} remaining`}
         </p>
       </div>
 
@@ -45,7 +71,7 @@ const BudgetOverview = ({ totalSpentThisMonth, budgetLimit = 4000 }) => {
             Monthly Budget Progress
           </h3>
           <span className="text-sm text-gray-600">
-            ${totalSpentThisMonth} / ${budgetLimit.toLocaleString()}
+            ${totalSpent.toLocaleString()} / ${limit.toLocaleString()}
           </span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
@@ -53,12 +79,12 @@ const BudgetOverview = ({ totalSpentThisMonth, budgetLimit = 4000 }) => {
             className={`h-4 rounded-full transition-all duration-500 ${
               isOverBudget
                 ? "bg-gradient-to-r from-red-500 to-red-600"
-                : budgetPercentage > 80
+                : percentage > 80
                 ? "bg-gradient-to-r from-yellow-500 to-orange-500"
                 : "bg-gradient-to-r from-indigo-500 to-indigo-600"
             }`}
             style={{
-              width: `${Math.min(budgetPercentage, 100)}%`,
+              width: `${progressWidth}%`,
             }}
           ></div>
         </div>
@@ -67,12 +93,12 @@ const BudgetOverview = ({ totalSpentThisMonth, budgetLimit = 4000 }) => {
             className={`text-sm font-medium ${
               isOverBudget
                 ? "text-red-600"
-                : budgetPercentage > 80
+                : percentage > 80
                 ? "text-orange-600"
                 : "text-indigo-600"
             }`}
           >
-            {budgetPercentage.toFixed(1)}% of budget used
+            {percentage.toFixed(1)}% of budget used
           </p>
           {isOverBudget && (
             <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full font-medium">
