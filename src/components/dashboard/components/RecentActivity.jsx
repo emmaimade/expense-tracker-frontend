@@ -26,7 +26,7 @@ const RecentActivity = ({ weeklyTransactions = [], onViewAllExpenses, onAddExpen
         const categoryCount = safeTransactions
           .filter(tx => tx && tx.type === 'expense' && tx.category)
           .reduce((acc, tx) => {
-            acc[tx.category] = (acc[tx.category] || 0) + 1;
+            acc[tx.category.name] = (acc[tx.category.name] || 0) + 1;
             return acc;
           }, {});
 
