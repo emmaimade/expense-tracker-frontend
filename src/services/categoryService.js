@@ -2,6 +2,7 @@ import { apiService } from './apiService';
 
 export const categoryService = {
   async createCategory(categoryData) {
+    // categoryData should include { name: '...', userId: '...' }
     return apiService.post('/category/', categoryData);
   },
 
