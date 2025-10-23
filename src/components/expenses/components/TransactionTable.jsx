@@ -13,7 +13,8 @@ const TransactionTable = ({
   onDateRangeClick, 
   loading = false,
   onClearDateRange,
-  isUsingCustomRange 
+  isUsingCustomRange,
+  categories = []
 }) => {
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState('desc');
@@ -21,15 +22,10 @@ const TransactionTable = ({
   const [itemsPerPage] = useState(10);
 
   // Filter and search transactions (using props)
-  const filteredTransactions = transactions.filter(transaction => {
-    const matchesSearch = transaction.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         transaction.category?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = filterBy === 'all' || transaction.category?.toLowerCase() === filterBy.toLowerCase();
-    return matchesSearch && matchesCategory;
-  });
+ const transactionsToProcess = transactions;
 
   // Sort transactions
-  const sortedTransactions = [...filteredTransactions].sort((a, b) => {
+  const sortedTransactions = [...transactionsToProcess].sort((a, b) => {
     let aValue, bValue;
     
     switch (sortBy) {
@@ -91,7 +87,11 @@ const TransactionTable = ({
     );
   };
 
-  const categories = ['all', 'Food', 'Transportation', 'Leisure', 'Electronics', 'Utilities', 'Clothing', 'Health', 'Education', 'Others'];
+  // Generate the list for the dropdown using the dynamic categories prop
+  const categoryOptions = [
+    'all', 
+    ...categories.map(cat => cat.name)
+  ];
 
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
@@ -123,7 +123,8 @@ const TransactionTable = ({
               onChange={(e) => setFilterBy(e.target.value)}
               className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white"
             >
-              {categories.map((category) => (
+              {/* UPDATED: Map over the dynamic categoryOptions */}
+              {categoryOptions.map((category) => (
                 <option key={category} value={category}>
                   {category === "all" ? "All Categories" : category}
                 </option>
@@ -242,7 +243,9 @@ const TransactionTable = ({
                   </td>
                   <td className="py-4 px-2">
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                      {transaction.category || "Uncategorized"}
+                      {typeof transaction.category === "object"
+                        ? transaction.category?.name || "Uncategorized"
+                        : transaction.category || "Uncategorized"}
                     </span>
                   </td>
                   <td className="py-4 px-2 text-right">
