@@ -1,32 +1,42 @@
-import { useState, useEffect } from 'react';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { useState, useEffect } from "react";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-import ExpensesHeader from './components/ExpensesHeader';
-import AnalyticsDashboard from './components/AnalyticsDashboard';
-import CategoryBudgets from './components/CategoryBudgets';
-import TransactionTable from './components/TransactionTable';
-import AddExpenseModal from './modals/AddExpenseModal';
-import EditExpenseModal from './modals/EditExpenseModal';
-import DateRangeModal from './modals/DateRangeModal';
-import ExportModal from './modals/ExportModal';
-import LoadingOverlay from '../common/LoadingOverlay';
+import ExpensesHeader from "./components/ExpensesHeader";
+import TransactionTable from "./components/TransactionTable";
+import AddExpenseModal from "./modals/AddExpenseModal";
+import EditExpenseModal from "./modals/EditExpenseModal";
+import DateRangeModal from "./modals/DateRangeModal";
+import ExportModal from "./modals/ExportModal";
+import LoadingOverlay from "../common/LoadingOverlay";
 
-import { useExpenseActions } from './hooks/useExpenseActions';
-import { useFilterAndSearch } from './hooks/useFilterAndSearch';
-import { useExpenseData } from './hooks/useExpenseData';
+import { useExpenseActions } from "./hooks/useExpenseActions";
+import { useFilterAndSearch } from "./hooks/useFilterAndSearch";
+import { useExpenseData } from "./hooks/useExpenseData";
+import { useCategories } from "../expenses/hooks/useCategories";
 
-const ExpensesContent = ({ recentTransactions = [], onDataChange }) => {
+const ExpensesContent = ({ recentTransactions = [], onDataChange, userId }) => {
+  console.log('recentTransactions:', recentTransactions);
+  console.log('🚀 ExpensesContent rendered with transactions:', recentTransactions.length);
+  console.log('📋 Sample transaction:', recentTransactions[0]);
+  console.log('User ID:', userId); // Debug userId
+
   // Modal states
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDateRangeModalOpen, setIsDateRangeModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  
+
   // UI states
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
+
+  const {
+    categories,
+    loading: categoryLoading,
+    error: categoryError,
+  } = useCategories();
 
   // Custom hooks for data management
   const expenseData = useExpenseData(recentTransactions);
@@ -35,20 +45,23 @@ const ExpensesContent = ({ recentTransactions = [], onDataChange }) => {
     monthlyData,
     customDateRange,
     setCustomDateRange,
-    dateRange,
-    setDateRange,
+    dateRangeType,
+    setDateRangeType,
     isUsingCustomRange,
     resetToDefault,
-    getDateFilteredTransactions
+    filteredTransactions: dateFilteredTransactions,
   } = expenseData;
 
   // Filter transactions based on current view
-  const displayTransactions = isUsingCustomRange 
-    ? getDateFilteredTransactions(dateRange)
-    : recentTransactions;
+  const displayTransactions = dateFilteredTransactions;
 
-  const { filteredTransactions, searchTerm, setSearchTerm, filterBy, setFilterBy } = 
-    useFilterAndSearch(displayTransactions);
+  const {
+    filteredTransactions,
+    searchTerm,
+    setSearchTerm,
+    filterBy,
+    setFilterBy,
+  } = useFilterAndSearch(displayTransactions);
 
   // Expense actions with proper date range management
   const expenseActions = useExpenseActions({
@@ -61,13 +74,16 @@ const ExpensesContent = ({ recentTransactions = [], onDataChange }) => {
     setIsDateRangeModalOpen,
     customDateRange,
     setCustomDateRange,
-    resetToDefault
+    resetToDefault,
   });
+
+  const overallLoading = expenseActions.loading || categoryLoading;
+  const overallError = expenseActions.error || categoryError;
 
   // Reset to default state on component mount
   useEffect(() => {
     resetToDefault();
-  }, []);
+  }, [resetToDefault]);
 
   const handleEditTransaction = (transaction) => {
     setSelectedTransaction(transaction);
@@ -89,7 +105,7 @@ const ExpensesContent = ({ recentTransactions = [], onDataChange }) => {
         pauseOnHover
       />
 
-      {loading && <LoadingOverlay />}
+      {overallLoading && <LoadingOverlay />}
 
       <ExpensesHeader
         onAddExpense={() => setIsAddModalOpen(true)}
@@ -125,16 +141,6 @@ const ExpensesContent = ({ recentTransactions = [], onDataChange }) => {
           </div>
         )}
 
-      <AnalyticsDashboard
-        categoryData={categoryData}
-        monthlyData={monthlyData}
-        dateRange={dateRange}
-        setDateRange={setDateRange}
-        customDateRange={customDateRange}
-      />
-
-      <CategoryBudgets categoryData={expenseData.categoryData} />
-
       <TransactionTable
         transactions={filteredTransactions}
         searchTerm={searchTerm}
@@ -147,6 +153,7 @@ const ExpensesContent = ({ recentTransactions = [], onDataChange }) => {
         loading={loading}
         isUsingCustomRange={isUsingCustomRange}
         onClearDateRange={resetToDefault}
+        categories={categories}
       />
 
       {/* Modals */}
@@ -155,7 +162,9 @@ const ExpensesContent = ({ recentTransactions = [], onDataChange }) => {
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
           onSubmit={expenseActions.handleAddExpense}
-          loading={loading}
+          loading={overallLoading}
+          categories={categories}
+          userId={userId}
         />
       )}
 
@@ -168,7 +177,9 @@ const ExpensesContent = ({ recentTransactions = [], onDataChange }) => {
           }}
           onSubmit={expenseActions.handleUpdateExpense}
           transaction={selectedTransaction}
-          loading={loading}
+          loading={overallLoading}
+          categories={categories}
+          userId={userId}
         />
       )}
 
