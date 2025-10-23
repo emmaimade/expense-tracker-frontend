@@ -1,19 +1,20 @@
 import { useState, useEffect, useRef } from 'react';
-import { Menu, X, Bell, User, LogOut, Wallet, CreditCard, TrendingUp, DollarSign } from 'lucide-react';
+import { Menu, X, Bell, User, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../layout/SideBar';
 import DashboardContent from '../dashboard/DashboardContent';
 import ExpensesContent from '../expenses/ExpensesContent';
 import AnalyticsContent from '../analytics/AnalyticsContent';
+import SettingsContent from '../settings/SettingsContent';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [userId, setUserId] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState('');
   const [initials, setInitials] = useState('JD');
   const [recentTransactions, setRecentTransactions] = useState([]);
-  const [totalSpentThisMonth, setTotalSpentThisMonth] = useState('0.00');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
@@ -22,7 +23,6 @@ const Dashboard = () => {
   const getInitials = (username) => {
     if (!username) return 'JD';
     const nameParts = username.trim().split(' ');
-    console.log(nameParts);
     if (nameParts.length === 1) {
       return username.slice(0, 2).toUpperCase();
     }
@@ -32,13 +32,21 @@ const Dashboard = () => {
     ).toUpperCase();
   };
 
-  // Fetch username from localStorage on component mount
+  // Fetch userId and username from localStorage on component mount
   useEffect(() => {
     const username = localStorage.getItem('user');
     if (username) {
       try {
         const parsedUser = JSON.parse(username);
         setInitials(getInitials(parsedUser?.name));
+
+        const id = parsedUser?.id || parsedUser?._id || parsedUser?.userId || null;
+        setUserId(id);
+
+        if (!id) {
+          console.warn('No userId found in localStorage user data:', parsedUser);
+        }
+        // Store userId in state or use directly (here, we'll pass it as a prop)
       } catch (error) {
         console.error('Error parsing user data:', error);
         setInitials('JD');
@@ -56,6 +64,7 @@ const Dashboard = () => {
     }
 
     try {
+      setIsLoading(true);
       console.log("Fetching transactions...");
 
       const response = await fetch(
@@ -77,89 +86,61 @@ const Dashboard = () => {
 
       const data = await response.json();
       console.log("Transactions data:", data);
-      console.log("type of data", typeof data);
-      console.log("type of data.expenses", typeof data.expenses);
+
+      // Access expenses from data.data.expenses
+      const expenses = data.data?.expenses || [];
+      console.log("Raw expenses data:", expenses);
+      console.log(
+        "Type of expenses data:",
+        typeof expenses,
+        Array.isArray(expenses)
+      );
 
       // Transform data to match expected format
       let transformedData = [];
 
-      if (typeof data.expenses === "object" && data.expenses !== null) {
-        
-        if (data.expenses.length > 0) {
-          transformedData = Object.values(data.expenses).map((tx) => {
-            return {
-              id: tx._id || null,
-              name: tx.description || "Unknown",
-              category: tx.category || "Uncategorized",
-              amount: tx.amount || 0,
-              date: tx.date || new Date().toISOString(),
-              type: tx.type || "expense",
-            };
-          });
-        }
+      if (Array.isArray(expenses)) {
+        transformedData = expenses.map((tx) => ({
+          id: tx._id || null,
+          name: tx.description || "Unknown",
+          category: tx.category?.name || "Uncategorized",
+          amount: tx.amount || 0,
+          date: tx.date || new Date().toISOString(),
+          type: tx.type || "expense",
+        }));
       } else {
-        console.warn("Expenses is not an object or is null:", data.expenses);
+        console.warn("Expenses is not an array:", expenses);
         transformedData = [];
       }
 
-      console.log("Transformed data:", transformedData);
+      console.log(
+        "✅ Transformed data:",
+        transformedData.length,
+        "transactions"
+      );
+      console.log("📋 Sample transaction:", transformedData[0]);
       setRecentTransactions(transformedData);
     } catch (error) {
       console.error("Error fetching transactions:", error);
       setRecentTransactions([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Fetch total spent this month from backend
-  const fetchTotalSpent = async () => {
-    const authToken = localStorage.getItem('authToken');
-    if (!authToken) {
-      console.error('No auth token found');
-      setTotalSpentThisMonth('0.00');
-      return;
-    }
-
-    try {
-      console.log('Fetching monthly total...');
-      
-      const response = await fetch('https://expense-tracker-api-hvss.onrender.com/expense/monthly', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      console.log('Monthly total response status:', response.status);
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch monthly total: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('Monthly total data:', data);
-      
-      // Handle different response formats
-      const total = typeof data === 'number' ? data : (data.totalExpenses || data.amount || 0);
-      setTotalSpentThisMonth(parseFloat(total).toFixed(2));
-    } catch (error) {
-      console.error('Error fetching monthly total:', error);
-      setTotalSpentThisMonth('0.00');
-    }
-  };
-  
   // Initial data fetch
   useEffect(() => {
     fetchTransactions();
-    fetchTotalSpent();
   }, []);
 
   // Function to refresh all data (called after successful operations)
   const refreshData = async (newTransactions) => {
     if (newTransactions) {
+      console.log("📊 Refreshing with new transactions:", newTransactions.length);
       setRecentTransactions(newTransactions);
     } else {
-      await Promise.all([fetchTransactions(), fetchTotalSpent()]);
+      console.log("🔄 Fetching all transactions...");
+      await fetchTransactions();
     }
   };
 
@@ -169,59 +150,33 @@ const Dashboard = () => {
     console.log(`Active tab set to: ${tab}`);
   };
 
-  // Mock data for dashboard - you can replace with real API data
-  const stats = [
-    {
-      title: 'Total Balance',
-      amount: '$12,847.50',
-      change: '+2.5%',
-      trend: 'up',
-      icon: Wallet,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50'
-    },
-    {
-      title: 'Monthly Expenses',
-      amount: `$${totalSpentThisMonth}`,
-      change: '-12%',
-      trend: 'down',
-      icon: CreditCard,
-      color: 'text-red-600',
-      bgColor: 'bg-red-50'
-    },
-    {
-      title: 'Monthly Income',
-      amount: '$5,420.00',
-      change: '+8.3%',
-      trend: 'up',
-      icon: TrendingUp,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50'
-    },
-    {
-      title: 'Savings Goal',
-      amount: '$2,172.20',
-      change: '68% Complete',
-      trend: 'up',
-      icon: DollarSign,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50'
-    }
-  ];
+  // Calculate top spending categories for CURRENT MONTH (not hardcoded)
+  const getCurrentMonthCategories = () => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+    const currentYearMonth = `${currentYear}-${currentMonth}`;
 
-  // Calculate top spending categories
-  const topCategories = Object.entries(
-    recentTransactions
-      .filter(tx => tx.type === 'expense' && tx.date && tx.date.startsWith('2025-08'))
-      .reduce((acc, tx) => {
-        const category = tx.category || 'Other';
-        acc[category] = (acc[category] || 0) + Math.abs(tx.amount || 0);
-        return acc;
-      }, {})
-  )
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 3)
-    .map(([category, amount]) => ({ category, amount: amount.toFixed(2) }));
+    return Object.entries(
+      recentTransactions
+        .filter(tx => {
+          if (tx.type !== 'expense' || !tx.date) return false;
+          // Check if transaction is from current month
+          const txYearMonth = tx.date.substring(0, 7); // Gets "YYYY-MM"
+          return txYearMonth === currentYearMonth;
+        })
+        .reduce((acc, tx) => {
+          const category = tx.category || 'Other';
+          acc[category] = (acc[category] || 0) + Math.abs(tx.amount || 0);
+          return acc;
+        }, {})
+    )
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 3)
+      .map(([category, amount]) => ({ category, amount: amount.toFixed(2) }));
+  };
+
+  const topCategories = getCurrentMonthCategories();
 
   // Update date and time every second
   useEffect(() => {
@@ -326,7 +281,7 @@ const Dashboard = () => {
               className="flex items-center space-x-4 relative"
               ref={dropdownRef}
             >
-              <div className="text-sm text-gray-600">{currentDateTime}</div>
+              <div className="text-sm text-gray-600 hidden sm:block">{currentDateTime}</div>
               <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
                 <Bell className="w-5 h-5" />
               </button>
@@ -366,8 +321,6 @@ const Dashboard = () => {
         <main className="p-4 lg:p-6">
           {activeTab === "dashboard" && (
             <DashboardContent
-              stats={stats}
-              totalSpentThisMonth={totalSpentThisMonth}
               topCategories={topCategories}
               setActiveTab={handleSetActiveTab}
               onDataChange={refreshData}
@@ -379,24 +332,17 @@ const Dashboard = () => {
               topCategories={topCategories}
               setActiveTab={handleSetActiveTab}
               onDataChange={refreshData}
+              userId={userId}
             />
           )}
           {activeTab === "analytics" && (
             <AnalyticsContent 
               setActiveTab={handleSetActiveTab}
               recentTransactions={recentTransactions}
-              totalSpentThisMonth={totalSpentThisMonth}
             />
           )}
           {activeTab === "settings" && (
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                Settings
-              </h2>
-              <p className="text-gray-600">
-                Settings and preferences content would go here...
-              </p>
-            </div>
+            <SettingsContent />
           )}
         </main>
       </div>
