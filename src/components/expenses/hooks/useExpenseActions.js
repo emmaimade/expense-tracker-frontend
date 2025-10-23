@@ -83,7 +83,7 @@ export const useExpenseActions = ({
 
         if (onDataChange) {
           // Trigger refresh with default data
-          onDataChange();
+          onDataChange([]);
         }
 
         setIsDateRangeModalOpen(false);
@@ -118,13 +118,26 @@ export const useExpenseActions = ({
         return;
       }
 
-      // Fetch filtered data
       const data = await expenseService.getTransactionsByDateRange(
         rangeType,
         effectiveRange
       );
+      // Transform data to ensure category is a string
+      const transformedData = Array.isArray(data)
+        ? data.map((tx) => ({
+            id: tx._id || null,
+            name: tx.name || "Unknown",
+            category:
+              typeof tx.category === "object"
+                ? tx.category?.name || "Uncategorized"
+                : tx.category || "Uncategorized",
+            amount: tx.amount || 0,
+            date: tx.date || new Date().toISOString(),
+            type: tx.type || "expense",
+          }))
+        : [];
 
-      if (data.length === 0) {
+      if (transformedData.length === 0) {
         const rangeText = `${new Date(
           effectiveRange.startDate
         ).toLocaleDateString()} - ${new Date(
@@ -139,10 +152,14 @@ export const useExpenseActions = ({
         ).toLocaleDateString()} - ${new Date(
           effectiveRange.endDate
         ).toLocaleDateString()}`;
-        toast.success(`Loaded ${data.length} transactions for ${rangeText}`);
+        toast.success(
+          `Loaded ${transformedData.length} transactions for ${rangeText}`
+        );
       }
 
-      if (onDataChange) onDataChange(data);
+      console.log("Transformed transactions:", transformedData);
+      console.log("Sample transaction:", transformedData[0]);
+      if (onDataChange) onDataChange(transformedData);
       setIsDateRangeModalOpen(false);
     } catch (error) {
       console.error("Error fetching transactions:", error);
