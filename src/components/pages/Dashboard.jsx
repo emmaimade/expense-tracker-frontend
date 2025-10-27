@@ -5,6 +5,7 @@ import Sidebar from '../layout/SideBar';
 import DashboardContent from '../dashboard/DashboardContent';
 import ExpensesContent from '../expenses/ExpensesContent';
 import AnalyticsContent from '../analytics/AnalyticsContent';
+import BudgetsContent from '../budgets/BudgetsContent';
 import SettingsContent from '../settings/SettingsContent';
 
 const Dashboard = () => {
@@ -272,6 +273,8 @@ const Dashboard = () => {
                   {activeTab === "expenses" && "Track and manage your expenses"}
                   {activeTab === "analytics" &&
                     "Analyze your spending patterns"}
+                  {activeTab === "budgets" &&
+                    "Set and track your monthly budget"}
                   {activeTab === "settings" &&
                     "Manage your account preferences"}
                 </p>
@@ -281,7 +284,9 @@ const Dashboard = () => {
               className="flex items-center space-x-4 relative"
               ref={dropdownRef}
             >
-              <div className="text-sm text-gray-600 hidden sm:block">{currentDateTime}</div>
+              <div className="text-sm text-gray-600 hidden sm:block">
+                {currentDateTime}
+              </div>
               <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
                 <Bell className="w-5 h-5" />
               </button>
@@ -290,7 +295,9 @@ const Dashboard = () => {
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 aria-label="User menu"
               >
-                <span className="text-white text-sm font-medium">{initials}</span>
+                <span className="text-white text-sm font-medium">
+                  {initials}
+                </span>
               </div>
               {isDropdownOpen && (
                 <div className="absolute top-10 right-0 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
@@ -336,13 +343,19 @@ const Dashboard = () => {
             />
           )}
           {activeTab === "analytics" && (
-            <AnalyticsContent 
+            <AnalyticsContent
               setActiveTab={handleSetActiveTab}
               recentTransactions={recentTransactions}
             />
           )}
+          {activeTab === "budgets" && (
+            <BudgetsContent recentTransactions={recentTransactions} />
+          )}
           {activeTab === "settings" && (
-            <SettingsContent />
+            <SettingsContent
+              setActiveTab={handleSetActiveTab}
+              userId={userId}
+            />
           )}
         </main>
       </div>

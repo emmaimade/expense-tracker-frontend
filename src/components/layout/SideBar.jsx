@@ -1,12 +1,13 @@
-import { Home, CreditCard, BarChart3, Settings } from 'lucide-react';
+import { Home, CreditCard, BarChart3, Target, Settings } from 'lucide-react';
 import Logo from '../common/Logo';
 
 const Sidebar = ({ activeTab, setActiveTab, setIsSidebarOpen, className = "" }) => {
   const sidebarItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home },
-    { id: 'expenses', label: 'Expenses', icon: CreditCard },
-    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: "dashboard", label: "Dashboard", icon: Home },
+    { id: "expenses", label: "Expenses", icon: CreditCard },
+    { id: "analytics", label: "Analytics", icon: BarChart3 },
+    { id: "budgets", label: "Budgets", icon: Target },
+    { id: "settings", label: "Settings", icon: Settings },
   ];
 
   return (
