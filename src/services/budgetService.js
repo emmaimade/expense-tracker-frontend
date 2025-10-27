@@ -6,7 +6,24 @@ export const budgetService = {
    * @returns {Promise<object>} The budget overview data.
    */
   async getBudgetOverview() {
-    return apiService.get(`/budget/overview`);
+    try {
+      const response = await apiService.get(`/budget/overview`);
+      console.log("Raw budget overview response:", response.data);
+      const { data } = response;
+      const normalizedCategories = (data?.categories || []).map((category) => ({
+        ...category,
+        amount: category.amount ?? category.budget ?? 0, // Prioritize amount, then budget
+        id: category.id ?? category._id, // Ensure id is set
+        categoryId: category.category, // Map category to categoryId
+      }));
+      return {
+        ...response,
+        data: { ...data, categories: normalizedCategories },
+      };
+    } catch (error) {
+      console.error("Error fetching budget overview:", error);
+      return { data: { categories: [] } };
+    }
   },
 
   /**
@@ -27,10 +44,49 @@ export const budgetService = {
 
   /**
    * Fetches any current budget alerts (e.g., close to limit, over budget).
-   * @returns {Promise<object[]>} A list of budget alert objects.
+   * @returns {Promise<object>} An object with a data property containing an array of budget alert objects.
    */
   async getBudgetAlerts() {
-    return apiService.get(`/budget/alerts`);
+    try {
+      const response = await apiService.get(`/budget/alerts`);
+      const { data } = response;
+
+      // Normalize alerts into a single array
+      const normalizedAlerts = [
+        ...(data?.nearLimit || []).map((alert) => ({
+          severity: alert.severity || "medium",
+          message:
+            alert.message ||
+            `Approaching budget limit for ${
+              alert.category.name
+            } (${alert.percentageUsed.toFixed(2)}% used)`,
+          suggestion:
+            alert.suggestion || "Consider reducing spending in this category.",
+          ...alert,
+        })),
+        ...(data?.overBudget || []).map((alert) => ({
+          severity: alert.severity || "high",
+          message: alert.message || `Over budget for ${alert.category.name}`,
+          suggestion:
+            alert.suggestion || "Review expenses to stay within budget.",
+          ...alert,
+        })),
+      ];
+
+      console.log("Normalized Budget Alerts:", normalizedAlerts);
+
+      return {
+        ...response,
+        data: normalizedAlerts,
+      };
+    } catch (error) {
+      console.error("Error fetching budget alerts:", error);
+      return {
+        success: false,
+        message: "Failed to fetch budget alerts",
+        data: [],
+      };
+    }
   },
 
   /**
