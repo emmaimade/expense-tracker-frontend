@@ -80,11 +80,6 @@ export const useExpenseData = (recentTransactions = []) => {
 
   // Function to filter transactions based on the determined date range
   const getDateFilteredTransactions = useMemo(() => {
-    // Debug logging
-    console.log('🔍 useExpenseData - Input transactions:', recentTransactions.length);
-    console.log('📅 Date range type:', dateRangeType);
-    console.log('📅 Custom date range:', customDateRange);
-
     const { startDate, endDate } = getEffectiveDateRange(dateRangeType);
 
     console.log('📅 Effective date range:', {
@@ -125,19 +120,21 @@ export const useExpenseData = (recentTransactions = []) => {
 
   // 1. Calculate category data for pie chart (Only uses the selected/custom range)
   const categoryData = useMemo(() => {
-    return getDateFilteredTransactions
-      .filter((tx) => tx.type === "expense")
-      .reduce((acc, tx) => {
-        const existing = acc.find((item) => item.name === tx.category);
-        const amount = Math.abs(tx.amount);
-        if (existing) {
-          existing.value += amount;
-        } else {
-          acc.push({ name: tx.category, value: amount });
-        }
-        return acc;
-      }, []);
-  }, [getDateFilteredTransactions]);
+  return getDateFilteredTransactions
+    .filter((tx) => tx.type === "expense")
+    .reduce((acc, tx) => {
+      const categoryName = tx.category?.name || 'Uncategorized';
+      const existing = acc.find((item) => item.name === categoryName);
+      const amount = Math.abs(tx.amount);
+      
+      if (existing) {
+        existing.value += amount;
+      } else {
+        acc.push({ name: categoryName, value: amount });
+      }
+      return acc;
+    }, []);
+}, [getDateFilteredTransactions]);
 
   // 2. Calculate monthly spending data (Uses a fixed 6-month historical view for the bar chart)
   const monthlyData = useMemo(() => {
