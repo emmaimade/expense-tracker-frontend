@@ -116,7 +116,7 @@ const CategoryBudgetsSection = ({
               category.categoryId ||
               category.category;
 
-            const categorySpent = categorySpending[categoryName] || 0;
+            const categorySpent = categorySpending[categoryIdForApi] || 0;
 
             const isEditing =
               isEditingCategory &&
