@@ -8,6 +8,8 @@ import { useMemo } from 'react';
  * @returns {Object} Processed chart data and statistics
  */
 export const useChartData = (categoryData = [], monthlyData = [], timeRange = '6months') => {
+  console.log('🧮 useChartData - Input monthlyData:', monthlyData);
+  
   return useMemo(() => {
     const MONTHS_BACK = { '3months': 3, '6months': 6, '1year': 12 }[timeRange] || 6;
 
@@ -25,59 +27,47 @@ export const useChartData = (categoryData = [], monthlyData = [], timeRange = '6
     while (currentDate <= now) {
       const yearMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
       const displayMonth = currentDate.toLocaleDateString('en-US', { month: 'short' });
+      const shortYear = String(currentDate.getFullYear()).slice(-2);
       
       allMonths.push({
         key: yearMonth,
-        month: displayMonth,
+        displayLabel: `${displayMonth} '${shortYear}`, // e.g., "Jan '25"
         date: new Date(currentDate)
       });
       
       currentDate.setMonth(currentDate.getMonth() + 1);
     }
 
-    // Parse and map monthly data
+    // ✅ FIXED: Parse monthly data by matching YYYY-MM keys
     const monthMap = new Map();
     
     if (Array.isArray(monthlyData)) {
       monthlyData.forEach((m) => {
         if (!m) return;
         
-        const raw = String(m.month || '').trim();
-        if (!raw) return;
+        const monthKey = String(m.month || '').trim();
+        if (!monthKey) return;
 
-        let key;
-        
-        // Try ISO format: YYYY-MM or YYYY-M
-        const iso = raw.match(/^(\d{4})-(\d{1,2})$/);
+        // Match ISO format YYYY-MM or YYYY-M
+        const iso = monthKey.match(/^(\d{4})-(\d{1,2})$/);
         if (iso) {
-          key = `${iso[1]}-${String(iso[2]).padStart(2, '0')}`;
-        } else {
-          // Try to match with generated months by name
-          const matchedMonth = allMonths.find(month => {
-            const longName = month.date.toLocaleDateString('en-US', { month: 'long' });
-            return (
-              month.month.toLowerCase() === raw.toLowerCase() ||
-              longName.toLowerCase() === raw.toLowerCase()
-            );
-          });
-          
-          if (matchedMonth) {
-            key = matchedMonth.key;
-          }
-        }
-
-        if (key) {
+          const normalizedKey = `${iso[1]}-${String(iso[2]).padStart(2, '0')}`;
           const amount = Number(m.amount) || 0;
-          monthMap.set(key, (monthMap.get(key) || 0) + amount);
+          monthMap.set(normalizedKey, (monthMap.get(normalizedKey) || 0) + amount);
         }
       });
     }
 
-    // Build filtered monthly data with padding
+    console.log('🗺️ useChartData - monthMap:', Array.from(monthMap.entries()));
+
+    // Build filtered monthly data with display labels
     const monthlyDataFiltered = allMonths.map((m) => ({
-      month: m.month,
+      month: m.displayLabel, // Display format: "Jan '25"
       amount: monthMap.get(m.key) || 0,
+      key: m.key, // Keep raw key for debugging
     }));
+
+    console.log('📊 useChartData - monthlyDataFiltered:', monthlyDataFiltered);
 
     // Calculate monthly statistics
     const allAmounts = monthlyDataFiltered.map((m) => m.amount);
