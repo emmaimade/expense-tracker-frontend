@@ -11,6 +11,7 @@ export const useExpenseActions = ({
   setIsDateRangeModalOpen,
   customDateRange,
   resetToDefault,
+  applyCustomDateRange,
 }) => {
   const handleAddExpense = async (expenseData) => {
     if (!dateUtils.isDateValid(expenseData.date)) {
@@ -71,6 +72,8 @@ export const useExpenseActions = ({
     rangeType = "custom",
     passedDateRange = null
   ) => {
+    console.log('🔍 fetchCustomDateRangeTransactions called:', { rangeType, passedDateRange });
+    
     setLoading(true);
     setError(null);
 
@@ -79,11 +82,12 @@ export const useExpenseActions = ({
 
       if (rangeType === "reset") {
         // Reset to default state - clear custom range and fetch all transactions
+        console.log('🔄 Resetting date range');
         resetToDefault();
 
         if (onDataChange) {
           // Trigger refresh with default data
-          onDataChange([]);
+          onDataChange();
         }
 
         setIsDateRangeModalOpen(false);
@@ -118,10 +122,13 @@ export const useExpenseActions = ({
         return;
       }
 
+      console.log('📡 Fetching transactions from API for range:', effectiveRange);
+      
       const data = await expenseService.getTransactionsByDateRange(
         rangeType,
         effectiveRange
       );
+      
       // Transform data to ensure category is a string
       const transformedData = Array.isArray(data)
         ? data.map((tx) => ({
@@ -137,21 +144,27 @@ export const useExpenseActions = ({
           }))
         : [];
 
+      console.log('✅ API returned transactions:', transformedData.length);
+
+      // Apply the custom date range to activate filtering in useExpenseData
+      if (applyCustomDateRange) {
+        console.log('📅 Applying custom date range:', effectiveRange);
+        applyCustomDateRange(effectiveRange.startDate, effectiveRange.endDate);
+      } else {
+        console.warn('⚠️ applyCustomDateRange function not provided!');
+      }
+
+      const rangeText = `${new Date(
+        effectiveRange.startDate
+      ).toLocaleDateString()} - ${new Date(
+        effectiveRange.endDate
+      ).toLocaleDateString()}`;
+
       if (transformedData.length === 0) {
-        const rangeText = `${new Date(
-          effectiveRange.startDate
-        ).toLocaleDateString()} - ${new Date(
-          effectiveRange.endDate
-        ).toLocaleDateString()}`;
         toast.info(
           `No transactions found for the selected date range: ${rangeText}`
         );
       } else {
-        const rangeText = `${new Date(
-          effectiveRange.startDate
-        ).toLocaleDateString()} - ${new Date(
-          effectiveRange.endDate
-        ).toLocaleDateString()}`;
         toast.success(
           `Loaded ${transformedData.length} transactions for ${rangeText}`
         );
@@ -159,10 +172,17 @@ export const useExpenseActions = ({
 
       console.log("Transformed transactions:", transformedData);
       console.log("Sample transaction:", transformedData[0]);
-      if (onDataChange) onDataChange(transformedData);
+      
+      // Call onDataChange to refresh the data in Dashboard
+      // This will fetch all transactions, but useExpenseData will filter them
+      if (onDataChange) {
+        console.log('🔄 Triggering data refresh');
+        onDataChange();
+      }
+      
       setIsDateRangeModalOpen(false);
     } catch (error) {
-      console.error("Error fetching transactions:", error);
+      console.error("❌ Error fetching transactions:", error);
       toast.error(`Failed to fetch transactions: ${error.message}`);
       setError(`Failed to fetch transactions: ${error.message}`);
     } finally {

@@ -22,8 +22,16 @@ export const useExpenseData = (recentTransactions = []) => {
     endDate: "",
   });
 
+  console.log('🔧 useExpenseData state:', {
+    dateRangeType,
+    customDateRange,
+    isUsingCustomRange: dateRangeType === "custom",
+    transactionsCount: recentTransactions.length
+  });
+
   // Reset to default function
   const resetToDefault = useCallback(() => {
+    console.log('🔄 Resetting to default');
     setDateRangeType("month");
     setCustomDateRange({
       startDate: "",
@@ -38,6 +46,7 @@ export const useExpenseData = (recentTransactions = []) => {
       customDateRange.startDate &&
       customDateRange.endDate
     ) {
+      console.log('📅 Using custom date range:', customDateRange);
       return {
         startDate: getStartOfDay(customDateRange.startDate),
         endDate: getEndOfDay(customDateRange.endDate),
@@ -71,6 +80,7 @@ export const useExpenseData = (recentTransactions = []) => {
         startDate = new Date(now.getFullYear(), now.getMonth(), 1);
     }
 
+    console.log('📅 Using preset range:', rangeType);
     // Ensure startDate is at the beginning of the day and endDate is 'now'
     return {
       startDate: getStartOfDay(startDate),
@@ -83,58 +93,55 @@ export const useExpenseData = (recentTransactions = []) => {
     const { startDate, endDate } = getEffectiveDateRange(dateRangeType);
 
     console.log('📅 Effective date range:', {
+      type: dateRangeType,
       start: startDate.toISOString(),
-      end: endDate.toISOString()
+      end: endDate.toISOString(),
+      totalTransactions: recentTransactions.length
     });
 
     if (startDate > endDate) {
-      console.warn("Invalid date range: startDate after endDate");
+      console.warn("⚠️ Invalid date range: startDate after endDate");
       return [];
     }
 
     const filtered = recentTransactions.filter((tx) => {
       if (!tx.date) {
-        console.warn('Transaction missing date:', tx);
+        console.warn('⚠️ Transaction missing date:', tx);
         return false;
       }
       
       const txDate = new Date(tx.date);
       const isInRange = txDate >= startDate && txDate <= endDate;
       
-      if (!isInRange) {
-        console.log('❌ Transaction filtered out:', {
-          name: tx.name,
-          date: tx.date,
-          txDate: txDate.toISOString(),
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString()
-        });
-      }
-      
       return isInRange;
     });
 
-    console.log('✅ Filtered transactions:', filtered.length);
+    console.log('✅ Date filtered transactions:', {
+      filtered: filtered.length,
+      total: recentTransactions.length,
+      dateRangeType
+    });
+    
     return filtered;
   }, [recentTransactions, dateRangeType, customDateRange, getEffectiveDateRange]);
 
   // 1. Calculate category data for pie chart (Only uses the selected/custom range)
   const categoryData = useMemo(() => {
-  return getDateFilteredTransactions
-    .filter((tx) => tx.type === "expense")
-    .reduce((acc, tx) => {
-      const categoryName = tx.category?.name || 'Uncategorized';
-      const existing = acc.find((item) => item.name === categoryName);
-      const amount = Math.abs(tx.amount);
-      
-      if (existing) {
-        existing.value += amount;
-      } else {
-        acc.push({ name: categoryName, value: amount });
-      }
-      return acc;
-    }, []);
-}, [getDateFilteredTransactions]);
+    return getDateFilteredTransactions
+      .filter((tx) => tx.type === "expense")
+      .reduce((acc, tx) => {
+        const categoryName = tx.category?.name || 'Uncategorized';
+        const existing = acc.find((item) => item.name === categoryName);
+        const amount = Math.abs(tx.amount);
+        
+        if (existing) {
+          existing.value += amount;
+        } else {
+          acc.push({ name: categoryName, value: amount });
+        }
+        return acc;
+      }, []);
+  }, [getDateFilteredTransactions]);
 
   // 2. Calculate monthly spending data (Uses a fixed 6-month historical view for the bar chart)
   const monthlyData = useMemo(() => {
@@ -197,18 +204,41 @@ export const useExpenseData = (recentTransactions = []) => {
   }, [recentTransactions]);
 
   // Function to update custom date range and set type
-  const updateCustomDateRange = useCallback(
-    (newRange) => {
-      console.log('📅 Updating custom date range:', newRange);
-      setCustomDateRange(newRange);
-      if (newRange.startDate && newRange.endDate) {
-        setDateRangeType("custom");
-      } else {
-        setDateRangeType("month");
-      }
-    },
-    []
-  );
+  const updateCustomDateRange = useCallback((newRange) => {
+    console.log('📅 updateCustomDateRange called with:', newRange);
+    
+    setCustomDateRange(newRange);
+    
+    // Always set to custom if both dates are provided
+    if (newRange.startDate && newRange.endDate) {
+      console.log('✅ Setting dateRangeType to "custom"');
+      setDateRangeType("custom");
+    } else if (!newRange.startDate && !newRange.endDate) {
+      // Only reset if both are empty (clearing filter)
+      console.log('🔄 Resetting dateRangeType to "month"');
+      setDateRangeType("month");
+    }
+    // Don't change type if only one date is set (user is still selecting)
+  }, []);
+
+  // Explicit function to apply custom date range with validation
+  const applyCustomDateRange = useCallback((startDate, endDate) => {
+    console.log('📅 applyCustomDateRange called:', { startDate, endDate });
+    
+    if (!startDate || !endDate) {
+      console.error('❌ Both startDate and endDate are required');
+      return;
+    }
+
+    const newRange = {
+      startDate: typeof startDate === 'string' ? startDate : startDate.toISOString().split('T')[0],
+      endDate: typeof endDate === 'string' ? endDate : endDate.toISOString().split('T')[0],
+    };
+
+    console.log('✅ Setting custom date range:', newRange);
+    setCustomDateRange(newRange);
+    setDateRangeType("custom");
+  }, []);
 
   // Function to apply quick date ranges
   const applyQuickRange = useCallback((rangeType) => {
@@ -235,12 +265,17 @@ export const useExpenseData = (recentTransactions = []) => {
     }
 
     // Set the state as a custom range derived from the quick range calculation
-    setCustomDateRange({
+    const newRange = {
       startDate: startDate.toISOString().split("T")[0],
       endDate: endDate.toISOString().split("T")[0],
-    });
+    };
+    
+    console.log('📅 Applying quick range:', rangeType, newRange);
+    setCustomDateRange(newRange);
     setDateRangeType("custom"); // Flag it as custom
   }, [resetToDefault]);
+
+  const isUsingCustomRange = dateRangeType === "custom";
 
   return {
     categoryData,
@@ -249,7 +284,8 @@ export const useExpenseData = (recentTransactions = []) => {
     setDateRangeType,
     customDateRange,
     setCustomDateRange: updateCustomDateRange,
-    isUsingCustomRange: dateRangeType === "custom",
+    applyCustomDateRange,
+    isUsingCustomRange,
     resetToDefault,
     applyQuickRange,
     filteredTransactions: getDateFilteredTransactions,
