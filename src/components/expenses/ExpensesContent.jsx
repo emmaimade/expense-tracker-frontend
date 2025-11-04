@@ -16,10 +16,6 @@ import { useExpenseData } from "./hooks/useExpenseData";
 import { useCategories } from "../expenses/hooks/useCategories";
 
 const ExpensesContent = ({ recentTransactions = [], onDataChange, userId }) => {
-  console.log('recentTransactions:', recentTransactions);
-  console.log('🚀 ExpensesContent rendered with transactions:', recentTransactions.length);
-  console.log('📋 Sample transaction:', recentTransactions[0]);
-  console.log('User ID:', userId); // Debug userId
 
   // Modal states
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -31,6 +27,7 @@ const ExpensesContent = ({ recentTransactions = [], onDataChange, userId }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const {
     categories,
@@ -41,6 +38,7 @@ const ExpensesContent = ({ recentTransactions = [], onDataChange, userId }) => {
   // Custom hooks for data management
   const expenseData = useExpenseData(recentTransactions);
   const {
+    filteredTransactions: dateFilteredTransactions,
     categoryData,
     monthlyData,
     customDateRange,
@@ -49,21 +47,19 @@ const ExpensesContent = ({ recentTransactions = [], onDataChange, userId }) => {
     setDateRangeType,
     isUsingCustomRange,
     resetToDefault,
-    filteredTransactions: dateFilteredTransactions,
+    applyCustomDateRange,
   } = expenseData;
 
-  // Filter transactions based on current view
-  const displayTransactions = dateFilteredTransactions;
-
+  // Filter transactions based on search and category
   const {
     filteredTransactions,
     searchTerm,
     setSearchTerm,
     filterBy,
     setFilterBy,
-  } = useFilterAndSearch(displayTransactions);
+  } = useFilterAndSearch(dateFilteredTransactions);
 
-  // Expense actions with proper date range management
+  // Expense actions
   const expenseActions = useExpenseActions({
     loading,
     setLoading,
@@ -73,8 +69,8 @@ const ExpensesContent = ({ recentTransactions = [], onDataChange, userId }) => {
     setIsEditModalOpen,
     setIsDateRangeModalOpen,
     customDateRange,
-    setCustomDateRange,
     resetToDefault,
+    applyCustomDateRange,
   });
 
   const overallLoading = expenseActions.loading || categoryLoading;
@@ -127,6 +123,10 @@ const ExpensesContent = ({ recentTransactions = [], onDataChange, userId }) => {
                   {new Date(customDateRange.startDate).toLocaleDateString()} -{" "}
                   {new Date(customDateRange.endDate).toLocaleDateString()}
                 </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  Showing {dateFilteredTransactions.length} of{" "}
+                  {recentTransactions.length} transactions
+                </p>
               </div>
               <button
                 onClick={() => {
@@ -154,6 +154,14 @@ const ExpensesContent = ({ recentTransactions = [], onDataChange, userId }) => {
         isUsingCustomRange={isUsingCustomRange}
         onClearDateRange={resetToDefault}
         categories={categories}
+        itemsPerPage={itemsPerPage}
+        onItemsPerPageChange={setItemsPerPage}
+        onClearFilters={() => {
+          setSearchTerm("");
+          setFilterBy("all");
+          onClearDateRange?.();
+          setItemsPerPage(10);
+        }}
       />
 
       {/* Modals */}
