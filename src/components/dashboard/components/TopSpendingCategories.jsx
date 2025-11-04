@@ -1,17 +1,33 @@
 import { TrendingUp, ShoppingBag, Coffee, Home, Car, MoreHorizontal } from 'lucide-react';
+import { startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 
 const TopSpendingCategories = ({ transactions = [], onViewAnalytics }) => {
-  // Calculate category totals from transactions
-  const getCategoryBreakdown = () => {
-    const categoryMap = transactions
-      .filter(tx => tx.type === 'expense')
-      .reduce((acc, tx) => {
-        const category = tx.category || 'Uncategorized';
-        acc[category.name] = (acc[category.name] || 0) + Math.abs(tx.amount || 0);
-        return acc;
-      }, {});
+  // Helper: Check if a date is in the current month
+  const isCurrentMonth = (date) => {
+    if (!date) return false;
+    const transactionDate = new Date(date);
+    const now = new Date();
+    const monthStart = startOfMonth(now);
+    const monthEnd = endOfMonth(now);
 
-    const total = Object.values(categoryMap).reduce((sum, amount) => sum + amount, 0);
+    return isWithinInterval(transactionDate, { start: monthStart, end: monthEnd });
+  };
+
+  // Filter and calculate category totals for CURRENT MONTH only
+  const getCategoryBreakdown = () => {
+    const currentMonthExpenses = transactions.filter(tx =>
+      tx.type === 'expense' &&
+      isCurrentMonth(tx.date) // Only current month
+    );
+
+    const categoryMap = currentMonthExpenses.reduce((acc, tx) => {
+      const category = tx.category || { name: 'Uncategorized' };
+      const amount = Math.abs(tx.amount || 0);
+      acc[category.name] = (acc[category.name] || 0) + amount;
+      return acc;
+    }, {});
+
+    const total = Object.values(categoryMap).reduce((sum, amt) => sum + amt, 0);
 
     return Object.entries(categoryMap)
       .map(([name, amount]) => ({
@@ -20,12 +36,12 @@ const TopSpendingCategories = ({ transactions = [], onViewAnalytics }) => {
         percentage: total > 0 ? (amount / total) * 100 : 0
       }))
       .sort((a, b) => b.amount - a.amount)
-      .slice(0, 5); // Top 5 categories
+      .slice(0, 5);
   };
 
   const categories = getCategoryBreakdown();
 
-  // Icon mapping for common categories
+  // Icon & Color helpers (unchanged)
   const getCategoryIcon = (categoryName) => {
     const iconMap = {
       'Food': Coffee,
@@ -37,7 +53,6 @@ const TopSpendingCategories = ({ transactions = [], onViewAnalytics }) => {
     return iconMap[categoryName] || MoreHorizontal;
   };
 
-  // Color mapping
   const getCategoryColor = (index) => {
     const colors = [
       { bg: 'bg-blue-100', text: 'text-blue-600', bar: 'bg-blue-600' },
@@ -49,6 +64,7 @@ const TopSpendingCategories = ({ transactions = [], onViewAnalytics }) => {
     return colors[index] || colors[0];
   };
 
+  // Empty state
   if (categories.length === 0) {
     return (
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
@@ -98,7 +114,7 @@ const TopSpendingCategories = ({ transactions = [], onViewAnalytics }) => {
                 <div
                   className={`h-1.5 rounded-full ${colors.bar} transition-all duration-500`}
                   style={{ width: `${category.percentage}%` }}
-                ></div>
+                />
               </div>
             </div>
           );
@@ -107,7 +123,7 @@ const TopSpendingCategories = ({ transactions = [], onViewAnalytics }) => {
 
       <button 
         onClick={onViewAnalytics} 
-        className="w-full mt-4 text-indigo-600 hover:text-indigo-700 text-sm font-medium"
+        className="w-full mt-4 text-indigo-600 hover:text-indigo-700 text-sm font-medium text-left"
       >
         View Full Breakdown →
       </button>
