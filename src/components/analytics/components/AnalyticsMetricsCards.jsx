@@ -89,7 +89,7 @@ const AnalyticsMetricsCards = ({ analytics, isLoading, timeRange }) => {
                   ${largestExpense.amount.toLocaleString()}
                 </p>
                 <p className="text-sm text-gray-500 mt-1">
-                  {largestExpense.date} • Last {timeRangeLabel}
+                  {largestExpense.date} • {timeRange === '1year' ? 'Last Year' : `Last ${timeRangeLabel}`}
                 </p>
               </>
             )}
