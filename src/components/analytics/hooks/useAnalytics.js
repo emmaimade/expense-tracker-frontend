@@ -13,7 +13,7 @@ export const useAnalytics = (recentTransactions = [], timeRange = '6months') => 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch budget data
+  // Fetch budget data (once on mount)
   const fetchBudgetData = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -43,43 +43,63 @@ export const useAnalytics = (recentTransactions = [], timeRange = '6months') => 
 
   // Calculate analytics metrics
   const analytics = useMemo(() => {
-    // Early return with safe defaults
+    // Default safe state
+    const defaultAnalytics = {
+      avgMonthlySpending: 0,
+      largestExpense: { amount: 0, date: 'N/A', description: 'N/A' },
+      categoryData: [],
+      monthlyData: [],
+      totalBudget: 0,
+      totalSpent: 0,
+      budgetAdherence: 0,
+    };
+
     if (!recentTransactions || recentTransactions.length === 0) {
       return {
-        avgMonthlySpending: 0,
-        largestExpense: { amount: 0, date: 'N/A', description: 'N/A' },
-        categoryData: budgetData?.categories || [],
-        monthlyData: [],
+        ...defaultAnalytics,
         totalBudget: budgetData?.totalBudget || 0,
-        totalSpent: budgetData?.totalSpent || 0,
-        budgetAdherence: 0,
       };
     }
 
     const expenses = recentTransactions.filter(tx => tx.type === 'expense');
-    
-    // Calculate date range
+    if (expenses.length === 0) {
+      return {
+        ...defaultAnalytics,
+        totalBudget: budgetData?.totalBudget || 0,
+      };
+    }
+
+    // Determine months to analyze
     const monthsToAnalyze = timeRange === '3months' ? 3 : timeRange === '1year' ? 12 : 6;
     const now = new Date();
     const rangeStartDate = new Date(now.getFullYear(), now.getMonth() - monthsToAnalyze + 1, 1);
-    
-    // Filter expenses by date range
+
+    // Filter expenses within the selected time range
     const recentExpenses = expenses.filter(tx => {
       const txDate = new Date(tx.date);
       return txDate >= rangeStartDate && txDate <= now;
     });
 
+    if (recentExpenses.length === 0) {
+      return {
+        ...defaultAnalytics,
+        totalBudget: budgetData?.totalBudget || 0,
+      };
+    }
+
+    // Total spent in time range
     const totalSpent = recentExpenses.reduce((sum, tx) => sum + Math.abs(tx.amount || 0), 0);
     const avgMonthlySpending = totalSpent / monthsToAnalyze;
 
-    // Find largest expense (from recent expenses only)
-    const largestExpense = recentExpenses.reduce((max, tx) => {
-      return Math.abs(tx.amount || 0) > Math.abs(max.amount || 0) ? tx : max;
-    }, { amount: 0, date: new Date(), description: 'N/A' });
+    // Largest expense
+    let largestExpense = recentExpenses[0];
+    for (const tx of recentExpenses) {
+      if (Math.abs(tx.amount || 0) > Math.abs(largestExpense.amount || 0)) {
+        largestExpense = tx;
+      }
+    }
 
-    // ──────────────────────────────────────────────────────
-    // FIX #1: Category totals from RECENT expenses only
-    // ──────────────────────────────────────────────────────
+    // Category totals (from recent expenses only)
     const categoryTotals = {};
     recentExpenses.forEach(tx => {
       const categoryName = tx.category?.name || tx.category || 'Uncategorized';
@@ -87,122 +107,120 @@ export const useAnalytics = (recentTransactions = [], timeRange = '6months') => 
     });
 
     const categoryData = Object.entries(categoryTotals)
-      .map(([name, value]) => ({ name, value }))
+      .map(([name, value]) => ({ name, value: Math.round(value) }))
       .sort((a, b) => b.value - a.value);
 
-    // ──────────────────────────────────────────────────────
-    // FIX #2: Monthly data with YEAR-MONTH keys to prevent collision
-    // ──────────────────────────────────────────────────────
+    // ✅ FIXED: Monthly data with YYYY-MM format for parsing
     const monthlyTotals = new Map();
-    
-    // Generate all months in range with unique keys
     let currentDate = new Date(rangeStartDate);
+
     while (currentDate <= now) {
-      const yearMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
-      const displayMonth = currentDate.toLocaleDateString('en-US', { month: 'short' });
-      
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      const yearMonth = `${year}-${String(month + 1).padStart(2, '0')}`;
+
       monthlyTotals.set(yearMonth, {
         key: yearMonth,
-        month: displayMonth,
+        month: yearMonth, // Keep as YYYY-MM for parsing
         amount: 0,
       });
-      
-      currentDate.setMonth(currentDate.getMonth() + 1);
+
+      currentDate.setMonth(month + 1);
     }
 
-    // Aggregate transactions into months
+    // Aggregate expenses by month
     recentExpenses.forEach(tx => {
       const txDate = new Date(tx.date);
       const yearMonth = `${txDate.getFullYear()}-${String(txDate.getMonth() + 1).padStart(2, '0')}`;
-      
       const monthData = monthlyTotals.get(yearMonth);
       if (monthData) {
         monthData.amount += Math.abs(tx.amount || 0);
       }
     });
 
-    // Convert to array and round amounts
     const monthlyData = Array.from(monthlyTotals.values()).map(item => ({
-      month: item.month,
+      month: item.month, // YYYY-MM format
       amount: Math.round(item.amount),
     }));
 
-    const totalBudget = budgetData?.totalBudget || 0;
-    const spent = budgetData?.totalSpent || totalSpent;
-    const budgetAdherence = totalBudget > 0 ? Math.round((spent / totalBudget) * 100) : 0;
+    console.log('📊 useAnalytics - Generated monthlyData:', monthlyData);
+
+    // Budget adherence: compare time-range spending to prorated budget
+    const monthlyBudget = budgetData?.totalBudget || 0;
+    const totalBudgetForRange = monthlyBudget * monthsToAnalyze;
+    const budgetAdherence = totalBudgetForRange > 0
+      ? Math.min(999, Math.round((totalSpent / totalBudgetForRange) * 100)) // cap at 999%
+      : 0;
 
     return {
       avgMonthlySpending: Math.round(avgMonthlySpending),
       largestExpense: {
         amount: Math.abs(largestExpense.amount || 0),
-        date: new Date(largestExpense.date).toLocaleDateString('en-US', { 
-          month: 'short', 
+        date: new Date(largestExpense.date).toLocaleDateString('en-US', {
+          month: 'short',
           day: 'numeric',
-          year: 'numeric'
+          year: 'numeric',
         }),
         description: largestExpense.description || 'N/A',
       },
       categoryData,
       monthlyData,
-      totalBudget,
-      totalSpent: Math.round(spent),
+      totalBudget: Math.round(totalBudgetForRange),
+      totalSpent: Math.round(totalSpent),
       budgetAdherence,
     };
   }, [
-    recentTransactions, 
-    timeRange, 
-    budgetData?.totalBudget, 
-    budgetData?.totalSpent,
-    budgetData?.categories
+    recentTransactions,
+    timeRange,
+    budgetData?.totalBudget,
   ]);
 
-  // Trend analysis
+  // Trend insight: compare current month vs previous month
   const trendInsight = useMemo(() => {
     if (!analytics.monthlyData || analytics.monthlyData.length < 2) return null;
 
-    const currentMonth = analytics.monthlyData[analytics.monthlyData.length - 1].amount;
-    const previousMonths = analytics.monthlyData.slice(0, -1);
-    const avgPrevious = previousMonths.reduce((sum, m) => sum + m.amount, 0) / previousMonths.length;
-    
-    if (avgPrevious === 0) return null;
-    
-    const change = ((currentMonth - avgPrevious) / avgPrevious) * 100;
+    const current = analytics.monthlyData[analytics.monthlyData.length - 1]?.amount || 0;
+    const previous = analytics.monthlyData[analytics.monthlyData.length - 2]?.amount || 0;
+
+    if (previous === 0) return null;
+
+    const change = ((current - previous) / previous) * 100;
 
     if (change > 20) {
       return {
         type: 'warning',
-        title: 'High Spending Alert',
-        message: `Your spending this month is ${Math.round(change)}% higher than your average.`,
+        title: 'Spending Spike',
+        message: `This month is ${Math.round(change)}% higher than last month.`,
         icon: '⚡',
       };
     } else if (change < -20) {
       return {
         type: 'success',
-        title: 'Spending Trend',
-        message: `Your spending this month is ${Math.round(Math.abs(change))}% lower than your average. Great job!`,
+        title: 'Great Progress!',
+        message: `This month is ${Math.round(Math.abs(change))}% lower than last month.`,
         icon: '✅',
       };
     }
-    
+
     return null;
   }, [analytics.monthlyData]);
 
-  // Export function
+  // Export to CSV
   const exportToCSV = useCallback(() => {
     const csvData = [
-      ['Analytics Export'],
-      [''],
-      ['Monthly Data'],
+      ['Analytics Export - Time Range:', timeRange],
+      [''], // spacer
+      ['Monthly Spending'],
       ['Month', 'Amount'],
       ...analytics.monthlyData.map(item => [item.month, item.amount]),
-      [''],
-      ['Category Data'],
+      [''], // spacer
+      ['Category Breakdown'],
       ['Category', 'Amount'],
       ...analytics.categoryData.map(item => [item.name, item.value]),
-      [''],
+      [''], // spacer
       ['Summary'],
       ['Metric', 'Value'],
-      ['Total Budget', analytics.totalBudget],
+      ['Total Budget (for period)', analytics.totalBudget],
       ['Total Spent', analytics.totalSpent],
       ['Budget Adherence', `${analytics.budgetAdherence}%`],
       ['Avg Monthly Spending', analytics.avgMonthlySpending],
@@ -213,10 +231,10 @@ export const useAnalytics = (recentTransactions = [], timeRange = '6months') => 
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `analytics_export_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.download = `analytics_${timeRange}_${new Date().toISOString().slice(0, 10)}.csv`;
     link.click();
     window.URL.revokeObjectURL(url);
-  }, [analytics]);
+  }, [analytics, timeRange]);
 
   return {
     analytics,
@@ -225,6 +243,6 @@ export const useAnalytics = (recentTransactions = [], timeRange = '6months') => 
     error,
     trendInsight,
     exportToCSV,
-    refetch: fetchBudgetData,
+    refetch: fetchBudgetData, // Allow parent to refetch after mutations
   };
 };
