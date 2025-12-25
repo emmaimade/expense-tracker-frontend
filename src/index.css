@@ -1,3 +1,29 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Root element transitions */
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark mode color scheme */
+.dark {
+  color-scheme: dark;
+}
+
+/* Body styling for light/dark mode */
+body {
+  @apply bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Toast notifications dark mode styling */
+.Toastify__toast-theme--dark {
+  background-color: #1f2937 !important;
+  color: #f9fafb !important;
+}
+
+.Toastify__toast-theme--dark .Toastify__progress-bar {
+  background: #6366f1 !important;
+}
