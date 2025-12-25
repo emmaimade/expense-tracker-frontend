@@ -1,11 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import { expenseService } from '../../../services/expenseService';
 import { budgetService } from '../../../services/budgetService';
+import { usePreferencesContext } from '../../../context/PreferencesContext';
 
 /**
  * Unified dashboard data hook - fetches all data once and shares it
  */
 export const useDashboardData = () => {
+  const { formatCurrency } = usePreferencesContext();
   const [data, setData] = useState({
     // Budget data
     budgetLimit: 0,
@@ -61,7 +63,8 @@ export const useDashboardData = () => {
         const stats = calculateFinancialStats(
           currentMonthTransactions,
           prevMonthTransactions,
-          budgetLimit
+          budgetLimit,
+          formatCurrency
         );
 
         // Update state with all data
@@ -160,7 +163,8 @@ const getPreviousMonthDateRange = () => {
 const calculateFinancialStats = (
   currentMonthTransactions,
   prevMonthTransactions,
-  budgetLimit
+  budgetLimit,
+  formatCurrency
 ) => {
   const currentMonthExpenses = currentMonthTransactions.filter(tx => tx.type === 'expense');
   const prevMonthExpenses = prevMonthTransactions.filter(tx => tx.type === 'expense');
@@ -198,14 +202,14 @@ const calculateFinancialStats = (
   // Financial Health Score
   const healthScore = calculateHealthScore(currentMonthSpending, prevMonthSpending, budgetLimit);
 
-  return [
+    return [
     {
       name: 'Total Monthly Expenses',
-      value: `$${currentMonthSpending.toFixed(2)}`,
+      value: formatCurrency(currentMonthSpending),
       change: `Utilized ${(budgetUtilization * 100).toFixed(1)}% of budget`,
       icon: '💸',
       style: budgetUtilization > 1 ? 'danger' : 'success',
-      secondaryValue: `$${budgetLimit.toFixed(2)} Budget Limit`
+      secondaryValue: `${formatCurrency(budgetLimit)} Budget Limit`
     },
     {
       name: 'Top Spending Category',
@@ -213,7 +217,7 @@ const calculateFinancialStats = (
       change: `${(topCategoryPercentage * 100).toFixed(0)}% of Total`,
       icon: '🏷️',
       style: 'info',
-      secondaryValue: `$${topCategory.amount.toFixed(2)}`
+      secondaryValue: formatCurrency(topCategory.amount)
     },
     {
       name: 'Spending Month-over-Month Change',
@@ -225,15 +229,15 @@ const calculateFinancialStats = (
         : `No significant change`,
       icon: momChangeDirection === 'up' ? '📈' : momChangeDirection === 'down' ? '📉' : '↔️',
       style: momChangeDirection === 'up' ? 'danger' : 'success',
-      secondaryValue: momChangeDirection === 'up' ? `Spent $${(currentMonthSpending - prevMonthSpending).toFixed(2)} more` : ''
+      secondaryValue: momChangeDirection === 'up' ? `Spent ${formatCurrency(currentMonthSpending - prevMonthSpending)} more` : ''
     },
     {
       name: 'Daily Burn Rate',
-      value: `$${dailyBurnRate.toFixed(2)}`,
+      value: formatCurrency(dailyBurnRate),
       change: `Avg daily spend (Day ${currentDay})`,
       icon: '⏳',
       style: 'warning',
-      secondaryValue: `$${currentMonthSpending.toFixed(2)} Total Spent`
+      secondaryValue: `${formatCurrency(currentMonthSpending)} Total Spent`
     },
     {
       name: 'Financial Health Score',

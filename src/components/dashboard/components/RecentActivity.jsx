@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import EmptyState from './EmptyState';
+import { usePreferencesContext } from '../../../context/PreferencesContext';
 
 const RecentActivity = ({ weeklyTransactions = [], onViewAllExpenses, onAddExpense, fallbackUsed = false }) => {
   const activityData = useMemo(() => {
@@ -62,6 +63,8 @@ const RecentActivity = ({ weeklyTransactions = [], onViewAllExpenses, onAddExpen
     );
   }
 
+  const { formatCurrency } = usePreferencesContext();
+
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
       <div className="flex items-center justify-between mb-4">
@@ -76,19 +79,19 @@ const RecentActivity = ({ weeklyTransactions = [], onViewAllExpenses, onAddExpen
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-gray-600">Last expense</span>
-          <span className="font-medium">
-            {activityData.lastExpense.name} - ${Math.abs(activityData.lastExpense.amount || 0).toFixed(2)}
+          <span className="font-medium dark:text-black">
+            {activityData.lastExpense.name} - {formatCurrency(Math.abs(activityData.lastExpense.amount || 0))}
           </span>
         </div>
         <div className="flex items-center justify-between">
           <span className="text-gray-600">Largest expense</span>
-          <span className="font-medium">
-            {activityData.largestExpense.name} - ${Math.abs(activityData.largestExpense.amount || 0).toFixed(2)}
+          <span className="font-medium dark:text-black">
+            {activityData.largestExpense.name} - {formatCurrency(Math.abs(activityData.largestExpense.amount || 0))}
           </span>
         </div>
         <div className="flex items-center justify-between">
           <span className="text-gray-600">Most frequent category</span>
-          <span className="font-medium">{activityData.mostFrequentCategory}</span>
+          <span className="font-medium dark:text-black">{activityData.mostFrequentCategory}</span>
         </div>
       </div>
       

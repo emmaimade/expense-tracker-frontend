@@ -1,5 +1,6 @@
 import { TrendingUp, ShoppingBag, Coffee, Home, Car, MoreHorizontal } from 'lucide-react';
 import { startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+import { usePreferencesContext } from '../../../context/PreferencesContext';
 
 const TopSpendingCategories = ({ transactions = [], onViewAnalytics }) => {
   // Helper: Check if a date is in the current month
@@ -78,6 +79,8 @@ const TopSpendingCategories = ({ transactions = [], onViewAnalytics }) => {
     );
   }
 
+  const { formatCurrency } = usePreferencesContext();
+
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
       <div className="flex items-center justify-between mb-4">
@@ -103,7 +106,7 @@ const TopSpendingCategories = ({ transactions = [], onViewAnalytics }) => {
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-semibold text-gray-900">
-                    ${category.amount.toFixed(2)}
+                    {formatCurrency(category.amount)}
                   </p>
                   <p className="text-xs text-gray-500">
                     {category.percentage.toFixed(0)}%

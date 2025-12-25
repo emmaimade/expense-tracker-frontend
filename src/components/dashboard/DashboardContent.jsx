@@ -28,7 +28,6 @@ const DashboardContent = ({
     error: dashboardError 
   } = useDashboardData();
 
-
   // Combine loading states
   const overallLoading = weeklyLoading || dashboardLoading;
 
@@ -50,22 +49,6 @@ const DashboardContent = ({
       setActiveTab("analytics");
     }
   };
-
-  // Error state handling
-  // if (dashboardError) {
-  //   return (
-  //     <div className="p-6 bg-red-50 rounded-xl shadow-sm border border-red-200">
-  //       <h3 className="text-red-700 font-semibold mb-2">Failed to load dashboard data</h3>
-  //       <p className="text-sm text-red-600">{dashboardError}</p>
-  //       <button 
-  //         onClick={() => window.location.reload()}
-  //         className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-  //       >
-  //         Retry
-  //       </button>
-  //     </div>
-  //   );
-  // }
 
   return (
     <div className="space-y-6">
@@ -96,7 +79,7 @@ const DashboardContent = ({
 
         {/* Top Spending Categories */}
         <TopSpendingCategories
-          transactions={transactions.current} // Current month transactions
+          transactions={transactions.current}
           onViewAnalytics={handleViewAnalytics}
         />
       </div>

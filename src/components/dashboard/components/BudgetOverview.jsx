@@ -1,6 +1,8 @@
 import { TrendingUp, TrendingDown } from 'lucide-react';
+import { usePreferencesContext } from '../../../context/PreferencesContext';
 
 const BudgetOverview = ({ budgetData }) => {
+  const { formatCurrency } = usePreferencesContext();
   // ✅ Check if budgetData exists (loading state handled by parent)
   if (!budgetData) {
     return (
@@ -51,16 +53,13 @@ const BudgetOverview = ({ budgetData }) => {
             isOverBudget ? "text-red-600" : "text-gray-900"
           }`}
         >
-          ${totalSpent.toLocaleString(undefined, { 
-            minimumFractionDigits: 2, 
-            maximumFractionDigits: 2 
-          })}
+          {formatCurrency(totalSpent)}
         </p>
         <p className="text-sm text-gray-500 mt-1">
           Total spent •{" "}
           {isOverBudget
             ? "Over budget"
-            : `$${remaining.toFixed(2)} remaining`}
+            : `${formatCurrency(remaining)} remaining`}
         </p>
       </div>
 
@@ -71,7 +70,7 @@ const BudgetOverview = ({ budgetData }) => {
             Monthly Budget Progress
           </h3>
           <span className="text-sm text-gray-600">
-            ${totalSpent.toLocaleString()} / ${limit.toLocaleString()}
+            {formatCurrency(totalSpent)} / {formatCurrency(limit)}
           </span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
