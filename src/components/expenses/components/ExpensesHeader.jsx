@@ -17,14 +17,14 @@ const ExpensesHeader = ({ onAddExpense, onExport, loading }) => {
             <Plus className="w-4 h-4" />
             Add Expense
           </button>
-          <button className="flex items-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+          <button className="flex items-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 dark:bg-gray-500 dark:border-gray-700 dark:hover:bg-gray-800 transition-colors">
             <Upload className="w-4 h-4" />
             Import
           </button>
           <button
             onClick={onExport}
             disabled={loading}
-            className="flex items-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 dark:bg-gray-500 dark:border-gray-700 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
           >
             <Download className="w-4 h-4" />
             Export

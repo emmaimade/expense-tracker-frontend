@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { X, Plus } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useCategories } from '../hooks/useCategories';
+import { usePreferencesContext } from '../../../context/PreferencesContext';
 
 const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
   const { categories: allCategories, createCategory, refreshCategories } = useCategories();
@@ -97,6 +98,7 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
   };
 
   if (!isOpen) return null;
+  const { getCurrencySymbol } = usePreferencesContext();
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -219,7 +221,7 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
             </label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                $
+                {getCurrencySymbol()}
               </span>
               <input
                 type="number"

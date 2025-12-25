@@ -35,7 +35,6 @@ const ExpensesContent = ({ recentTransactions = [], onDataChange, userId }) => {
     error: categoryError,
   } = useCategories();
 
-  // Custom hooks for data management
   const expenseData = useExpenseData(recentTransactions);
   const {
     filteredTransactions: dateFilteredTransactions,
@@ -50,7 +49,6 @@ const ExpensesContent = ({ recentTransactions = [], onDataChange, userId }) => {
     applyCustomDateRange,
   } = expenseData;
 
-  // Filter transactions based on search and category
   const {
     filteredTransactions,
     searchTerm,
@@ -59,7 +57,6 @@ const ExpensesContent = ({ recentTransactions = [], onDataChange, userId }) => {
     setFilterBy,
   } = useFilterAndSearch(dateFilteredTransactions);
 
-  // Expense actions
   const expenseActions = useExpenseActions({
     loading,
     setLoading,
@@ -76,7 +73,6 @@ const ExpensesContent = ({ recentTransactions = [], onDataChange, userId }) => {
   const overallLoading = expenseActions.loading || categoryLoading;
   const overallError = expenseActions.error || categoryError;
 
-  // Reset to default state on component mount
   useEffect(() => {
     resetToDefault();
   }, [resetToDefault]);
@@ -113,17 +109,17 @@ const ExpensesContent = ({ recentTransactions = [], onDataChange, userId }) => {
       {isUsingCustomRange &&
         customDateRange.startDate &&
         customDateRange.endDate && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-blue-800">
+                <p className="text-sm font-medium text-blue-800 dark:text-blue-300">
                   Filtered by Date Range
                 </p>
-                <p className="text-sm text-blue-700">
+                <p className="text-sm text-blue-700 dark:text-blue-400">
                   {new Date(customDateRange.startDate).toLocaleDateString()} -{" "}
                   {new Date(customDateRange.endDate).toLocaleDateString()}
                 </p>
-                <p className="text-xs text-blue-600 mt-1">
+                <p className="text-xs text-blue-600 dark:text-blue-500 mt-1">
                   Showing {dateFilteredTransactions.length} of{" "}
                   {recentTransactions.length} transactions
                 </p>
@@ -133,7 +129,7 @@ const ExpensesContent = ({ recentTransactions = [], onDataChange, userId }) => {
                   resetToDefault();
                   if (onDataChange) onDataChange();
                 }}
-                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
               >
                 Clear Filter
               </button>

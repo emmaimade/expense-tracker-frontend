@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Search, Filter, Calendar, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import LoadingOverlay from '../../common/LoadingOverlay';
+import { usePreferencesContext } from '../../../context/PreferencesContext';
 
 const TransactionTable = ({
   transactions = [],
@@ -105,6 +106,8 @@ const TransactionTable = ({
   };
 
   const categoryOptions = ['all', ...categories.map(cat => cat.name)];
+
+  const { formatCurrency } = usePreferencesContext();
 
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
@@ -258,8 +261,7 @@ const TransactionTable = ({
                         transaction.type === "expense" ? "text-red-600" : "text-green-600"
                       }`}
                     >
-                      {transaction.type === "expense" ? "-" : "+"}$
-                      {Math.abs(transaction.amount || 0).toFixed(2)}
+                      {transaction.type === "expense" ? "-" : "+"}{formatCurrency(Math.abs(transaction.amount || 0))}
                     </span>
                   </td>
                   <td className="py-4 px-2 text-center">
