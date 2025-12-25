@@ -1,5 +1,8 @@
+import { usePreferencesContext } from '../../../context/PreferencesContext';
+
 const AnalyticsInsights = ({ analytics, trendInsight }) => {
   const { budgetAdherence, categoryData } = analytics;
+  const { formatCurrency } = usePreferencesContext();
 
   if (categoryData.length === 0) return null;
 
@@ -47,7 +50,7 @@ const AnalyticsInsights = ({ analytics, trendInsight }) => {
       type: 'info',
       icon: '📊',
       title: 'Top Category',
-      message: `Your highest spending is in ${categoryData[0]?.name} at $${categoryData[0]?.value.toFixed(0)}.`,
+      message: `Your highest spending is in ${categoryData[0]?.name} at ${formatCurrency(categoryData[0]?.value)}.`,
       bgColor: 'bg-blue-50',
       borderColor: 'border-blue-200',
       textColor: 'text-blue-900',

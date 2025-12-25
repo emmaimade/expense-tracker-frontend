@@ -1,4 +1,5 @@
 import { TrendingUp, PieChart as PieChartIcon, DollarSign } from 'lucide-react';
+import { usePreferencesContext } from '../../../context/PreferencesContext';
 
 const AnalyticsMetricsCards = ({ analytics, isLoading, timeRange }) => {
   const { avgMonthlySpending, budgetAdherence, largestExpense } = analytics;
@@ -27,6 +28,7 @@ const AnalyticsMetricsCards = ({ analytics, isLoading, timeRange }) => {
 
   const status = getBudgetStatus();
   const timeRangeLabel = getTimeRangeLabel();
+  const { formatCurrency } = usePreferencesContext();
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -40,7 +42,7 @@ const AnalyticsMetricsCards = ({ analytics, isLoading, timeRange }) => {
             ) : (
               <>
                 <p className="text-2xl font-bold text-gray-900 mt-1">
-                  ${avgMonthlySpending.toLocaleString()}
+                  {formatCurrency(avgMonthlySpending)}
                 </p>
                 <p className="text-sm text-gray-500 mt-1"> {timeRange === '1year' ? 'Last Year' : `Last ${timeRangeLabel}`}</p>
               </>
@@ -86,7 +88,7 @@ const AnalyticsMetricsCards = ({ analytics, isLoading, timeRange }) => {
             ) : (
               <>
                 <p className="text-2xl font-bold text-gray-900 mt-1">
-                  ${largestExpense.amount.toLocaleString()}
+                  {formatCurrency(largestExpense.amount)}
                 </p>
                 <p className="text-sm text-gray-500 mt-1">
                   {largestExpense.date} • {timeRange === '1year' ? 'Last Year' : `Last ${timeRangeLabel}`}

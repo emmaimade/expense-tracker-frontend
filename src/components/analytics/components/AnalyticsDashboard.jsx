@@ -10,6 +10,7 @@ import {
   Cell,
 } from "recharts";
 import { useChartData } from '../hooks/useChartData';
+import { usePreferencesContext } from '../../../context/PreferencesContext';
 
 // ────── Constants ──────
 const COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
@@ -27,16 +28,7 @@ const TOOLTIP_STYLE = {
 };
 
 // ────── Utility Functions ──────
-const formatCurrency = (v) => {
-  const num = Number(v);
-  return isNaN(num) ? '$0' : `$${num.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
-};
-
-const axisFormatter = (v) => {
-  const num = Number(v);
-  if (isNaN(num)) return '$0';
-  return num >= 1000 ? `$${(num / 1000).toFixed(0)}k` : `$${num}`;
-};
+// Currency formatting is provided by PreferencesContext (formatCurrency, getCurrencySymbol)
 
 // ────── Reusable Empty State Component ──────
 const EmptyState = () => (
@@ -61,7 +53,7 @@ const EmptyState = () => (
 );
 
 // ────── Category Legend Component ──────
-const CategoryLegend = ({ categories, total, colors }) => {
+const CategoryLegend = ({ categories, total, colors, formatCurrency }) => {
   if (!categories || categories.length === 0) return null;
 
   return (
@@ -108,7 +100,7 @@ CategoryLegend.propTypes = {
 };
 
 // ────── Stats Grid Component ──────
-const StatsGrid = ({ avg, max, min }) => (
+const StatsGrid = ({ avg, max, min, formatCurrency }) => (
   <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-3 gap-3">
     <div className="text-center p-3 bg-gray-50 rounded-lg">
       <p className="text-xs text-gray-600 uppercase tracking-wide mb-1">Average</p>
@@ -145,6 +137,14 @@ const AnalyticsDashboard = ({
 }) => {
   // Use custom hook for data transformation
   const chartData = useChartData(categoryData, monthlyData, timeRange);
+
+  const { formatCurrency, getCurrencySymbol } = usePreferencesContext();
+
+  const axisFormatter = (v) => {
+    const num = Number(v);
+    if (isNaN(num)) return formatCurrency(0);
+    return num >= 1000 ? `${getCurrencySymbol()}${(num / 1000).toFixed(0)}k` : `${getCurrencySymbol()}${num}`;
+  };
   
   const {
     top5,
@@ -200,11 +200,11 @@ const AnalyticsDashboard = ({
                   tickFormatter={axisFormatter}
                   tick={{ fontSize: 12, fill: '#6b7280' }}
                 />
-                <Tooltip
-                  cursor={{ fill: '#f3f4f6' }}
-                  formatter={(v) => [formatCurrency(v), 'Spending']}
-                  contentStyle={TOOLTIP_STYLE}
-                />
+                  <Tooltip
+                    cursor={{ fill: '#f3f4f6' }}
+                    formatter={(v) => [formatCurrency(v), 'Spending']}
+                    contentStyle={TOOLTIP_STYLE}
+                  />
                 <Bar 
                   dataKey="value" 
                   radius={[0, 4, 4, 0]} 
@@ -222,14 +222,14 @@ const AnalyticsDashboard = ({
           )}
         </div>
 
-        <CategoryLegend categories={top5} total={catTotal} colors={COLORS} />
+        <CategoryLegend categories={top5} total={catTotal} colors={COLORS} formatCurrency={formatCurrency} />
       </div>
 
       {/* ────── Monthly Trends Chart ────── */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
         <div className="mb-4">
           <h2 className="text-lg font-semibold text-gray-900">Monthly Trends</h2>
-          <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-500 mt-1">
             Last {monthsCount} months • {formatCurrency(Math.round(monthlyAvg))} avg
           </p>
         </div>
@@ -280,6 +280,7 @@ const AnalyticsDashboard = ({
             avg={monthlyAvg} 
             max={monthMax} 
             min={monthMin} 
+            formatCurrency={formatCurrency}
           />
         )}
       </div>
