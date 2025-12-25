@@ -53,7 +53,8 @@ export const apiService = {
       headers: getAuthHeaders(),
       body: JSON.stringify(data),
     });
-    return handleApiResponse(response);
+    await handleApiResponse(response);
+    return response.json();
   },
 
   /**
@@ -68,7 +69,8 @@ export const apiService = {
       headers: getAuthHeaders(),
       body: JSON.stringify(data),
     });
-    return handleApiResponse(response);
+    await handleApiResponse(response);
+    return response.json();
   },
 
   /**
@@ -83,7 +85,8 @@ export const apiService = {
       headers: getAuthHeaders(),
       body: JSON.stringify(data),
     });
-    return handleApiResponse(response);
+    await handleApiResponse(response);
+    return response.json();
   },
 
   /**
@@ -96,7 +99,8 @@ export const apiService = {
       method: "DELETE",
       headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` },
     });
-    return handleApiResponse(response);
+    await handleApiResponse(response);
+    return response.json();
   },
   
   /**
