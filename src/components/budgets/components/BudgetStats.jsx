@@ -1,4 +1,5 @@
 import { DollarSign, TrendingUp, Target } from 'lucide-react';
+import { usePreferencesContext } from '../../../context/PreferencesContext';
 
 const BudgetStats = ({ 
   dailyAverage, 
@@ -8,6 +9,8 @@ const BudgetStats = ({
   percentageUsed, 
   isOverBudget 
 }) => {
+  const { formatCurrency } = usePreferencesContext();
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {/* Daily Average */}
@@ -16,7 +19,7 @@ const BudgetStats = ({
           <div>
             <p className="text-sm text-gray-600">Daily Average</p>
             <p className="text-2xl font-bold text-gray-900 mt-1">
-              ${dailyAverage.toFixed(2)}
+              {formatCurrency(dailyAverage)}
             </p>
             <p className="text-xs text-gray-500 mt-1">
               Based on day {currentDay}
@@ -34,7 +37,7 @@ const BudgetStats = ({
           <div>
             <p className="text-sm text-gray-600">Projected Total</p>
             <p className="text-2xl font-bold text-gray-900 mt-1">
-              ${projectedSpending.toFixed(0)}
+              {formatCurrency(projectedSpending)}
             </p>
             <p
               className={`text-xs mt-1 ${
@@ -44,8 +47,8 @@ const BudgetStats = ({
               }`}
             >
               {projectedSpending > totalBudget
-                ? `$${(projectedSpending - totalBudget).toFixed(0)} over`
-                : `$${(totalBudget - projectedSpending).toFixed(0)} under`}
+                ? `${formatCurrency(projectedSpending - totalBudget)} over`
+                : `${formatCurrency(totalBudget - projectedSpending)} under`}
             </p>
           </div>
           <div

@@ -1,3 +1,5 @@
+import { usePreferencesContext } from '../../../context/PreferencesContext';
+
 const BudgetOverview = ({ 
   totalBudget, 
   remaining, 
@@ -6,6 +8,7 @@ const BudgetOverview = ({
   spent, 
   percentageUsed 
 }) => {
+  const { formatCurrency } = usePreferencesContext();
   return (
     <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-8 rounded-xl text-white">
       <div className="flex items-center justify-between mb-6">
@@ -15,7 +18,7 @@ const BudgetOverview = ({
           </p>
           <div className="flex items-center gap-3 mt-2">
             <h2 className="text-4xl font-bold">
-              ${totalBudget.toLocaleString()}
+              {formatCurrency(totalBudget)}
             </h2>
             <span className="text-sm text-indigo-200">
               (Sum of all categories)
@@ -29,7 +32,7 @@ const BudgetOverview = ({
               isOverBudget ? "text-red-200" : "text-white"
             }`}
           >
-            ${Math.abs(remaining).toLocaleString()}
+            {formatCurrency(Math.abs(remaining))}
           </h3>
           <p className="text-indigo-100 text-sm mt-1">
             {isOverBudget ? "Over budget" : `${daysRemaining} days left`}
@@ -40,7 +43,7 @@ const BudgetOverview = ({
       {/* Progress Bar */}
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
-          <span className="text-indigo-100">Spent: ${spent.toFixed(2)}</span>
+          <span className="text-indigo-100">Spent: {formatCurrency(spent)}</span>
           <span className="text-indigo-100">
             {percentageUsed.toFixed(1)}%
           </span>

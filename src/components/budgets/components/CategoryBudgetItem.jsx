@@ -1,5 +1,6 @@
 import { Edit2, Save, X, MoreVertical, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { usePreferencesContext } from '../../../context/PreferencesContext';
 
 const CategoryBudgetItem = ({
   category,
@@ -16,6 +17,8 @@ const CategoryBudgetItem = ({
   const [showMenu, setShowMenu] = useState(false);
 
   if (!category || !(category.id || category._id)) return null;
+
+  const { formatCurrency, getCurrencySymbol } = usePreferencesContext();
 
   const amount = Number(category.amount ?? category.budget ?? 0);
   const categoryRemaining = amount - categorySpent;
@@ -50,7 +53,7 @@ const CategoryBudgetItem = ({
           <div>
             <h3 className="font-semibold text-gray-900 text-sm">{categoryName}</h3>
             <p className="text-xs text-gray-500 sm:hidden">
-              ${categorySpent.toFixed(0)} of ${amount.toLocaleString()}
+              {formatCurrency(categorySpent)} of {formatCurrency(amount)}
             </p>
           </div>
         </div>
@@ -64,8 +67,8 @@ const CategoryBudgetItem = ({
       {/* Budget Amount - Desktop only */}
       <div className="hidden sm:flex items-center gap-2 min-w-[140px]">
         {isEditing ? (
-          <div className="flex items-center gap-1.5">
-            <span className="text-sm text-gray-600">$</span>
+            <div className="flex items-center gap-1.5">
+            <span className="text-sm text-gray-600">{getCurrencySymbol()}</span>
             <input
               type="number"
               value={tempCategoryBudget}
@@ -98,9 +101,9 @@ const CategoryBudgetItem = ({
             </button>
           </div>
         ) : (
-          <div className="flex items-center gap-2 group/budget">
+            <div className="flex items-center gap-2 group/budget">
             <span className="text-sm font-semibold text-gray-900">
-              ${amount.toLocaleString()}
+              {formatCurrency(amount)}
             </span>
             <button
               onClick={() => {
@@ -121,12 +124,12 @@ const CategoryBudgetItem = ({
       <div className="flex-1 min-w-0 sm:min-w-[200px] space-y-1.5">
         <div className="flex items-center justify-between text-xs">
           <span className="text-gray-600 hidden sm:inline">
-            ${categorySpent.toFixed(0)} spent
+            {formatCurrency(categorySpent)} spent
           </span>
           <span className={`font-medium ${
             categoryRemaining < 0 ? 'text-red-600' : 'text-gray-700'
           }`}>
-            ${Math.abs(categoryRemaining).toFixed(0)} {categoryRemaining < 0 ? 'over' : 'left'}
+            {formatCurrency(Math.abs(categoryRemaining))} {categoryRemaining < 0 ? 'over' : 'left'}
           </span>
         </div>
         <div className="relative w-full bg-gray-200 rounded-full h-2">

@@ -1,4 +1,5 @@
 import { TrendingUp, TrendingDown, Calendar, Target } from 'lucide-react';
+import { usePreferencesContext } from '../../../context/PreferencesContext';
 
 const SmartInsights = ({
   projectedSpending,
@@ -9,6 +10,8 @@ const SmartInsights = ({
   isOverBudget,
   remaining,
 }) => {
+  const { formatCurrency } = usePreferencesContext();
+
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
       <h2 className="text-lg font-semibold text-gray-900 mb-4">
@@ -22,8 +25,7 @@ const SmartInsights = ({
               Overspending Alert
             </h3>
             <p className="text-sm text-red-700 mt-2">
-              At your current rate, you'll exceed your budget by $
-              {(projectedSpending - totalBudget).toFixed(0)} this month.
+              At your current rate, you'll exceed your budget by {formatCurrency(projectedSpending - totalBudget)} this month.
             </p>
           </div>
         )}
@@ -35,8 +37,8 @@ const SmartInsights = ({
               Daily Spending
             </h3>
             <p className="text-sm text-blue-700 mt-2">
-              You're spending an average of ${dailyAverage.toFixed(2)} per day.
-              To stay on budget, limit to ${(totalBudget / daysInMonth).toFixed(2)}
+              You're spending an average of {formatCurrency(dailyAverage)} per day.
+              To stay on budget, limit to {formatCurrency(totalBudget / daysInMonth)}
               /day.
             </p>
           </div>
@@ -62,9 +64,7 @@ const SmartInsights = ({
           </h3>
           <p className="text-sm text-purple-700 mt-2">
             {remaining > 0
-              ? `If you maintain this pace, you could save $${remaining.toFixed(
-                  0
-                )} this month.`
+              ? `If you maintain this pace, you could save ${formatCurrency(remaining)} this month.`
               : "Review your recent expenses to find areas to cut back."}
           </p>
         </div>

@@ -1,6 +1,8 @@
 import PropTypes from 'prop-types';
+import { usePreferencesContext } from '../../../context/PreferencesContext';
 
 const CategoryBudgets = ({ categoryData = [], categoryBudgets = [], isLoading = false, setActiveTab }) => {
+  const { formatCurrency } = usePreferencesContext();
   // Show loading state
   if (isLoading) {
     return (
@@ -113,7 +115,7 @@ const CategoryBudgets = ({ categoryData = [], categoryBudgets = [], isLoading = 
                     {category.name}
                   </h3>
                   <p className="text-xs text-gray-500 mt-0.5">
-                    ${category.spent.toFixed(0)} of ${category.budget.toLocaleString()}
+                    {formatCurrency(category.spent)} of {formatCurrency(category.budget)}
                   </p>
                 </div>
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -145,8 +147,8 @@ const CategoryBudgets = ({ categoryData = [], categoryBudgets = [], isLoading = 
                   category.isOverBudget ? "text-red-600" : "text-green-600"
                 }`}>
                   {category.isOverBudget 
-                    ? `$${(category.spent - category.budget).toFixed(0)} over`
-                    : `$${category.remaining.toFixed(0)} left`
+                    ? `${formatCurrency(category.spent - category.budget)} over`
+                    : `${formatCurrency(category.remaining)} left`
                   }
                 </span>
                 {category.isOverBudget && (
@@ -171,19 +173,19 @@ const CategoryBudgets = ({ categoryData = [], categoryBudgets = [], isLoading = 
             <div className="p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-600 mb-1">Total Budget</p>
               <p className="text-2xl font-bold text-gray-900">
-                ${totalBudget.toLocaleString()}
+                {formatCurrency(totalBudget)}
               </p>
             </div>
             <div className="p-4 bg-red-50 rounded-lg">
               <p className="text-sm text-gray-600 mb-1">Total Spent</p>
               <p className="text-2xl font-bold text-red-600">
-                ${totalSpent.toFixed(0)}
+                {formatCurrency(totalSpent)}
               </p>
             </div>
             <div className="p-4 bg-green-50 rounded-lg">
               <p className="text-sm text-gray-600 mb-1">Remaining</p>
               <p className="text-2xl font-bold text-green-600">
-                ${totalRemaining.toFixed(0)}
+                {formatCurrency(totalRemaining)}
               </p>
             </div>
           </div>
