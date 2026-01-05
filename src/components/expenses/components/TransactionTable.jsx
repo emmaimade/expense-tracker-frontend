@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Search, Filter, Calendar, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import LoadingOverlay from '../../common/LoadingOverlay';
 import { usePreferencesContext } from '../../../context/PreferencesContext';
+import Card from '../../common/Card';
 
 const TransactionTable = ({
   transactions = [],
@@ -110,7 +111,7 @@ const TransactionTable = ({
   const { formatCurrency } = usePreferencesContext();
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+    <Card>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <h2 className="text-lg font-semibold text-gray-900">All Transactions</h2>
@@ -410,7 +411,7 @@ const TransactionTable = ({
 
       {/* Loading Overlay */}
       {loading && <LoadingOverlay />}
-    </div>
+    </Card>
   );
 };
 

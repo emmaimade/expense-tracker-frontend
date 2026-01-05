@@ -1,8 +1,10 @@
 import { Plus, Upload, Download } from 'lucide-react';
 
+import Card from '../../common/Card';
+
 const ExpensesHeader = ({ onAddExpense, onExport, loading }) => {
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+    <Card>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Expenses</h1>
@@ -31,7 +33,7 @@ const ExpensesHeader = ({ onAddExpense, onExport, loading }) => {
           </button>
         </div>
       </div>
-    </div>
+    </Card>
   );
 };
 
