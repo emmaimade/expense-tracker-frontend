@@ -48,11 +48,17 @@ const EditExpenseModal = ({ isOpen, onClose, onSubmit, transaction, loading, use
       toast.error('Please fill all required fields with valid values.');
       return;
     }
-    if (!transaction?.id) {
+    
+    // Transaction ID can be either _id or id
+    const transactionId = transaction?._id || transaction?.id;
+    
+    if (!transactionId) {
+      console.error('Transaction object:', transaction);
       toast.error('Invalid transaction ID.');
       return;
     }
-    await onSubmit(expenseData, transaction.id);
+    
+    await onSubmit(expenseData, transactionId);
   };
 
   const handleAddCategory = async () => {
@@ -76,32 +82,35 @@ const EditExpenseModal = ({ isOpen, onClose, onSubmit, transaction, loading, use
     }
 
     try {
-      const response = await createCategory({
+      // createCategory returns the category object directly from useCategories
+      const newCategory = await createCategory({
         name: newCategoryName.trim(),
         userId: userId,
       });
 
-      if (response.ok && response.status === 201) {
-        const newCategoryData = await response.json();
+      console.log("Created new category:", newCategory);
 
-        refreshCategories();
+      // The returned category should have _id and name properties
+      const categoryId = newCategory._id || newCategory.id;
+      const categoryName = newCategory.name;
 
-        console.log("Created new category data:", newCategoryData);
-
-        const { id, name } = newCategoryData.data;
-        setExpenseData({ ...expenseData, category: id });
-        setNewCategoryName("");
-        setCategoryError(null);
-        setIsAddingCategory(false);
-        toast.success(`Category "${name}" created!`);
-      } else {
-        const errorBody = await response.text();
-        throw new Error(
-          `Failed to create category: ${response.status} - ${errorBody}`
-        );
+      if (!categoryId) {
+        throw new Error("Category created but no ID returned");
       }
+
+      // Refresh categories list
+      await refreshCategories();
+
+      // Set the newly created category as selected
+      setExpenseData({ ...expenseData, category: categoryId });
+      setNewCategoryName("");
+      setCategoryError(null);
+      setIsAddingCategory(false);
+      toast.success(`Category "${categoryName}" created!`);
     } catch (error) {
+      console.error("Error creating category:", error);
       setCategoryError(error.message || "Failed to create category.");
+      toast.error(error.message || "Failed to create category.");
     }
   };
 
@@ -138,7 +147,7 @@ const EditExpenseModal = ({ isOpen, onClose, onSubmit, transaction, loading, use
             />
           </div>
 
-          {/* Category - Industry Standard: Flat list, alphabetical */}
+          {/* Category */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="block text-sm font-medium text-gray-700">
@@ -196,7 +205,7 @@ const EditExpenseModal = ({ isOpen, onClose, onSubmit, transaction, loading, use
                 </div>
               </div>
             ) : (
-              // Standard dropdown - alphabetically sorted, no grouping
+              // Standard dropdown
               <select
                 required
                 value={expenseData.category}
@@ -227,9 +236,9 @@ const EditExpenseModal = ({ isOpen, onClose, onSubmit, transaction, loading, use
               Amount
             </label>
             <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                  {getCurrencySymbol()}
-                </span>
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                {getCurrencySymbol()}
+              </span>
               <input
                 type="number"
                 required
