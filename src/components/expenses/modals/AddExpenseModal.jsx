@@ -29,6 +29,8 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
   const [newCategoryName, setNewCategoryName] = useState('');
   const [categoryError, setCategoryError] = useState(null);
 
+  const { getCurrencySymbol } = usePreferencesContext();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!newExpense.name || !newExpense.category || !newExpense.amount || parseFloat(newExpense.amount) <= 0) {
@@ -66,39 +68,37 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
     }
 
     try {
-      const response = await createCategory({
+      const newCategory = await createCategory({
         name: newCategoryName.trim(),
         userId: userId,
       });
 
-      if (response.ok && response.status === 201) {
-        const newCategoryData = await response.json();
+      console.log("Created new category:", newCategory);
 
-        refreshCategories();
+      // The returned category should have _id and name properties
+      const categoryId = newCategory._id || newCategory.id;
+      const categoryName = newCategory.name;
 
-        console.log("Created new category data:", newCategoryData);
-
-        const {id, name} = newCategoryData.data;
-
-        setNewExpense({ ...newExpense, category: id });
-        setNewCategoryName("");
-        setCategoryError(null);
-        setIsAddingCategory(false);
-
-        toast.success(`Category "${name}" created!`);
-      } else {
-        const errorBody = await response.text();
-        throw new Error(
-          `Failed to create category: ${response.status} - ${errorBody}`
-        );
+      if (!categoryId) {
+        throw new Error("Category created but no ID returned");
       }
+
+      // Refresh categories list
+      await refreshCategories();
+
+      setNewExpense({ ...newExpense, category: categoryId });
+      setNewCategoryName("");
+      setCategoryError(null);
+      setIsAddingCategory(false);
+      toast.success(`Category "${categoryName}" created!`);
     } catch (error) {
+      console.error("Error creating category:", error);
       setCategoryError(error.message || "Failed to create category.");
+      toast.error(error.message || "Failed to create category.");
     }
   };
 
   if (!isOpen) return null;
-  const { getCurrencySymbol } = usePreferencesContext();
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -131,7 +131,7 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
             />
           </div>
 
-          {/* Category - Industry Standard: Flat list, alphabetical */}
+          {/* Category */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="block text-sm font-medium text-gray-700">
@@ -150,7 +150,7 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
             </div>
 
             {isAddingCategory ? (
-              // Inline category creation (like Mint, YNAB)
+              // Inline category creation
               <div className="space-y-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
                 <input
                   type="text"
@@ -189,7 +189,7 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
                 </div>
               </div>
             ) : (
-              // Standard dropdown - alphabetically sorted, no grouping
+              // Standard dropdown
               <select
                 required
                 value={newExpense.category}
