@@ -109,27 +109,27 @@ const ExpensesContent = ({ recentTransactions = [], onDataChange, userId }) => {
       {isUsingCustomRange &&
         customDateRange.startDate &&
         customDateRange.endDate && (
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-blue-800 dark:text-blue-300">
-                  Filtered by Date Range
-                </p>
-                <p className="text-sm text-blue-700 dark:text-blue-400">
-                  {new Date(customDateRange.startDate).toLocaleDateString()} -{" "}
-                  {new Date(customDateRange.endDate).toLocaleDateString()}
-                </p>
-                <p className="text-xs text-blue-600 dark:text-blue-500 mt-1">
-                  Showing {dateFilteredTransactions.length} of{" "}
-                  {recentTransactions.length} transactions
-                </p>
-              </div>
+                  <p className="text-sm font-medium text-blue-800">
+                    Filtered by Date Range
+                  </p>
+                  <p className="text-sm text-blue-700">
+                    {new Date(customDateRange.startDate).toLocaleDateString()} -{" "}
+                    {new Date(customDateRange.endDate).toLocaleDateString()}
+                  </p>
+                  <p className="text-xs text-blue-600 mt-1">
+                    Showing {dateFilteredTransactions.length} of{" "}
+                    {recentTransactions.length} transactions
+                  </p>
+                </div>
               <button
                 onClick={() => {
                   resetToDefault();
                   if (onDataChange) onDataChange();
                 }}
-                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
+                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
               >
                 Clear Filter
               </button>
