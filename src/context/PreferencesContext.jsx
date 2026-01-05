@@ -1,19 +1,20 @@
 /**
- * Preferences Context
- * Single source of truth for user preferences (theme, notifications, etc.)
- * Automatically persists to localStorage and applies dark mode globally
+ * Preferences Context - Production version
  */
 
 import { createContext, useContext, useState, useEffect } from 'react';
-import { detectCurrencyByIP, detectCurrencyByLocale } from '../utils/detectCurrency';
+import { apiService } from '../services/apiService';
+import { useAuth } from './AuthContext';
 
 const PreferencesContext = createContext();
 
 const DEFAULT_PREFERENCES = {
   theme: 'light',
   currency: 'USD',
+  currencyFormat: 'symbol',
   notifications: true,
   language: 'en',
+  fontSize: 'md',
 };
 
 const CURRENCY_SYMBOLS = {
@@ -22,9 +23,14 @@ const CURRENCY_SYMBOLS = {
   GBP: '£',
   INR: '₹',
   NGN: '₦',
+  JPY: '¥',
+  CAD: '$',
+  AUD: '$',
+  ZAR: 'R',
 };
 
 export const PreferencesProvider = ({ children, userId }) => {
+  const { user, updateUser } = useAuth();
   const [preferences, setPreferences] = useState(DEFAULT_PREFERENCES);
 
   // Apply dark mode class to HTML element whenever theme changes
@@ -36,92 +42,162 @@ export const PreferencesProvider = ({ children, userId }) => {
     } else {
       root.classList.remove('dark');
     }
-    
-    console.log('🎨 Theme applied:', preferences.theme, '| Classes:', root.classList.toString());
   }, [preferences.theme]);
+
+  // Apply font-size class to HTML element when font size preference changes
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove('font-size-sm', 'font-size-md', 'font-size-lg');
+    const sizeClass = `font-size-${preferences.fontSize || DEFAULT_PREFERENCES.fontSize}`;
+    root.classList.add(sizeClass);
+  }, [preferences.fontSize]);
 
   // Load preferences from localStorage on mount or user change
   useEffect(() => {
-    (async () => {
+    const loadPreferences = () => {
       try {
-        // First try per-user preferences if we have a user
         const storageKey = userId ? `preferences_${userId}` : 'preferences_local';
         const saved = localStorage.getItem(storageKey);
 
         if (saved) {
           const parsed = JSON.parse(saved);
           setPreferences(parsed);
-          console.log('📥 Loaded preferences from', storageKey, parsed);
-
-          // If currency missing OR equals the app default, attempt detection and save merged.
-          // This preserves any explicit user-set currency while updating stale defaults.
-          const shouldDetectCurrency = !parsed.currency || parsed.currency === DEFAULT_PREFERENCES.currency;
-          if (shouldDetectCurrency) {
-            const detected = (await detectCurrencyByIP()) || detectCurrencyByLocale() || DEFAULT_PREFERENCES.currency;
-            if (detected && detected !== parsed.currency) {
-              const merged = { ...parsed, currency: detected };
-              setPreferences(merged);
-              localStorage.setItem(storageKey, JSON.stringify(merged));
-              console.log('🔍 Detected and saved currency for', storageKey, detected);
-            }
-          }
         } else {
-          // No saved prefs; start with defaults then attempt detection
-          setPreferences(DEFAULT_PREFERENCES);
-          console.log('ℹ️ No saved preferences found, using defaults');
-
-          const detected = (await detectCurrencyByIP()) || detectCurrencyByLocale() || DEFAULT_PREFERENCES.currency;
-          const merged = { ...DEFAULT_PREFERENCES, currency: detected };
-          setPreferences(merged);
-          localStorage.setItem(storageKey, JSON.stringify(merged));
-          console.log('🔍 Detected and saved currency for', storageKey, detected);
+          const initial = {
+            ...DEFAULT_PREFERENCES,
+            currency: user?.currency || DEFAULT_PREFERENCES.currency
+          };
+          setPreferences(initial);
+          localStorage.setItem(storageKey, JSON.stringify(initial));
         }
       } catch (error) {
-        console.error('❌ Failed to load preferences:', error);
-        setPreferences(DEFAULT_PREFERENCES);
+        console.error('Failed to load preferences:', error);
+        setPreferences({
+          ...DEFAULT_PREFERENCES,
+          currency: user?.currency || DEFAULT_PREFERENCES.currency
+        });
       }
-    })();
-  }, [userId]);
+    };
+
+    loadPreferences();
+  }, [userId, user?.currency]);
 
   const updatePreferences = (newPrefs) => {
-    console.log('💾 Updating preferences:', newPrefs);
-
     setPreferences((prev) => {
       const merged = { ...prev, ...newPrefs };
 
-      if (userId) {
-        try {
-          localStorage.setItem(`preferences_${userId}`, JSON.stringify(merged));
-          console.log('✅ Preferences saved to localStorage');
-        } catch (error) {
-          console.error('❌ Failed to save preferences:', error);
-        }
+      try {
+        const storageKey = userId ? `preferences_${userId}` : 'preferences_local';
+        localStorage.setItem(storageKey, JSON.stringify(merged));
+      } catch (error) {
+        console.error('Failed to save preferences:', error);
       }
 
       return merged;
     });
   };
 
-  const formatCurrency = (amount) => {
-    const symbol = CURRENCY_SYMBOLS[preferences.currency] || '$';
-    const num = typeof amount === 'number' ? amount : 0;
+  /**
+   * Change preferred currency on server when logged in.
+   * @param {string} newCurrency - New currency code (e.g., 'NGN')
+   * @param {boolean|undefined} convertExisting - Whether to convert existing expenses/budgets (undefined = ask user)
+   * @returns {Promise<Object>} Result with conversion details
+   */
+  const changeCurrency = async (newCurrency, convertExisting) => {
+    // If user is not logged in, just update locally
+    if (!user || !userId) {
+      updatePreferences({ currency: newCurrency });
+      return { converted: false, localOnly: true };
+    }
 
-    return `${symbol}${num.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
+    try {
+      const requestBody = { 
+        currency: newCurrency, 
+        convertExisting: convertExisting 
+      };
+      
+      const response = await apiService.put('/user/currency', requestBody);
+
+      // On success, update preferences and user profile
+      updatePreferences({ currency: newCurrency });
+      
+      try {
+        if (response.data) {
+          updateUser({ 
+            currency: response.data.currency || newCurrency,
+            lastCurrencyChange: response.data.lastCurrencyChange
+          });
+        }
+      } catch (e) {
+        console.warn('Could not update user in AuthContext:', e);
+      }
+
+      return {
+        success: true,
+        converted: response.data?.dataConverted || false,
+        conversion: response.data?.conversion,
+        conversionRate: response.data?.conversionRate
+      };
+    } catch (err) {
+      // Check if it requires conversion decision
+      if (err?.status === 400 && err?.data?.requiresConversion) {
+        return {
+          requiresConversion: true,
+          existingData: err.data.existingData
+        };
+      }
+
+      console.error('Currency change failed:', err);
+      throw err;
+    }
   };
 
-  const getCurrencySymbol = () => CURRENCY_SYMBOLS[preferences.currency] || '$';
+  /**
+   * Format amount with current currency preferences
+   * @param {number} amount - Amount to format
+   * @returns {string} Formatted currency string
+   */
+  const formatCurrency = (amount) => {
+    const num = typeof amount === 'number' ? amount : 0;
+
+    try {
+      const formatter = new Intl.NumberFormat(preferences.language || 'en-US', {
+        style: 'currency',
+        currency: preferences.currency || DEFAULT_PREFERENCES.currency,
+        currencyDisplay: preferences.currencyFormat === 'code' ? 'code' : 'symbol',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+
+      return formatter.format(num);
+    } catch (err) {
+      const symbol = CURRENCY_SYMBOLS[preferences.currency] || '$';
+      return `${symbol}${num.toLocaleString('en-US', { 
+        minimumFractionDigits: 2, 
+        maximumFractionDigits: 2 
+      })}`;
+    }
+  };
+
+  /**
+   * Get currency symbol for current currency
+   * @returns {string} Currency symbol
+   */
+  const getCurrencySymbol = () => {
+    return CURRENCY_SYMBOLS[preferences.currency] || '$';
+  };
 
   const value = {
     preferences,
     updatePreferences,
+    changeCurrency,
     formatCurrency,
     getCurrencySymbol,
     theme: preferences.theme,
     currency: preferences.currency,
     notifications: preferences.notifications,
+    currencyFormat: preferences.currencyFormat,
+    fontSize: preferences.fontSize,
     language: preferences.language,
   };
 
