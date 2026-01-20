@@ -1,144 +1,115 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { useAuth } from '../../../context/AuthContext';
+// useDashboard.js - Updated without activeTab state
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../context/AuthContext';
+import { expenseService } from '../../../services/expenseService';
 
 export const useDashboard = () => {
-  const { user, logout: authLogout } = useAuth();
   const navigate = useNavigate();
-
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const { user, logout } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState('');
-  const [initials, setInitials] = useState('JD');
   const [recentTransactions, setRecentTransactions] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-
+  const [isLoading, setIsLoading] = useState(true);
   const dropdownRef = useRef(null);
 
-  // ———— Helpers ————
+  // Get user initials
   const getInitials = (name) => {
-    if (!name) return 'JD';
-    const parts = name.trim().split(' ');
-    if (parts.length === 1) return name.slice(0, 2).toUpperCase();
-    return (parts[0][0] + (parts[1]?.[0] || '')).toUpperCase();
+    if (!name) return 'U';
+    const names = name.split(' ');
+    if (names.length >= 2) {
+      return `${names[0][0]}${names[1][0]}`.toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
   };
 
-  // ———— Effects ————
-  useEffect(() => {
-    if (user) {
-      setInitials(getInitials(user.fullName || user.name));
-    }
-  }, [user]);
+  const initials = getInitials(user?.name || '');
+  const userId = user?.id;
 
+  // Update date and time
   useEffect(() => {
     const updateDateTime = () => {
       const now = new Date();
-      setCurrentDateTime(
-        now.toLocaleString('en-US', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: 'numeric',
-          minute: 'numeric',
-          hour12: true,
-        })
-      );
+      const options = {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      };
+      setCurrentDateTime(now.toLocaleDateString('en-US', options));
     };
+
     updateDateTime();
-    const id = setInterval(updateDateTime, 60000);
-    return () => clearInterval(id);
+    const interval = setInterval(updateDateTime, 60000); // Update every minute
+
+    return () => clearInterval(interval);
   }, []);
 
+  // Close dropdown when clicking outside
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
       }
     };
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // ———— Data Fetching ————
-  const fetchTransactions = useCallback(async () => {
-  const token = localStorage.getItem('authToken');
-  if (!token) return setRecentTransactions([]);
+  // Fetch dashboard data
+  const fetchDashboardData = async () => {
+    if (!userId) {
+      console.warn('No user ID available');
+      setIsLoading(false);
+      return;
+    }
 
-  try {
     setIsLoading(true);
-    const res = await fetch('https://expense-tracker-api-hvss.onrender.com/expense/', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (!res.ok) throw new Error('Failed to fetch');
-
-    const data = await res.json();
-    const expenses = data.data?.expenses || [];
-    
-    // NORMALIZE DATA HERE - convert everything to strings
-    const normalizedExpenses = expenses.map(expense => {
-        // Handle category normalization
-        let categoryObj;
-        if (typeof expense.category === 'string') {
-          categoryObj = { name: expense.category };
-        } else if (expense.category?.name) {
-          categoryObj = expense.category;
-        } else {
-          categoryObj = { name: expense.category?._id || 'Uncategorized' };
-        }
-
-        // Handle description
-        const name = typeof expense.description === 'string' 
-          ? expense.description 
-          : expense.name?.name || expense.name || 'Unnamed';
-
-        return {
-          ...expense,
-          name,
-          category: categoryObj,
-          amount: Math.abs(expense.amount || 0),
-          date: expense.date || new Date().toISOString(),
-          type: expense.type || 'expense',
-        };
-      });
-    
-    const sorted = normalizedExpenses.sort(
-      (a, b) => new Date(b.date) - new Date(a.date)
-    );
+    try {
+      const transactions = await expenseService.getRecentTransactions();
       
-    setRecentTransactions(sorted);
-  } catch (err) {
-    console.error('Error fetching transactions:', err);
-    setRecentTransactions([]);
-  } finally {
-    setIsLoading(false);
-  }
-}, []);
+      const formattedTransactions = Array.isArray(transactions)
+        ? transactions.map((tx) => ({
+            id: tx._id || tx.id,
+            name: tx.name || 'Unknown',
+            category: tx.category || 'Uncategorized',
+            amount: tx.amount || 0,
+            date: tx.date || new Date().toISOString(),
+            type: tx.type || 'expense',
+          }))
+        : [];
+
+      setRecentTransactions(formattedTransactions);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      setRecentTransactions([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    fetchTransactions();
-  }, [fetchTransactions]);
+    fetchDashboardData();
+  }, [userId]);
 
-  // ———— Actions ————
-  const handleSetActiveTab = (tab) => {
-    setActiveTab(tab);
-    console.log(`Active tab set to: ${tab}`);
-    setIsSidebarOpen(false);
+  // Refresh data
+  const refreshData = () => {
+    fetchDashboardData();
   };
 
+  // Handle logout
   const handleLogout = () => {
-    authLogout();
+    logout();
+    navigate('/login');
   };
-
-  const refreshData = () => fetchTransactions();
 
   return {
     user,
-    userId: user?.id || user?._id,
-    activeTab,
-    setActiveTab: handleSetActiveTab,
+    userId,
     isSidebarOpen,
     setIsSidebarOpen,
     isDropdownOpen,

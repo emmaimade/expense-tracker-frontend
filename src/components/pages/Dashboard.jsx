@@ -1,3 +1,4 @@
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Menu, Bell, User, LogOut } from 'lucide-react';
 import { useDashboard } from './hooks/useDashboard';
 import Sidebar from '../layout/SideBar';
@@ -8,11 +9,10 @@ import BudgetsContent from '../budgets/BudgetsContent';
 import SettingsContent from '../settings/SettingsContent';
 
 const Dashboard = () => {
+  const location = useLocation();
   const {
     user,
     userId,
-    activeTab,
-    setActiveTab,
     isSidebarOpen,
     setIsSidebarOpen,
     isDropdownOpen,
@@ -28,16 +28,37 @@ const Dashboard = () => {
 
   if (!user) return null; // ProtectedRoute handles redirect
 
+  // Determine active tab from URL
+  const getActiveTab = () => {
+    const path = location.pathname;
+    if (path === '/dashboard') return 'dashboard';
+    if (path.startsWith('/dashboard/expenses')) return 'expenses';
+    if (path.startsWith('/dashboard/analytics')) return 'analytics';
+    if (path.startsWith('/dashboard/budgets')) return 'budgets';
+    if (path.startsWith('/dashboard/settings')) return 'settings';
+    return 'dashboard';
+  };
+
+  const activeTab = getActiveTab();
+
+  // Tab descriptions
+  const tabDescriptions = {
+    dashboard: "Overview of your financial health",
+    expenses: "Track and manage your expenses",
+    analytics: "Insights into your spending patterns",
+    budgets: "Set and track your monthly budget",
+    settings: "Manage your account preferences"
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar
         isOpen={isSidebarOpen}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
         onClose={() => setIsSidebarOpen(false)}
       />
 
       <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
         <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 lg:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
@@ -52,13 +73,7 @@ const Dashboard = () => {
                 {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
               </h1>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                {activeTab === "dashboard" &&
-                  "Overview of your financial health"}
-                {activeTab === "expenses" && "Track and manage your expenses"}
-                {activeTab === "analytics" &&
-                  "Insights into your spending patterns"}
-                {activeTab === "budgets" && "Set and track your monthly budget"}
-                {activeTab === "settings" && "Manage your account preferences"}
+                {tabDescriptions[activeTab]}
               </p>
             </div>
           </div>
@@ -96,32 +111,77 @@ const Dashboard = () => {
           </div>
         </header>
 
+        {/* Main Content with Routes */}
         <main className="p-4 lg:p-6 flex-1 overflow-auto bg-gray-50 dark:bg-gray-900">
-          {activeTab === "dashboard" && (
-            <DashboardContent
-              onDataChange={refreshData}
-              setActiveTab={setActiveTab}
+          <Routes>
+            {/* Dashboard Home */}
+            <Route
+              index
+              element={
+                <DashboardContent
+                  onDataChange={refreshData}
+                />
+              }
             />
-          )}
-          {activeTab === "expenses" && (
-            <ExpensesContent
-              recentTransactions={recentTransactions}
-              userId={userId}
-              onDataChange={refreshData}
+
+            {/* Expenses */}
+            <Route
+              path="expenses"
+              element={
+                <ExpensesContent
+                  recentTransactions={recentTransactions}
+                  userId={userId}
+                  onDataChange={refreshData}
+                />
+              }
             />
-          )}
-          {activeTab === "analytics" && (
-            <AnalyticsContent
-              recentTransactions={recentTransactions}
-              setActiveTab={setActiveTab}
+
+            {/* Analytics */}
+            <Route
+              path="analytics"
+              element={
+                <AnalyticsContent
+                  recentTransactions={recentTransactions}
+                />
+              }
             />
-          )}
-          {activeTab === "budgets" && (
-            <BudgetsContent recentTransactions={recentTransactions} />
-          )}
-          {activeTab === "settings" && <SettingsContent userId={userId} />}
+
+            {/* Budgets */}
+            <Route
+              path="budgets"
+              element={
+                <BudgetsContent 
+                  recentTransactions={recentTransactions}
+                  onDataChange={refreshData}
+                  userId={userId}
+                />
+              }
+            />
+
+            {/* Settings */}
+            <Route
+              path="settings"
+              element={
+                <SettingsContent 
+                  userId={userId} 
+                  onDataChange={refreshData} 
+                />
+              }
+            />
+
+            {/* Catch all - redirect to dashboard home */}
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
         </main>
       </div>
+
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
     </div>
   );
 };
