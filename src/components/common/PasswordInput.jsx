@@ -14,9 +14,11 @@ export const PasswordInput = ({
   disabled = false,
   showStrength = false,
   className = "",
+  register,
   ...props 
 }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const [localValue, setLocalValue] = useState('');
 
   const togglePasswordVisibility = () => {
     setShowPassword(prev => !prev);
@@ -31,9 +33,11 @@ export const PasswordInput = ({
         <input
           type={showPassword ? "text" : "password"}
           id={name}
+          {...(register ? register(name) : {})}
           name={name}
           value={value}
           onChange={onChange}
+          onInput={(e) => setLocalValue(e.target.value)}
           disabled={disabled}
           className={`block w-full h-12 px-3 pr-10 rounded-md border shadow-sm focus:ring-1 sm:text-sm transition-colors ${
             error
@@ -63,12 +67,12 @@ export const PasswordInput = ({
         </button>
       </div>
       {error && (
-        <p className="mt-1 text-sm text-red-600 flex items-center">
+        <p id={`${name}-error`} className="mt-1 text-sm text-red-600 flex items-center" role="alert" aria-live="assertive">
           <ErrorIcon className="mr-1" fontSize="small" />
           {error}
         </p>
       )}
-      {showStrength && !error && <PasswordStrengthIndicator password={value} />}
+      {showStrength && !error && <PasswordStrengthIndicator password={localValue || value} />}
     </div>
   );
 };

@@ -10,6 +10,7 @@ export const FormInput = ({
   placeholder, 
   disabled = false,
   className = "",
+  register,
   ...props 
 }) => {
   return (
@@ -20,10 +21,13 @@ export const FormInput = ({
       <input
         type={type}
         id={name}
+        {...(register ? register(name) : {})}
         name={name}
         value={value}
         onChange={onChange}
         disabled={disabled}
+        aria-invalid={!!error}
+        aria-describedby={error ? `${name}-error` : undefined}
         className={`block w-full h-12 px-3 rounded-md border shadow-sm focus:ring-1 sm:text-sm transition-colors ${
           error
             ? "border-red-500 focus:border-red-500 focus:ring-red-500"
@@ -33,7 +37,7 @@ export const FormInput = ({
         {...props}
       />
       {error && (
-        <p className="mt-1 text-sm text-red-600 flex items-center">
+        <p id={`${name}-error`} className="mt-1 text-sm text-red-600 flex items-center" role="alert" aria-live="assertive">
           <ErrorIcon className="mr-1" fontSize="small" />
           {error}
         </p>
