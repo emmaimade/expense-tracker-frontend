@@ -1,5 +1,6 @@
-// SettingsContent.jsx - Fixed version
-import { useState } from 'react';
+// SettingsContent.jsx - Updated with query parameter support
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useProfile } from './hooks/useProfile';
 import { usePreferencesContext } from '../../context/PreferencesContext';
@@ -13,34 +14,48 @@ import Card from '../common/Card';
 const SettingsContent = ({ onDataChange }) => {
   const { user } = useAuth();
   const userId = user?.id;
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const { profile, loading: profileLoading, refetch } = useProfile();
   const { preferences, updatePreferences, changeCurrency } = usePreferencesContext();
 
-  const [activeSection, setActiveSection] = useState('profile');
+  // Get initial section from URL query params or default to 'profile'
+  const initialSection = searchParams.get('section') || 'profile';
+  const [activeSection, setActiveSection] = useState(initialSection);
+  
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isPreferencesModalOpen, setIsPreferencesModalOpen] = useState(false);
+
+  // Update active section when URL query parameter changes
+  useEffect(() => {
+    const section = searchParams.get('section');
+    if (section && ['profile', 'categories', 'preferences'].includes(section)) {
+      setActiveSection(section);
+    }
+  }, [searchParams]);
+
+  // Update URL when section changes
+  const handleSectionChange = (section) => {
+    setActiveSection(section);
+    setSearchParams({ section });
+  };
 
   const handleProfileModalClose = () => {
     setIsProfileModalOpen(false);
     refetch();
   };
 
-  // Handle preferences save - simplified to just update local prefs
+  // Handle preferences save
   const handleSavePreferences = async (newPrefs) => {
     try {
-      // Non-currency preferences (theme, fontSize, etc.)
       const { currency, ...otherPrefs } = newPrefs;
       
-      // Always update non-currency preferences locally
       if (Object.keys(otherPrefs).length > 0) {
         await updatePreferences(otherPrefs);
       }
       
-      // Currency changes are handled entirely within PreferencesModal
-      // Just update local preference here
       if (currency && currency !== preferences.currency) {
         await updatePreferences({ currency });
       }
@@ -56,7 +71,6 @@ const SettingsContent = ({ onDataChange }) => {
   const handleCurrencyChangeComplete = async () => {
     console.log('Currency change completed, refreshing data...');
     
-    // Force refresh all data
     if (onDataChange) {
       try {
         await onDataChange();
@@ -67,7 +81,6 @@ const SettingsContent = ({ onDataChange }) => {
       }
     }
     
-    // Refresh profile
     await refetch();
   };
 
@@ -83,18 +96,18 @@ const SettingsContent = ({ onDataChange }) => {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <h2 className="text-2xl font-semibold text-gray-900 mb-6">Settings</h2>
+      <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">Settings</h2>
 
       {/* Navigation Tabs */}
-      <div className="flex space-x-1 mb-6 bg-gray-100 p-1 rounded-lg">
+      <div className="flex space-x-1 mb-6 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
         {["profile", "categories", "preferences"].map((tab) => (
           <button
             key={tab}
-            onClick={() => setActiveSection(tab)}
+            onClick={() => handleSectionChange(tab)}
             className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors capitalize ${
               activeSection === tab
-                ? "bg-white text-indigo-600 shadow-sm"
-                : "text-gray-600 hover:text-gray-900"
+                ? "bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
             }`}
           >
             {tab}
@@ -106,19 +119,19 @@ const SettingsContent = ({ onDataChange }) => {
       {activeSection === "profile" && (
         <div className="space-y-6">
           <Card>
-            <h3 className="text-lg font-medium text-gray-700 mb-4">
+            <h3 className="text-lg font-medium text-gray-700 dark:text-gray-200 mb-4">
               Profile Information
             </h3>
             {profileLoading ? (
               <div className="flex items-center justify-center py-8">
                 <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-                <span className="ml-3 text-gray-600">Loading profile...</span>
+                <span className="ml-3 text-gray-600 dark:text-gray-400">Loading profile...</span>
               </div>
             ) : (
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-600 font-medium">Name:</span>
-                  <span className="text-gray-900">
+                  <span className="text-gray-600 dark:text-gray-400 font-medium">Name:</span>
+                  <span className="text-gray-900 dark:text-white">
                     {profile?.user?.fullName || 
                      `${profile?.user?.firstName || ''} ${profile?.user?.lastName || ''}`.trim() || 
                      'Not set'}
@@ -126,8 +139,8 @@ const SettingsContent = ({ onDataChange }) => {
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-600 font-medium">Email:</span>
-                  <span className="text-gray-900">{profile?.user?.email || 'Not set'}</span>
+                  <span className="text-gray-600 dark:text-gray-400 font-medium">Email:</span>
+                  <span className="text-gray-900 dark:text-white">{profile?.user?.email || 'Not set'}</span>
                 </div>
 
                 {profile?.emailChangeInProgress && (
@@ -151,7 +164,7 @@ const SettingsContent = ({ onDataChange }) => {
                   </button>
                   <button
                     onClick={() => setIsPasswordModalOpen(true)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium text-gray-900"
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium text-gray-900 dark:text-white"
                   >
                     Change Password
                   </button>
@@ -161,16 +174,16 @@ const SettingsContent = ({ onDataChange }) => {
           </Card>
 
           {/* Account Stats */}
-          <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl border border-indigo-100 p-6">
-            <h4 className="text-sm font-medium text-gray-700 mb-3">Account Information</h4>
+          <div className="bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800 p-6">
+            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Account Information</h4>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-xs text-gray-600">User ID</p>
-                <p className="text-sm font-mono text-gray-900 mt-1">{userId}</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">User ID</p>
+                <p className="text-sm font-mono text-gray-900 dark:text-white mt-1">{userId}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-600">Account Status</p>
-                <p className="text-sm font-medium text-green-600 mt-1">Active</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">Account Status</p>
+                <p className="text-sm font-medium text-green-600 dark:text-green-400 mt-1">Active</p>
               </div>
             </div>
           </div>
@@ -179,10 +192,10 @@ const SettingsContent = ({ onDataChange }) => {
 
       {activeSection === "categories" && (
         <Card>
-          <h3 className="text-lg font-medium text-gray-700 mb-4">
+          <h3 className="text-lg font-medium text-gray-700 dark:text-gray-200 mb-4">
             Category Management
           </h3>
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
             Create and organize your expense categories to better track your spending.
           </p>
           <button
@@ -196,10 +209,10 @@ const SettingsContent = ({ onDataChange }) => {
 
       {activeSection === "preferences" && (
         <Card>
-          <h3 className="text-lg font-medium text-gray-700 mb-4">
+          <h3 className="text-lg font-medium text-gray-700 dark:text-gray-200 mb-4">
             Preferences
           </h3>
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
             Customize your experience with theme, currency, and other preferences.
           </p>
           <button

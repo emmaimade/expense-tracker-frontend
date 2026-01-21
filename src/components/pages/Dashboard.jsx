@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, Bell, User, LogOut } from 'lucide-react';
 import { useDashboard } from './hooks/useDashboard';
 import Sidebar from '../layout/SideBar';
@@ -10,6 +10,7 @@ import SettingsContent from '../settings/SettingsContent';
 
 const Dashboard = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const {
     user,
     userId,
@@ -96,12 +97,18 @@ const Dashboard = () => {
             </div>
 
             {isDropdownOpen && (
-              <div className="absolute top-10 right-0 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                <button className="w-full flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-t-lg">
+              <div className="absolute top-10 right-0 w-48 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-50">
+                <button 
+                  className="w-full flex items-center px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-t-lg"
+                  onClick={() => {
+                    navigate('/dashboard/settings?section=profile');
+                    setIsDropdownOpen(false);
+                  }}
+                >
                   <User className="w-4 h-4 mr-2" /> Profile
                 </button>
                 <button
-                  className="w-full flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-b-lg"
+                  className="w-full flex items-center px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-b-lg"
                   onClick={handleLogout}
                 >
                   <LogOut className="w-4 h-4 mr-2" /> Log Out
