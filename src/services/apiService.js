@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://expense-tracker-api-hvss.onrender.com';
+export const API_BASE_URL = 'https://expense-tracker-api-hvss.onrender.com';
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('authToken');
@@ -15,13 +15,18 @@ const handleApiResponse = async (response) => {
   if (!response.ok) {
     const responseText = await response.text();
     let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+    let errorData = null;
     try {
-      const errorData = JSON.parse(responseText);
+      errorData = JSON.parse(responseText);
       errorMessage = errorData.message || errorData.detail || errorData.error || errorMessage;
     } catch (parseError) {
       console.log('Could not parse error response as JSON');
     }
-    throw new Error(errorMessage);
+    const err = new Error(errorMessage);
+    // Attach status and parsed JSON (if available) for callers to inspect
+    err.status = response.status;
+    err.data = errorData;
+    throw err;
   }
   return response;
 };
