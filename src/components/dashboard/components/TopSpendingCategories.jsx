@@ -1,6 +1,7 @@
 import { TrendingUp, ShoppingBag, Coffee, Home, Car, MoreHorizontal } from 'lucide-react';
 import { startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { usePreferencesContext } from '../../../context/PreferencesContext';
+import Card from '../../../components/common/Card';
 
 const TopSpendingCategories = ({ transactions = [], onViewAnalytics }) => {
   // Helper: Check if a date is in the current month
@@ -68,21 +69,21 @@ const TopSpendingCategories = ({ transactions = [], onViewAnalytics }) => {
   // Empty state
   if (categories.length === 0) {
     return (
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <Card>
         <h3 className="font-semibold text-gray-900 mb-4">Top Spending Categories</h3>
         <div className="text-center py-8">
           <ShoppingBag className="w-12 h-12 text-gray-300 mx-auto mb-3" />
           <p className="text-gray-500 text-sm">No expenses yet this month</p>
           <p className="text-gray-400 text-xs mt-1">Start tracking to see your breakdown</p>
         </div>
-      </div>
+      </Card>
     );
   }
 
   const { formatCurrency } = usePreferencesContext();
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+    <Card>
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold text-gray-900">Top Spending Categories</h3>
         <span className="text-xs text-gray-500">This Month</span>
@@ -130,7 +131,7 @@ const TopSpendingCategories = ({ transactions = [], onViewAnalytics }) => {
       >
         View Full Breakdown →
       </button>
-    </div>
+    </Card>
   );
 };
 

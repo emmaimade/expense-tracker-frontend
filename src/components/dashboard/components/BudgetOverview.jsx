@@ -1,14 +1,15 @@
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { usePreferencesContext } from '../../../context/PreferencesContext';
+import Card from '../../../components/common/Card';
 
 const BudgetOverview = ({ budgetData }) => {
   const { formatCurrency } = usePreferencesContext();
   // ✅ Check if budgetData exists (loading state handled by parent)
   if (!budgetData) {
     return (
-      <div className="text-center py-10 bg-white rounded-xl shadow-sm border border-gray-100">
+      <Card className="text-center py-10">
         <p className="text-indigo-600 font-medium">Loading Budget Data...</p>
-      </div>
+      </Card>
     );
   }
 
@@ -33,7 +34,7 @@ const BudgetOverview = ({ budgetData }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {/* Monthly Spending Summary */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <Card>
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-lg font-semibold text-gray-900">This Month</h2>
           <div
@@ -61,10 +62,10 @@ const BudgetOverview = ({ budgetData }) => {
             ? "Over budget"
             : `${formatCurrency(remaining)} remaining`}
         </p>
-      </div>
+      </Card>
 
       {/* Budget Progress */}
-      <div className="md:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <Card className="md:col-span-2">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-gray-900">
             Monthly Budget Progress
@@ -105,7 +106,7 @@ const BudgetOverview = ({ budgetData }) => {
             </span>
           )}
         </div>
-      </div>
+      </Card>
     </div>
   );
 };

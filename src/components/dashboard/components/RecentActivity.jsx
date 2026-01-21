@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import EmptyState from './EmptyState';
 import { usePreferencesContext } from '../../../context/PreferencesContext';
+import Card from '../../../components/common/Card';
 
 const RecentActivity = ({ weeklyTransactions = [], onViewAllExpenses, onAddExpense, fallbackUsed = false }) => {
   const activityData = useMemo(() => {
@@ -52,21 +53,21 @@ const RecentActivity = ({ weeklyTransactions = [], onViewAllExpenses, onAddExpen
   // Show empty state if no data
   if (!activityData.hasData) {
     return (
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <Card>
         <h3 className="font-semibold text-gray-900 mb-4">Recent Activity</h3>
         <EmptyState 
           type="recent-activity"
           onAddExpense={onAddExpense}
           onViewAllTime={onViewAllExpenses}
         />
-      </div>
+      </Card>
     );
   }
 
   const { formatCurrency } = usePreferencesContext();
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+    <Card>
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold text-gray-900">Recent Activity</h3>
         {fallbackUsed && (
@@ -79,19 +80,19 @@ const RecentActivity = ({ weeklyTransactions = [], onViewAllExpenses, onAddExpen
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-gray-600">Last expense</span>
-          <span className="font-medium dark:text-black">
+          <span className="font-medium text-gray-900">
             {activityData.lastExpense.name} - {formatCurrency(Math.abs(activityData.lastExpense.amount || 0))}
           </span>
         </div>
         <div className="flex items-center justify-between">
           <span className="text-gray-600">Largest expense</span>
-          <span className="font-medium dark:text-black">
+          <span className="font-medium text-gray-900">
             {activityData.largestExpense.name} - {formatCurrency(Math.abs(activityData.largestExpense.amount || 0))}
           </span>
         </div>
         <div className="flex items-center justify-between">
           <span className="text-gray-600">Most frequent category</span>
-          <span className="font-medium dark:text-black">{activityData.mostFrequentCategory}</span>
+          <span className="font-medium text-gray-900">{activityData.mostFrequentCategory}</span>
         </div>
       </div>
       
@@ -101,7 +102,7 @@ const RecentActivity = ({ weeklyTransactions = [], onViewAllExpenses, onAddExpen
       >
         View All Transactions →
       </button>
-    </div>
+    </Card>
   );
 };
 
