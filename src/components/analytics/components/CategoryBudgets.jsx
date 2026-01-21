@@ -1,23 +1,24 @@
 import PropTypes from 'prop-types';
 import { usePreferencesContext } from '../../../context/PreferencesContext';
+import Card from '../../../components/common/Card';
 
 const CategoryBudgets = ({ categoryData = [], categoryBudgets = [], isLoading = false, setActiveTab }) => {
   const { formatCurrency } = usePreferencesContext();
   // Show loading state
   if (isLoading) {
     return (
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <Card>
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
         </div>
-      </div>
+      </Card>
     );
   }
 
   // If no budgets are set, prompt user to set them
   if (!categoryBudgets || categoryBudgets.length === 0) {
     return (
-      <div className="bg-white p-12 rounded-xl shadow-sm border border-gray-100 text-center">
+      <Card className="p-12 text-center">
         <div className="w-16 h-16 mx-auto mb-4 bg-indigo-100 rounded-full flex items-center justify-center">
           <span className="text-3xl">📊</span>
         </div>
@@ -33,7 +34,7 @@ const CategoryBudgets = ({ categoryData = [], categoryBudgets = [], isLoading = 
         >
           Set Up Budgets
         </button>
-      </div>
+      </Card>
     );
   }
 
@@ -82,7 +83,7 @@ const CategoryBudgets = ({ categoryData = [], categoryBudgets = [], isLoading = 
   }
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+    <Card>
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-lg font-semibold text-gray-900">
@@ -191,7 +192,7 @@ const CategoryBudgets = ({ categoryData = [], categoryBudgets = [], isLoading = 
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 };
 

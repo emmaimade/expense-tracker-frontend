@@ -1,5 +1,6 @@
 import { TrendingUp, TrendingDown, Calendar, Target } from 'lucide-react';
 import { usePreferencesContext } from '../../../context/PreferencesContext';
+import Card from '../../../components/common/Card';
 
 const SmartInsights = ({
   projectedSpending,
@@ -13,7 +14,7 @@ const SmartInsights = ({
   const { formatCurrency } = usePreferencesContext();
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+    <Card>
       <h2 className="text-lg font-semibold text-gray-900 mb-4">
         Smart Insights
       </h2>
@@ -69,7 +70,7 @@ const SmartInsights = ({
           </p>
         </div>
       </div>
-    </div>
+    </Card>
   );
 };
 

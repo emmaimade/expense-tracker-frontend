@@ -1,10 +1,11 @@
 import { AlertCircle } from 'lucide-react';
+import Card from '../../../components/common/Card';
 
 const BudgetAlertsSection = ({ budgetAlerts }) => {
   if (!Array.isArray(budgetAlerts) || budgetAlerts.length === 0) return null;
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+    <Card>
       <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
         <AlertCircle className="w-5 h-5 text-yellow-600" />
         Budget Alerts
@@ -53,7 +54,7 @@ const BudgetAlertsSection = ({ budgetAlerts }) => {
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   );
 };
 

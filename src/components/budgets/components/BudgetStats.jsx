@@ -1,5 +1,6 @@
 import { DollarSign, TrendingUp, Target } from 'lucide-react';
 import { usePreferencesContext } from '../../../context/PreferencesContext';
+import Card from '../../../components/common/Card';
 
 const BudgetStats = ({ 
   dailyAverage, 
@@ -14,7 +15,7 @@ const BudgetStats = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {/* Daily Average */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <Card>
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-600">Daily Average</p>
@@ -29,10 +30,10 @@ const BudgetStats = ({
             <TrendingUp className="w-6 h-6 text-blue-600" />
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Projected Total */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <Card>
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-600">Projected Total</p>
@@ -65,10 +66,10 @@ const BudgetStats = ({
             />
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Budget Status */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <Card>
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-600">Budget Status</p>
@@ -111,7 +112,7 @@ const BudgetStats = ({
             />
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 };

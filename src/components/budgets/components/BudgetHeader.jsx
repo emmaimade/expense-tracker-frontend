@@ -1,8 +1,9 @@
 import { Calendar } from 'lucide-react';
+import Card from '../../../components/common/Card';
 
 const BudgetHeader = () => {
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+    <Card>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
@@ -22,7 +23,7 @@ const BudgetHeader = () => {
           </span>
         </div>
       </div>
-    </div>
+    </Card>
   );
 };
 
