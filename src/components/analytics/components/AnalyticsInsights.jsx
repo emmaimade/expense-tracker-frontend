@@ -1,4 +1,5 @@
 import { usePreferencesContext } from '../../../context/PreferencesContext';
+import Card from '../../../components/common/Card';
 
 const AnalyticsInsights = ({ analytics, trendInsight }) => {
   const { budgetAdherence, categoryData } = analytics;
@@ -86,7 +87,7 @@ const AnalyticsInsights = ({ analytics, trendInsight }) => {
   }
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+    <Card>
       <h2 className="text-lg font-semibold text-gray-900 mb-4">Key Insights</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {insights.map((insight, index) => (
@@ -104,7 +105,7 @@ const AnalyticsInsights = ({ analytics, trendInsight }) => {
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   );
 };
 

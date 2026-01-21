@@ -1,5 +1,6 @@
 import { TrendingUp, PieChart as PieChartIcon, DollarSign } from 'lucide-react';
 import { usePreferencesContext } from '../../../context/PreferencesContext';
+import Card from '../../../components/common/Card';
 
 const AnalyticsMetricsCards = ({ analytics, isLoading, timeRange }) => {
   const { avgMonthlySpending, budgetAdherence, largestExpense } = analytics;
@@ -33,7 +34,7 @@ const AnalyticsMetricsCards = ({ analytics, isLoading, timeRange }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {/* Avg Monthly Spending */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <Card>
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <p className="text-sm text-gray-600">Avg Monthly Spending</p>
@@ -52,10 +53,10 @@ const AnalyticsMetricsCards = ({ analytics, isLoading, timeRange }) => {
             <TrendingUp className="w-8 h-8 text-indigo-600" />
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Budget Usage */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <Card>
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <p className="text-sm text-gray-600">Budget Usage</p>
@@ -76,10 +77,10 @@ const AnalyticsMetricsCards = ({ analytics, isLoading, timeRange }) => {
             <PieChartIcon className={`w-8 h-8 ${getBudgetIconColor()}`} />
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Largest Expense */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <Card>
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <p className="text-sm text-gray-600">Largest Expense</p>
@@ -100,7 +101,7 @@ const AnalyticsMetricsCards = ({ analytics, isLoading, timeRange }) => {
             <DollarSign className="w-8 h-8 text-red-600" />
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 };
