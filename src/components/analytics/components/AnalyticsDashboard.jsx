@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import { useChartData } from '../hooks/useChartData';
 import { usePreferencesContext } from '../../../context/PreferencesContext';
+import Card from '../../../components/common/Card';
 
 // ────── Constants ──────
 const COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
@@ -162,7 +163,7 @@ const AnalyticsDashboard = ({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* ────── Top Spending Categories Chart ────── */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <Card>
         <div className="mb-4">
           <h2 className="text-lg font-semibold text-gray-900">
             Top Spending Categories
@@ -223,10 +224,10 @@ const AnalyticsDashboard = ({
         </div>
 
         <CategoryLegend categories={top5} total={catTotal} colors={COLORS} formatCurrency={formatCurrency} />
-      </div>
+      </Card>
 
       {/* ────── Monthly Trends Chart ────── */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <Card>
         <div className="mb-4">
           <h2 className="text-lg font-semibold text-gray-900">Monthly Trends</h2>
             <p className="text-sm text-gray-500 mt-1">
@@ -283,7 +284,7 @@ const AnalyticsDashboard = ({
             formatCurrency={formatCurrency}
           />
         )}
-      </div>
+      </Card>
     </div>
   );
 };

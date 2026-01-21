@@ -5,6 +5,7 @@ import AnalyticsMetricsCards from './components/AnalyticsMetricsCards';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import CategoryBudgets from './components/CategoryBudgets';
 import AnalyticsInsights from './components/AnalyticsInsights';
+import Card from '../common/Card';
 
 const AnalyticsContent = ({ setActiveTab, recentTransactions = [] }) => {
   const [timeRange, setTimeRange] = useState('6months');
@@ -22,30 +23,30 @@ const AnalyticsContent = ({ setActiveTab, recentTransactions = [] }) => {
   // Error state
   if (error) {
     return (
-      <div className="bg-white dark:bg-gray-800 p-12 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 text-center">
-        <div className="w-16 h-16 mx-auto mb-4 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+      <Card className="p-12 text-center">
+        <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
           <span className="text-3xl">⚠️</span>
         </div>
-        <h3 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-2">Error Loading Analytics</h3>
-        <p className="text-gray-600 dark:text-gray-400">{error}</p>
+        <h3 className="text-lg font-semibold text-red-600 mb-2">Error Loading Analytics</h3>
+        <p className="text-gray-600">{error}</p>
         <button
           onClick={() => window.location.reload()}
           className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
         >
           Retry
         </button>
-      </div>
+      </Card>
     );
   }
 
   return (
     <div className="space-y-6">
       {/* Header with Time Range Selector */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+      <Card>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Analytics</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
+            <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
+            <p className="text-gray-600 mt-1">
               Analyze your spending patterns and trends
             </p>
           </div>
@@ -53,7 +54,7 @@ const AnalyticsContent = ({ setActiveTab, recentTransactions = [] }) => {
             <select
               value={timeRange}
               onChange={(e) => setTimeRange(e.target.value)}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-900"
               aria-label="Select time range for analytics"
             >
               <option value="3months">Last 3 Months</option>
@@ -62,7 +63,7 @@ const AnalyticsContent = ({ setActiveTab, recentTransactions = [] }) => {
             </select>
             <button
               onClick={exportToCSV}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
+              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-700"
               aria-label="Export analytics data as CSV"
             >
               <Download className="w-4 h-4" />
@@ -70,7 +71,7 @@ const AnalyticsContent = ({ setActiveTab, recentTransactions = [] }) => {
             </button>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Key Metrics Overview */}
       <AnalyticsMetricsCards
@@ -103,14 +104,14 @@ const AnalyticsContent = ({ setActiveTab, recentTransactions = [] }) => {
 
       {/* Empty State */}
       {analytics.categoryData.length === 0 && !isLoading && (
-        <div className="bg-white dark:bg-gray-800 p-12 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 text-center">
-          <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
-            <Calendar className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+        <Card className="p-12 text-center">
+          <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+            <Calendar className="w-8 h-8 text-gray-400" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
             No Analytics Data Available
           </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+          <p className="text-gray-600 mb-6 max-w-md mx-auto">
             Start tracking your expenses to see detailed analytics and insights
             about your spending patterns.
           </p>
@@ -121,13 +122,13 @@ const AnalyticsContent = ({ setActiveTab, recentTransactions = [] }) => {
           >
             Add Your First Expense
           </button>
-        </div>
+        </Card>
       )}
 
       {/* Quick Actions */}
       {analytics.categoryData.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+        <Card>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
             Quick Actions
           </h2>
           <div className="flex flex-wrap gap-3">
@@ -140,20 +141,20 @@ const AnalyticsContent = ({ setActiveTab, recentTransactions = [] }) => {
             </button>
             <button
               onClick={() => setActiveTab("budgets")}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
               aria-label="Manage budgets"
             >
               Manage Budgets
             </button>
             <button
               onClick={() => setActiveTab("dashboard")}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
               aria-label="Return to dashboard"
             >
               Back to Dashboard
             </button>
           </div>
-        </div>
+        </Card>
       )}
     </div>
   );
