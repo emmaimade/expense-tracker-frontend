@@ -5,7 +5,6 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import Logo from "../common/Logo";
 import AlertMessage from "../common/AlertMessage";
 import FormInput from "../common/FormInput";
 import PasswordInput from "../common/PasswordInput";

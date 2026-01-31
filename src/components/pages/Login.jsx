@@ -9,7 +9,6 @@ import LockIcon from '@mui/icons-material/Lock';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import ErrorIcon from '@mui/icons-material/Error';
-import Logo from '../common/Logo';
 import GoogleAuthButton from '../auth/GoogleAuthButton';
 
 // Validation schema
