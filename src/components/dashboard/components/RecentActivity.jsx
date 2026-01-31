@@ -4,6 +4,9 @@ import { usePreferencesContext } from '../../../context/PreferencesContext';
 import Card from '../../../components/common/Card';
 
 const RecentActivity = ({ weeklyTransactions = [], onViewAllExpenses, onAddExpense, fallbackUsed = false }) => {
+  // ✅ FIX: Move usePreferencesContext to the top, before any returns
+  const { formatCurrency } = usePreferencesContext();
+
   const activityData = useMemo(() => {
     // Ensure weeklyTransactions is always an array
     const safeTransactions = Array.isArray(weeklyTransactions) ? weeklyTransactions : [];
@@ -63,8 +66,6 @@ const RecentActivity = ({ weeklyTransactions = [], onViewAllExpenses, onAddExpen
       </Card>
     );
   }
-
-  const { formatCurrency } = usePreferencesContext();
 
   return (
     <Card>
