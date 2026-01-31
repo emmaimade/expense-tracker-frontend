@@ -14,8 +14,8 @@ const getEndOfDay = (date) => {
   return d;
 };
 
-export const useExpenseData = (recentTransactions = []) => {
-  // dateRange now represents the selection type: 'week', 'month', 'quarter', 'year', or 'custom'
+// ✅ FIX: Remove default parameter so we can detect when data hasn't loaded
+export const useExpenseData = (recentTransactions) => {
   const [dateRangeType, setDateRangeType] = useState("year");
   const [customDateRange, setCustomDateRange] = useState({
     startDate: "",
@@ -26,7 +26,9 @@ export const useExpenseData = (recentTransactions = []) => {
     dateRangeType,
     customDateRange,
     isUsingCustomRange: dateRangeType === "custom",
-    transactionsCount: recentTransactions.length
+    transactionsCount: recentTransactions?.length,
+    transactionsIsNull: recentTransactions === null,
+    transactionsIsUndefined: recentTransactions === undefined,
   });
 
   // Reset to default function
@@ -81,15 +83,20 @@ export const useExpenseData = (recentTransactions = []) => {
     }
 
     console.log('📅 Using preset range:', rangeType);
-    // Ensure startDate is at the beginning of the day and endDate is 'now'
     return {
       startDate: getStartOfDay(startDate),
-      endDate: getEndOfDay(now), // Use end of day today to include today's transactions
+      endDate: getEndOfDay(now),
     };
   }, [customDateRange]);
 
   // Function to filter transactions based on the determined date range
   const getDateFilteredTransactions = useMemo(() => {
+    // ✅ FIX: Return null if data hasn't loaded yet
+    if (recentTransactions === null || recentTransactions === undefined) {
+      console.log('⏳ Transactions not loaded yet, returning null');
+      return null;
+    }
+
     const { startDate, endDate } = getEffectiveDateRange(dateRangeType);
 
     console.log('📅 Effective date range:', {
@@ -123,10 +130,13 @@ export const useExpenseData = (recentTransactions = []) => {
     });
     
     return filtered;
-  }, [recentTransactions, dateRangeType, customDateRange, getEffectiveDateRange]);
+  }, [recentTransactions, dateRangeType, getEffectiveDateRange]);
 
-  // 1. Calculate category data for pie chart (Only uses the selected/custom range)
+  // 1. Calculate category data for pie chart
   const categoryData = useMemo(() => {
+    // ✅ FIX: Return null if filtered transactions not ready
+    if (!getDateFilteredTransactions) return null;
+    
     return getDateFilteredTransactions
       .filter((tx) => tx.type === "expense")
       .reduce((acc, tx) => {
@@ -143,12 +153,14 @@ export const useExpenseData = (recentTransactions = []) => {
       }, []);
   }, [getDateFilteredTransactions]);
 
-  // 2. Calculate monthly spending data (Uses a fixed 6-month historical view for the bar chart)
+  // 2. Calculate monthly spending data
   const monthlyData = useMemo(() => {
+    // ✅ FIX: Return null if transactions not ready
+    if (!recentTransactions) return null;
+    
     const monthlyTotals = {};
     const currentDate = new Date();
 
-    // Define the fixed 6-month historical range for the bar chart context
     const startDate = new Date(
       currentDate.getFullYear(),
       currentDate.getMonth() - 5,
@@ -177,7 +189,6 @@ export const useExpenseData = (recentTransactions = []) => {
       datePointer.setMonth(datePointer.getMonth() + 1);
     }
 
-    // Filter transactions to only those within the 6-month range before processing
     recentTransactions
       .filter((tx) => tx.type === "expense")
       .filter((tx) => {
@@ -209,16 +220,13 @@ export const useExpenseData = (recentTransactions = []) => {
     
     setCustomDateRange(newRange);
     
-    // Always set to custom if both dates are provided
     if (newRange.startDate && newRange.endDate) {
       console.log('✅ Setting dateRangeType to "custom"');
       setDateRangeType("custom");
     } else if (!newRange.startDate && !newRange.endDate) {
-      // Only reset if both are empty (clearing filter)
       console.log('🔄 Resetting dateRangeType to "month"');
       setDateRangeType("month");
     }
-    // Don't change type if only one date is set (user is still selecting)
   }, []);
 
   // Explicit function to apply custom date range with validation
@@ -264,7 +272,6 @@ export const useExpenseData = (recentTransactions = []) => {
         return;
     }
 
-    // Set the state as a custom range derived from the quick range calculation
     const newRange = {
       startDate: startDate.toISOString().split("T")[0],
       endDate: endDate.toISOString().split("T")[0],
@@ -272,10 +279,13 @@ export const useExpenseData = (recentTransactions = []) => {
     
     console.log('📅 Applying quick range:', rangeType, newRange);
     setCustomDateRange(newRange);
-    setDateRangeType("custom"); // Flag it as custom
+    setDateRangeType("custom");
   }, [resetToDefault]);
 
   const isUsingCustomRange = dateRangeType === "custom";
+
+  // ✅ FIX: Add isLoading indicator
+  const isLoading = recentTransactions === null || recentTransactions === undefined;
 
   return {
     categoryData,
@@ -289,5 +299,6 @@ export const useExpenseData = (recentTransactions = []) => {
     resetToDefault,
     applyQuickRange,
     filteredTransactions: getDateFilteredTransactions,
+    isLoading, // ✅ NEW: Expose loading state
   };
 };
