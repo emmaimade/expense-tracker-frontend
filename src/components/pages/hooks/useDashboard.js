@@ -1,20 +1,21 @@
-// useDashboard.js - Updated without activeTab state
+// useDashboard.js - Refactored to focus on UI & Auth State
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
-import { expenseService } from '../../../services/expenseService';
 
 export const useDashboard = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  
+  // UI States
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState('');
-  const [recentTransactions, setRecentTransactions] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  
   const dropdownRef = useRef(null);
+  const userId = user?.id;
 
-  // Get user initials
+  // Helper: Get user initials
   const getInitials = (name) => {
     if (!name) return 'U';
     const names = name.split(' ');
@@ -25,9 +26,8 @@ export const useDashboard = () => {
   };
 
   const initials = getInitials(user?.name || '');
-  const userId = user?.id;
 
-  // Update date and time
+  // Effect: Update date and time for the header
   useEffect(() => {
     const updateDateTime = () => {
       const now = new Date();
@@ -44,11 +44,10 @@ export const useDashboard = () => {
 
     updateDateTime();
     const interval = setInterval(updateDateTime, 60000); // Update every minute
-
     return () => clearInterval(interval);
   }, []);
 
-  // Close dropdown when clicking outside
+  // Effect: Handle clicks outside the profile dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -60,48 +59,7 @@ export const useDashboard = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Fetch dashboard data
-  const fetchDashboardData = async () => {
-    if (!userId) {
-      console.warn('No user ID available');
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const transactions = await expenseService.getRecentTransactions();
-      
-      const formattedTransactions = Array.isArray(transactions)
-        ? transactions.map((tx) => ({
-            id: tx._id || tx.id,
-            name: tx.name || 'Unknown',
-            category: tx.category || 'Uncategorized',
-            amount: tx.amount || 0,
-            date: tx.date || new Date().toISOString(),
-            type: tx.type || 'expense',
-          }))
-        : [];
-
-      setRecentTransactions(formattedTransactions);
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      setRecentTransactions([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, [userId]);
-
-  // Refresh data
-  const refreshData = () => {
-    fetchDashboardData();
-  };
-
-  // Handle logout
+  // Action: Handle logout
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -110,16 +68,13 @@ export const useDashboard = () => {
   return {
     user,
     userId,
+    initials,
     isSidebarOpen,
     setIsSidebarOpen,
     isDropdownOpen,
     setIsDropdownOpen,
-    currentDateTime,
-    initials,
-    recentTransactions,
-    isLoading,
     dropdownRef,
-    handleLogout,
-    refreshData,
+    currentDateTime,
+    handleLogout
   };
 };
