@@ -38,15 +38,16 @@ const Sidebar = ({ isOpen, onClose = () => {} }) => {
   };
 
   return (
-    <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform lg:translate-x-0 lg:static lg:inset-0 ${
-      isOpen ? 'translate-x-0' : '-translate-x-full'
-    }`}>
+    <div
+      className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform lg:translate-x-0 lg:static lg:inset-0 ${
+        isOpen ? "translate-x-0" : "-translate-x-full"
+      }`}
+    >
       <div className="p-6 flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <div className="w-8 h-8">
-            <Logo />
-          </div>
-          <span className="text-xl font-bold text-gray-900 dark:text-white">FinTrack</span>
+          <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            SpendWise
+          </span>
         </div>
         {/* Mobile close button */}
         <button
@@ -61,7 +62,7 @@ const Sidebar = ({ isOpen, onClose = () => {} }) => {
         {sidebarItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
-          
+
           return (
             <button
               key={item.id}
