@@ -20,6 +20,9 @@ const CategoryBudgetsSection = ({
   handleSaveCategoryBudget,
   handleDeleteBudget,
 }) => {
+  // Debug log to see what's in categoryBudgets
+  console.log('📊 CategoryBudgets:', categoryBudgets);
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100">
       {/* Header */}
@@ -50,7 +53,7 @@ const CategoryBudgetsSection = ({
       )}
 
       {/* Table Header */}
-      {categoryBudgets.length > 0 && (
+      {categoryBudgets && categoryBudgets.length > 0 && (
         <div className="hidden sm:flex items-center gap-4 px-3 py-2 bg-gray-50 border-b border-gray-100">
           {/* 1. Category Info: Matches sm:min-w-[200px] sm:flex-1 */}
           <div className="min-w-[200px] flex-1">
@@ -97,47 +100,49 @@ const CategoryBudgetsSection = ({
             </p>
           </div>
         ) : (
-          categoryBudgets.map((category) => {
-            if (!category || !(category.id || category._id)) {
-              return null;
-            }
+          <>
+            {categoryBudgets.map((category) => {
+              if (!category || !(category.id || category._id)) {
+                return null;
+              }
 
-            const categoryName =
-              category.categoryId?.name ||
-              category.category?.name ||
-              category.categoryName ||
-              "Unknown";
+              const categoryName =
+                category.categoryId?.name ||
+                category.category?.name ||
+                category.categoryName ||
+                "Unknown";
 
-            const categoryIdForApi =
-              category.categoryId?._id ||
-              category.categoryId?.id ||
-              category.category?._id ||
-              category.category?.id ||
-              category.categoryId ||
-              category.category;
+              const categoryIdForApi =
+                category.categoryId?._id ||
+                category.categoryId?.id ||
+                category.category?._id ||
+                category.category?.id ||
+                category.categoryId ||
+                category.category;
 
-            const categorySpent = categorySpending[categoryIdForApi] || 0;
+              const categorySpent = categorySpending[categoryIdForApi] || 0;
 
-            const isEditing =
-              isEditingCategory &&
-              editingCategoryId === (category.id || category._id);
+              const isEditing =
+                isEditingCategory &&
+                editingCategoryId === (category.id || category._id);
 
-            return (
-              <CategoryBudgetItem
-                key={category.id || category._id}
-                category={category}
-                categorySpent={categorySpent}
-                isEditing={isEditing}
-                tempCategoryBudget={tempCategoryBudget}
-                setTempCategoryBudget={setTempCategoryBudget}
-                handleSaveCategoryBudget={handleSaveCategoryBudget}
-                setIsEditingCategory={setIsEditingCategory}
-                setEditingCategoryId={setEditingCategoryId}
-                categoryIdForApi={categoryIdForApi}
-                onDelete={handleDeleteBudget}
-              />
-            );
-          })
+              return (
+                <CategoryBudgetItem
+                  key={category.id || category._id}
+                  category={category}
+                  categorySpent={categorySpent}
+                  isEditing={isEditing}
+                  tempCategoryBudget={tempCategoryBudget}
+                  setTempCategoryBudget={setTempCategoryBudget}
+                  handleSaveCategoryBudget={handleSaveCategoryBudget}
+                  setIsEditingCategory={setIsEditingCategory}
+                  setEditingCategoryId={setEditingCategoryId}
+                  categoryIdForApi={categoryIdForApi}
+                  onDelete={handleDeleteBudget}
+                />
+              );
+            })}
+          </>
         )}
       </div>
     </div>
