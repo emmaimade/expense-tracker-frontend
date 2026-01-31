@@ -7,11 +7,20 @@ import { budgetService } from '../../../services/budgetService';
  * @param {string} timeRange - Time range: '3months', '6months', or '1year'
  * @returns {Object} Analytics data, loading state, and utility functions
  */
-export const useAnalytics = (recentTransactions = [], timeRange = '6months') => {
+// ✅ FIX: Remove default parameters so we can detect when data hasn't loaded
+export const useAnalytics = (recentTransactions, timeRange = '6months') => {
   const [budgetData, setBudgetData] = useState(null);
-  const [categoryBudgets, setCategoryBudgets] = useState([]);
+  const [categoryBudgets, setCategoryBudgets] = useState(null); // ✅ Changed from [] to null
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  console.log('🔧 useAnalytics called:', {
+    recentTransactions,
+    recentTransactionsIsNull: recentTransactions === null,
+    recentTransactionsIsUndefined: recentTransactions === undefined,
+    recentTransactionsLength: recentTransactions?.length,
+    timeRange,
+  });
 
   // Fetch budget data (once on mount)
   const fetchBudgetData = useCallback(async () => {
@@ -26,7 +35,7 @@ export const useAnalytics = (recentTransactions = [], timeRange = '6months') => 
       console.log('Budget Overview:', overview?.data);
 
       setBudgetData(overview?.data || {});
-      setCategoryBudgets(overview?.data?.categories || []);
+      setCategoryBudgets(overview?.data?.categories || []); // Now sets [] after fetch, not initially
     } catch (err) {
       console.error('Failed to fetch budget data:', err);
       setError('Failed to load budget data');
@@ -43,7 +52,15 @@ export const useAnalytics = (recentTransactions = [], timeRange = '6months') => 
 
   // Calculate analytics metrics
   const analytics = useMemo(() => {
-    // Default safe state
+    // ✅ FIX: Return null if transactions haven't loaded yet
+    if (recentTransactions === null || recentTransactions === undefined) {
+      console.log('⏳ Transactions not loaded yet, returning null analytics');
+      return null;
+    }
+
+    console.log('⚙️ Computing analytics for', recentTransactions.length, 'transactions');
+
+    // Default safe state (after transactions loaded but empty)
     const defaultAnalytics = {
       avgMonthlySpending: 0,
       largestExpense: { amount: 0, date: 'N/A', description: 'N/A' },
@@ -54,7 +71,8 @@ export const useAnalytics = (recentTransactions = [], timeRange = '6months') => 
       budgetAdherence: 0,
     };
 
-    if (!recentTransactions || recentTransactions.length === 0) {
+    if (recentTransactions.length === 0) {
+      console.log('📭 No transactions, returning default analytics');
       return {
         ...defaultAnalytics,
         totalBudget: budgetData?.totalBudget || 0,
@@ -63,6 +81,7 @@ export const useAnalytics = (recentTransactions = [], timeRange = '6months') => 
 
     const expenses = recentTransactions.filter(tx => tx.type === 'expense');
     if (expenses.length === 0) {
+      console.log('📭 No expenses found, returning default analytics');
       return {
         ...defaultAnalytics,
         totalBudget: budgetData?.totalBudget || 0,
@@ -81,6 +100,7 @@ export const useAnalytics = (recentTransactions = [], timeRange = '6months') => 
     });
 
     if (recentExpenses.length === 0) {
+      console.log('📭 No expenses in time range, returning default analytics');
       return {
         ...defaultAnalytics,
         totalBudget: budgetData?.totalBudget || 0,
@@ -110,7 +130,7 @@ export const useAnalytics = (recentTransactions = [], timeRange = '6months') => 
       .map(([name, value]) => ({ name, value: Math.round(value) }))
       .sort((a, b) => b.value - a.value);
 
-    // ✅ FIXED: Monthly data with YYYY-MM format for parsing
+    // Monthly data with YYYY-MM format for parsing
     const monthlyTotals = new Map();
     let currentDate = new Date(rangeStartDate);
 
@@ -143,7 +163,12 @@ export const useAnalytics = (recentTransactions = [], timeRange = '6months') => 
       amount: Math.round(item.amount),
     }));
 
-    console.log('📊 useAnalytics - Generated monthlyData:', monthlyData);
+    console.log('📊 useAnalytics - Generated analytics:', {
+      categoryDataCount: categoryData.length,
+      monthlyDataCount: monthlyData.length,
+      totalSpent,
+      avgMonthlySpending: Math.round(avgMonthlySpending),
+    });
 
     // Budget adherence: compare time-range spending to prorated budget
     const monthlyBudget = budgetData?.totalBudget || 0;
@@ -177,7 +202,10 @@ export const useAnalytics = (recentTransactions = [], timeRange = '6months') => 
 
   // Trend insight: compare current month vs previous month
   const trendInsight = useMemo(() => {
-    if (!analytics.monthlyData || analytics.monthlyData.length < 2) return null;
+    // ✅ FIX: Handle null analytics
+    if (!analytics || !analytics.monthlyData || analytics.monthlyData.length < 2) {
+      return null;
+    }
 
     const current = analytics.monthlyData[analytics.monthlyData.length - 1]?.amount || 0;
     const previous = analytics.monthlyData[analytics.monthlyData.length - 2]?.amount || 0;
@@ -203,27 +231,33 @@ export const useAnalytics = (recentTransactions = [], timeRange = '6months') => 
     }
 
     return null;
-  }, [analytics.monthlyData]);
+  }, [analytics]);
 
   // Export to CSV
   const exportToCSV = useCallback(() => {
+    // ✅ FIX: Handle null analytics
+    if (!analytics) {
+      console.warn('No analytics data to export');
+      return;
+    }
+
     const csvData = [
       ['Analytics Export - Time Range:', timeRange],
       [''], // spacer
       ['Monthly Spending'],
       ['Month', 'Amount'],
-      ...analytics.monthlyData.map(item => [item.month, item.amount]),
+      ...(analytics.monthlyData || []).map(item => [item.month, item.amount]),
       [''], // spacer
       ['Category Breakdown'],
       ['Category', 'Amount'],
-      ...analytics.categoryData.map(item => [item.name, item.value]),
+      ...(analytics.categoryData || []).map(item => [item.name, item.value]),
       [''], // spacer
       ['Summary'],
       ['Metric', 'Value'],
-      ['Total Budget (for period)', analytics.totalBudget],
-      ['Total Spent', analytics.totalSpent],
-      ['Budget Adherence', `${analytics.budgetAdherence}%`],
-      ['Avg Monthly Spending', analytics.avgMonthlySpending],
+      ['Total Budget (for period)', analytics.totalBudget || 0],
+      ['Total Spent', analytics.totalSpent || 0],
+      ['Budget Adherence', `${analytics.budgetAdherence || 0}%`],
+      ['Avg Monthly Spending', analytics.avgMonthlySpending || 0],
     ];
 
     const csvContent = csvData.map(row => row.join(',')).join('\n');
@@ -237,12 +271,12 @@ export const useAnalytics = (recentTransactions = [], timeRange = '6months') => 
   }, [analytics, timeRange]);
 
   return {
-    analytics,
-    categoryBudgets,
+    analytics, // Now returns null initially, then data
+    categoryBudgets, // Now returns null initially, then [] or [...data]
     isLoading,
     error,
     trendInsight,
     exportToCSV,
-    refetch: fetchBudgetData, // Allow parent to refetch after mutations
+    refetch: fetchBudgetData,
   };
 };
