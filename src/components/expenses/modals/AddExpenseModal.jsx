@@ -9,7 +9,7 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
   
   // Filter to show BOTH default categories (no userId) AND user's own categories
   const categories = useMemo(() => {
-    const filtered = allCategories.filter(cat => {
+    const filtered = (allCategories ?? []).filter(cat => {
       const isDefaultCategory = !cat.userId || cat.userId === null || cat.userId === '';
       const isUserCategory = userId && cat.userId === userId;
       return isDefaultCategory || isUserCategory;
@@ -104,21 +104,23 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
-          <h3 className="text-lg font-semibold text-gray-900">Add Expense</h3>
+          <h3 className="text-lg font-semibold text-gray-900">
+            Add Expense
+          </h3>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
             disabled={loading}
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="h-5 w-5 text-gray-500" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Description */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description
+              Name
             </label>
             <input
               type="text"
@@ -126,54 +128,50 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
               value={newExpense.name}
               onChange={(e) => setNewExpense({ ...newExpense, name: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="e.g., Grocery shopping"
+              placeholder="Expense name"
               disabled={loading}
             />
           </div>
 
           {/* Category */}
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Category
-              </label>
-              {!isAddingCategory && (
-                <button
-                  type="button"
-                  onClick={() => setIsAddingCategory(true)}
-                  className="text-xs text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1"
-                >
-                  <Plus className="w-3 h-3" />
-                  New Category
-                </button>
-              )}
-            </div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Category
+            </label>
+            
+            {!isAddingCategory && (
+              <button
+                type="button"
+                onClick={() => setIsAddingCategory(true)}
+                className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-700 mb-2"
+                disabled={loading}
+              >
+                <Plus className="h-4 w-4" />
+                Add new category
+              </button>
+            )}
+            
+            {categoryError && (
+              <p className="text-red-500 text-xs mb-2">{categoryError}</p>
+            )}
 
             {isAddingCategory ? (
-              // Inline category creation
-              <div className="space-y-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="space-y-3">
                 <input
                   type="text"
                   value={newCategoryName}
-                  onChange={(e) => {
-                    setNewCategoryName(e.target.value);
-                    setCategoryError(null);
-                  }}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="Category name"
-                  autoFocus
+                  placeholder="New category name"
+                  disabled={loading}
                 />
-                {categoryError && (
-                  <p className="text-xs text-red-600">{categoryError}</p>
-                )}
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={handleAddCategory}
                     className="flex-1 px-3 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition-colors"
-                    disabled={loading}
                   >
-                    Create
+                    Add Category
                   </button>
                   <button
                     type="button"
