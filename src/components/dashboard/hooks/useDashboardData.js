@@ -1,191 +1,176 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
+import { useQueries } from '@tanstack/react-query';
 import { expenseService } from '../../../services/expenseService';
 import { budgetService } from '../../../services/budgetService';
 import { usePreferencesContext } from '../../../context/PreferencesContext';
 
 /**
- * Unified dashboard data hook - fetches all data once and shares it
+ * Unified dashboard data hook - fetches all data in parallel using TanStack Query
  */
 export const useDashboardData = () => {
   const { formatCurrency } = usePreferencesContext();
-  const [data, setData] = useState({
-    // Budget data
-    budgetLimit: 0,
-    totalSpent: 0,
-    totalRemaining: 0,
-    percentageUsed: 0,
-    isOverBudget: false,
-    
-    // Transaction data
-    currentMonthTransactions: [],
-    prevMonthTransactions: [],
-    
-    // Stats
-    stats: [],
-  });
-  
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchAllDashboardData = async () => {
-      setIsLoading(true);
-      setError(null);
-      
-      try {
-        // Calculate previous month date range
-        const previousMonthDates = getPreviousMonthDateRange();
-
-        // ✅ Fetch all data in ONE parallel call
-        const [
-          currentMonthTransactions,
-          prevMonthTransactions,
-          totalBudgetData,
-          budgetOverviewData,
-        ] = await Promise.all([
-          expenseService.getTransactionsByDateRange("monthly"),
-          expenseService.getTransactionsByDateRange("custom", {
+  const queries = useQueries({
+    queries: [
+      {
+        queryKey: ['currentMonthTransactions'],
+        queryFn: () => expenseService.getTransactionsByDateRange("monthly"),
+        select: (response) => Array.isArray(response) ? response : response?.data || [], // adjust if needed based on response shape
+        placeholderData: [],
+        staleTime: 1000 * 60 * 5, // 5 minutes
+      },
+      {
+        queryKey: ['prevMonthTransactions'],
+        queryFn: () => {
+          const previousMonthDates = getPreviousMonthDateRange();
+          return expenseService.getTransactionsByDateRange("custom", {
             startDate: previousMonthDates.startDate,
             endDate: previousMonthDates.endDate,
-          }),
-          budgetService.getTotalMonthlyBudget(),
-          budgetService.getBudgetOverview(),
-        ]);
+          });
+        },
+        select: (response) => Array.isArray(response) ? response : response?.data || [],
+        placeholderData: [],
+      },
+      {
+        queryKey: ['totalMonthlyBudget'],
+        queryFn: () => budgetService.getTotalMonthlyBudget(),
+        select: (response) => response?.data?.totalBudget ?? response?.totalBudget ?? 0,
+        placeholderData: 0,
+      },
+      {
+        queryKey: ['budgetOverview'],
+        queryFn: () => budgetService.getBudgetOverview(),
+        select: (response) => response?.data ?? response ?? {},
+        placeholderData: {},
+      },
+    ],
+  });
 
-        // Extract budget information
-        const budgetLimit = totalBudgetData?.data?.totalBudget || 0;
-        const totalSpent = budgetOverviewData?.data?.totalSpent || 0;
-        const totalRemaining = budgetOverviewData?.data?.totalRemaining || 0;
-        const percentageUsed = budgetOverviewData?.data?.summary?.percentageUsed || 0;
-        const isOverBudget = budgetOverviewData?.data?.summary?.isOverBudget || false;
+  const [
+    { data: currentTransactions, isLoading: loading1, error: error1 },
+    { data: prevTransactions, isLoading: loading2, error: error2 },
+    { data: totalBudget, isLoading: loading3, error: error3 },
+    { data: budgetOverview, isLoading: loading4, error: error4 },
+  ] = queries;
 
-        // Calculate stats
-        const stats = calculateFinancialStats(
-          currentMonthTransactions,
-          prevMonthTransactions,
-          budgetLimit,
-          formatCurrency
-        );
+  const isLoading = loading1 || loading2 || loading3 || loading4;
+  const error = error1 || error2 || error3 || error4;
 
-        // Update state with all data
-        setData({
-          budgetLimit: parseFloat(budgetLimit),
-          totalSpent: parseFloat(totalSpent),
-          totalRemaining: parseFloat(totalRemaining),
-          percentageUsed: parseFloat(percentageUsed),
-          isOverBudget,
-          currentMonthTransactions,
-          prevMonthTransactions,
-          stats,
-        });
+  const memoizedData = useMemo(() => {
+    const current = currentTransactions || [];
+    const previous = prevTransactions || [];
 
-      } catch (err) {
-        console.error("Failed to fetch dashboard data:", err);
-        setError(err.message || "Could not retrieve dashboard data.");
-        setData({
-          budgetLimit: 0,
-          totalSpent: 0,
-          totalRemaining: 0,
-          percentageUsed: 0,
-          isOverBudget: false,
-          currentMonthTransactions: [],
-          prevMonthTransactions: [],
-          stats: [],
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    // Extract budget information
+    const budgetLimit = parseFloat(totalBudget) || 0;
+    const totalSpent = parseFloat(budgetOverview?.totalSpent) || 0;
+    const totalRemaining = parseFloat(budgetOverview?.totalRemaining) || 0;
+    const percentageUsed = parseFloat(budgetOverview?.summary?.percentageUsed) || 0;
+    const isOverBudget = budgetOverview?.summary?.isOverBudget || false;
 
-    fetchAllDashboardData();
-  }, []);
+    // Calculate stats
+    const stats = calculateFinancialStats(
+      current,
+      previous,
+      budgetLimit,
+      formatCurrency
+    );
 
-  // Memoize formatted data for stable references
-  const formattedData = useMemo(
-    () => ({
+    return {
       // Budget overview data
       budget: {
-        totalSpentThisMonth: data.totalSpent.toFixed(2),
-        budgetLimit: data.budgetLimit,
-        totalRemaining: data.totalRemaining.toFixed(2),
-        percentageUsed: data.percentageUsed,
-        isOverBudget: data.isOverBudget,
+        totalSpentThisMonth: totalSpent.toFixed(2),
+        budgetLimit,
+        totalRemaining: totalRemaining.toFixed(2),
+        percentageUsed,
+        isOverBudget,
       },
       
       // Financial stats
-      stats: data.stats,
+      stats,
       
-      // Raw transaction data (if needed elsewhere)
+      // Raw transaction data
       transactions: {
-        current: data.currentMonthTransactions,
-        previous: data.prevMonthTransactions,
+        current,
+        previous,
       },
-      
-      // Loading and error states
-      isLoading,
-      error,
-    }),
-    [data, isLoading, error]
-  );
-
-  return formattedData;
-};
-
-// ============================================
-// Helper Functions
-// ============================================
-
-/**
- * Calculate previous month date range
- */
-const getPreviousMonthDateRange = () => {
-  const now = new Date();
-  const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  
-  const startOfPreviousMonth = new Date(startOfCurrentMonth);
-  startOfPreviousMonth.setDate(startOfCurrentMonth.getDate() - 1);
-  startOfPreviousMonth.setDate(1);
-
-  const endOfPreviousMonth = new Date(startOfCurrentMonth);
-  endOfPreviousMonth.setDate(endOfPreviousMonth.getDate() - 1);
-
-  const toISODateString = (date) => date.toISOString().split('T')[0];
+    };
+  }, [currentTransactions, prevTransactions, totalBudget, budgetOverview, formatCurrency]);
 
   return {
-    startDate: toISODateString(startOfPreviousMonth),
-    endDate: toISODateString(endOfPreviousMonth),
+    ...memoizedData,
+    isLoading,
+    error,
   };
 };
 
 /**
- * Calculate financial statistics from transactions
+ * Helper to get previous month date range
+ */
+const getPreviousMonthDateRange = () => {
+  const today = new Date();
+  const previousMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  const previousMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+
+  return {
+    startDate: previousMonthStart.toISOString().split('T')[0],
+    endDate: previousMonthEnd.toISOString().split('T')[0],
+  };
+};
+
+/**
+ * Helper to get top category
+ */
+const getTopCategory = (transactions) => {
+  const categorySpend = {};
+  
+  transactions.forEach(transaction => {
+    const categoryName = transaction.category?.name || transaction.categoryName || 'Uncategorized';
+    categorySpend[categoryName] = (categorySpend[categoryName] || 0) + Math.abs(transaction.amount);
+  });
+
+  let topCategory = { category: 'No Expenses Yet', amount: 0 };
+  let maxAmount = 0;
+
+  Object.entries(categorySpend).forEach(([category, amount]) => {
+    if (amount > maxAmount) {
+      maxAmount = amount;
+      topCategory = { category, amount };
+    }
+  });
+
+  return topCategory;
+};
+
+/**
+ * Calculate financial stats
  */
 const calculateFinancialStats = (
-  currentMonthTransactions,
-  prevMonthTransactions,
-  budgetLimit,
-  formatCurrency
+  currentMonthTransactions = [],
+  prevMonthTransactions = [],
+  budgetLimit = 0,
+  formatCurrency = (v) => v.toString()
 ) => {
-  const currentMonthExpenses = currentMonthTransactions.filter(tx => tx.type === 'expense');
-  const prevMonthExpenses = prevMonthTransactions.filter(tx => tx.type === 'expense');
+  // Current Month Spending
+  const currentMonthSpending = currentMonthTransactions.reduce(
+    (sum, t) => sum + Math.abs(t.amount),
+    0
+  );
 
-  const currentMonthSpending = currentMonthExpenses.reduce((acc, tx) => acc + tx.amount, 0);
-  const prevMonthSpending = prevMonthExpenses.reduce((acc, tx) => acc + tx.amount, 0);
+  // Previous Month Spending
+  const prevMonthSpending = prevMonthTransactions.reduce(
+    (sum, t) => sum + Math.abs(t.amount),
+    0
+  );
+
+  // Budget Utilization
   const budgetUtilization = budgetLimit > 0 ? currentMonthSpending / budgetLimit : 0;
 
-  // Top Spending Category
-  const categoryMap = currentMonthExpenses.reduce((acc, tx) => {
-    acc[tx.category.name] = (acc[tx.category.name] || 0) + tx.amount;
-    return acc;
-  }, {});
-  
-  const topCategory = Object.entries(categoryMap).reduce(
-    (max, [category, amount]) => (amount > max.amount ? { category, amount } : max),
-    { category: 'Uncategorized', amount: 0 }
-  );
-  
-  const topCategoryPercentage = currentMonthSpending > 0 ? topCategory.amount / currentMonthSpending : 0;
-  const topCategoryDisplay = topCategory.category === 'Uncategorized' ? 'No Expenses Yet' : topCategory.category;
+  // Top Category
+  const topCategory = getTopCategory(currentMonthTransactions);
+  const topCategoryPercentage = currentMonthSpending > 0 
+    ? topCategory.amount / currentMonthSpending 
+    : 0;
+  const topCategoryDisplay = topCategory.category === 'No Expenses Yet' ? 'No Expenses Yet' : topCategory.category;
 
   // Month-over-Month Change
   let momChange = 0;
@@ -202,7 +187,7 @@ const calculateFinancialStats = (
   // Financial Health Score
   const healthScore = calculateHealthScore(currentMonthSpending, prevMonthSpending, budgetLimit);
 
-    return [
+  return [
     {
       name: 'Total Monthly Expenses',
       value: formatCurrency(currentMonthSpending),
