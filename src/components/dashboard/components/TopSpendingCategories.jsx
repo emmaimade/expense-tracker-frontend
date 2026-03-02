@@ -70,11 +70,11 @@ const TopSpendingCategories = ({ transactions = [], onViewAnalytics }) => {
   if (categories.length === 0) {
     return (
       <Card>
-        <h3 className="font-semibold text-gray-900 mb-4">Top Spending Categories</h3>
+        <h3 className="font-semibold text-gray-900 mb-4 dark:text-gray-100">Top Spending Categories</h3>
         <div className="text-center py-8">
-          <ShoppingBag className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 text-sm">No expenses yet this month</p>
-          <p className="text-gray-400 text-xs mt-1">Start tracking to see your breakdown</p>
+          <ShoppingBag className="w-12 h-12 text-gray-300 mx-auto mb-3 dark:text-gray-500" />
+          <p className="text-gray-500 text-sm dark:text-gray-400">No expenses yet this month</p>
+          <p className="text-gray-400 text-xs mt-1 dark:text-gray-500">Start tracking to see your breakdown</p>
         </div>
       </Card>
     );
@@ -85,8 +85,8 @@ const TopSpendingCategories = ({ transactions = [], onViewAnalytics }) => {
   return (
     <Card>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-gray-900">Top Spending Categories</h3>
-        <span className="text-xs text-gray-500">This Month</span>
+        <h3 className="font-semibold text-gray-900 dark:text-gray-100">Top Spending Categories</h3>
+        <span className="text-xs text-gray-500 dark:text-gray-400">This Month</span>
       </div>
       
       <div className="space-y-3">
@@ -101,15 +101,15 @@ const TopSpendingCategories = ({ transactions = [], onViewAnalytics }) => {
                   <div className={`p-1.5 rounded-lg ${colors.bg}`}>
                     <Icon className={`w-4 h-4 ${colors.text}`} />
                   </div>
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     {category.name}
                   </span>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-semibold text-gray-900">
+                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                     {formatCurrency(category.amount)}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     {category.percentage.toFixed(0)}%
                   </p>
                 </div>
@@ -127,7 +127,7 @@ const TopSpendingCategories = ({ transactions = [], onViewAnalytics }) => {
 
       <button 
         onClick={onViewAnalytics} 
-        className="w-full mt-4 text-indigo-600 hover:text-indigo-700 text-sm font-medium text-left"
+        className="w-full mt-4 text-indigo-600 hover:text-indigo-700 text-sm font-medium text-left dark:text-indigo-500 dark:hover:text-indigo-600"
       >
         View Full Breakdown →
       </button>

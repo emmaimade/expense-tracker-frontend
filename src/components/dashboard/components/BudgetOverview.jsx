@@ -1,10 +1,10 @@
-import { TrendingUp, TrendingDown } from 'lucide-react';
+﻿import { TrendingUp, TrendingDown } from 'lucide-react';
 import { usePreferencesContext } from '../../../context/PreferencesContext';
 import Card from '../../../components/common/Card';
 
 const BudgetOverview = ({ budgetData }) => {
   const { formatCurrency } = usePreferencesContext();
-  // ✅ Check if budgetData exists (loading state handled by parent)
+  // Check if budgetData exists (loading state handled by parent)
   if (!budgetData) {
     return (
       <Card className="text-center py-10">
@@ -13,7 +13,7 @@ const BudgetOverview = ({ budgetData }) => {
     );
   }
 
-  // ✅ Destructure budget data from props
+  // Destructure budget data from props
   const {
     totalSpentThisMonth,
     budgetLimit,
@@ -22,13 +22,13 @@ const BudgetOverview = ({ budgetData }) => {
     isOverBudget
   } = budgetData;
 
-  // ✅ Convert to numbers and provide defaults
+  // Convert to numbers and provide defaults
   const totalSpent = Number(totalSpentThisMonth) || 0;
   const limit = Number(budgetLimit) || 0;
   const remaining = Number(totalRemaining) || 0;
   const percentage = Number(percentageUsed) || 0;
   
-  // ✅ Handle case where budgetLimit might be 0
+  // Handle case where budgetLimit might be 0
   const progressWidth = limit === 0 ? 0 : Math.min(percentage, 100);
 
   return (
@@ -36,7 +36,7 @@ const BudgetOverview = ({ budgetData }) => {
       {/* Monthly Spending Summary */}
       <Card>
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-lg font-semibold text-gray-900">This Month</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">This Month</h2>
           <div
             className={`p-2 rounded-lg ${
               isOverBudget ? "bg-red-100" : "bg-green-100"
@@ -51,13 +51,13 @@ const BudgetOverview = ({ budgetData }) => {
         </div>
         <p
           className={`text-2xl font-bold ${
-            isOverBudget ? "text-red-600" : "text-gray-900"
+            isOverBudget ? "text-red-600 dark:text-red-400" : "text-gray-900 dark:text-gray-100"
           }`}
         >
           {formatCurrency(totalSpent)}
         </p>
-        <p className="text-sm text-gray-500 mt-1">
-          Total spent •{" "}
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          Total spent â€¢{" "}
           {isOverBudget
             ? "Over budget"
             : `${formatCurrency(remaining)} remaining`}
@@ -67,10 +67,10 @@ const BudgetOverview = ({ budgetData }) => {
       {/* Budget Progress */}
       <Card className="md:col-span-2">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-gray-900">
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100">
             Monthly Budget Progress
           </h3>
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-gray-600 dark:text-gray-400">
             {formatCurrency(totalSpent)} / {formatCurrency(limit)}
           </span>
         </div>
@@ -92,10 +92,10 @@ const BudgetOverview = ({ budgetData }) => {
           <p
             className={`text-sm font-medium ${
               isOverBudget
-                ? "text-red-600"
+                ? "text-red-600 dark:text-red-400"
                 : percentage > 80
-                ? "text-orange-600"
-                : "text-indigo-600"
+                ? "text-orange-600 dark:text-orange-400"
+                : "text-indigo-600 dark:text-indigo-400"
             }`}
           >
             {percentage.toFixed(1)}% of budget used

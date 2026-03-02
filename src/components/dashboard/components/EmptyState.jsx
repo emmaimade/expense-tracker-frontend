@@ -54,21 +54,21 @@ const EmptyState = ({
   return (
     <div className="text-center py-8 px-4">
       <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-        <IconComponent className="w-8 h-8 text-gray-400" />
+        <IconComponent className="w-8 h-8 text-gray-400 dark:text-gray-500" />
       </div>
       
-      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
         {config.title}
       </h3>
       
-      <p className="text-gray-500 mb-6 max-w-md mx-auto">
+      <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
         {config.description}
       </p>
       
       <div className="flex flex-col sm:flex-row gap-3 justify-center">
         <button
           onClick={config.primaryAction.onClick}
-          className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+          className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium dark:bg-indigo-500 dark:hover:bg-indigo-600"
         >
           <config.primaryAction.icon className="w-4 h-4 mr-2" />
           {config.primaryAction.label}
@@ -77,7 +77,7 @@ const EmptyState = ({
         {config.secondaryAction && (
           <button
             onClick={config.secondaryAction.onClick}
-            className="inline-flex items-center px-4 py-2 text-indigo-600 border border-indigo-200 rounded-lg hover:bg-indigo-50 transition-colors font-medium"
+            className="inline-flex items-center px-4 py-2 text-indigo-600 border border-indigo-200 rounded-lg hover:bg-indigo-50 transition-colors font-medium dark:text-indigo-400 dark:border-indigo-600 dark:hover:bg-gray-700"
           >
             {config.secondaryAction.label}
           </button>

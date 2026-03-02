@@ -1,10 +1,10 @@
-import { useMemo } from 'react';
+﻿import { useMemo } from 'react';
 import EmptyState from './EmptyState';
 import { usePreferencesContext } from '../../../context/PreferencesContext';
 import Card from '../../../components/common/Card';
 
 const RecentActivity = ({ weeklyTransactions = [], onViewAllExpenses, onAddExpense, fallbackUsed = false }) => {
-  // ✅ FIX: Move usePreferencesContext to the top, before any returns
+  // Move usePreferencesContext to the top, before any returns
   const { formatCurrency } = usePreferencesContext();
 
   const activityData = useMemo(() => {
@@ -57,7 +57,7 @@ const RecentActivity = ({ weeklyTransactions = [], onViewAllExpenses, onAddExpen
   if (!activityData.hasData) {
     return (
       <Card>
-        <h3 className="font-semibold text-gray-900 mb-4">Recent Activity</h3>
+        <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Recent Activity</h3>
         <EmptyState 
           type="recent-activity"
           onAddExpense={onAddExpense}
@@ -70,9 +70,9 @@ const RecentActivity = ({ weeklyTransactions = [], onViewAllExpenses, onAddExpen
   return (
     <Card>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-gray-900">Recent Activity</h3>
+        <h3 className="font-semibold text-gray-900 dark:text-gray-100">Recent Activity</h3>
         {fallbackUsed && (
-          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full dark:bg-blue-900/20 dark:text-blue-400">
             Recent data
           </span>
         )}
@@ -80,28 +80,28 @@ const RecentActivity = ({ weeklyTransactions = [], onViewAllExpenses, onAddExpen
       
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-gray-600">Last expense</span>
-          <span className="font-medium text-gray-900">
+          <span className="text-gray-600 dark:text-gray-400">Last expense</span>
+          <span className="font-medium text-gray-900 dark:text-gray-100">
             {activityData.lastExpense.name} - {formatCurrency(Math.abs(activityData.lastExpense.amount || 0))}
           </span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-gray-600">Largest expense</span>
-          <span className="font-medium text-gray-900">
+          <span className="text-gray-600 dark:text-gray-400">Largest expense</span>
+          <span className="font-medium text-gray-900 dark:text-gray-100">
             {activityData.largestExpense.name} - {formatCurrency(Math.abs(activityData.largestExpense.amount || 0))}
           </span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-gray-600">Most frequent category</span>
-          <span className="font-medium text-gray-900">{activityData.mostFrequentCategory}</span>
+          <span className="text-gray-600 dark:text-gray-400">Most frequent category</span>
+          <span className="font-medium text-gray-900 dark:text-gray-100">{activityData.mostFrequentCategory}</span>
         </div>
       </div>
       
       <button 
         onClick={onViewAllExpenses}
-        className="w-full mt-4 text-indigo-600 hover:text-indigo-700 text-sm font-medium"
+        className="w-full mt-4 text-indigo-600 hover:text-indigo-700 text-sm font-medium dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors"
       >
-        View All Transactions →
+        View All Transactions â†’
       </button>
     </Card>
   );

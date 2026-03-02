@@ -1,11 +1,11 @@
-import { useNavigate } from 'react-router-dom';
+﻿import { useNavigate } from 'react-router-dom';
 import WelcomeSection from './components/WelcomeSection';
 import BudgetOverview from './components/BudgetOverview';
 import FinancialStatsGrid from './components/FinancialStatsGrid';
 import RecentActivity from './components/RecentActivity';
 import TopSpendingCategories from './components/TopSpendingCategories';
 import useUserData from './hooks/useUserData';
-import { useDashboardData } from './hooks/useDashboardData';
+import { useDashboardData } from '../../hooks/useDashboardData';
 import { 
   DashboardSkeleton,
   BudgetOverviewSkeleton,
@@ -43,10 +43,10 @@ const DashboardContent = ({ setActiveTab }) => {
     else navigate('/dashboard/analytics');
   };
 
-  // ✅ Check if we have any data at all
+  // Check if we have any data at all
   const hasAnyData = budget || stats || (transactions?.current && transactions.current.length > 0);
   
-  // ✅ Only show error if we have an error AND no data AND not loading
+  // Only show error if we have an error AND no data AND not loading
   const shouldShowError = error && !hasAnyData && !isLoading;
 
   // Show full skeleton only when loading AND data has never been fetched
