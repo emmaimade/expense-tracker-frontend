@@ -74,13 +74,13 @@ const ProfileEditModal = ({ isOpen, onClose, profile: initialProfile }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+    <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4 dark:bg-gray-900/50">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 dark:bg-gray-800">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">Edit Profile</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Edit Profile</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300 rounded-lg p-2 transition-colors disabled:opacity-50 dark:bg-gray-500 dark:hover:bg-gray-700"
             aria-label="Close modal"
           >
             <X className="w-6 h-6" />
@@ -90,13 +90,13 @@ const ProfileEditModal = ({ isOpen, onClose, profile: initialProfile }) => {
         {isSaving && <LoadingOverlay />}
 
         {pendingEmail && (
-          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-2">
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-2 dark:bg-yellow-100 dark:border-yellow-300">
             <AlertCircle className="w-5 h-5 text-yellow-700 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-yellow-800">
+              <p className="text-sm font-medium text-yellow-800 dark:text-yellow-900">
                 Email change in progress
               </p>
-              <p className="text-xs text-yellow-700">
+              <p className="text-xs text-yellow-700 dark:text-yellow-800">
                 Check <strong>{initialProfile?.user?.email}</strong> for verification link.
                 New email: <strong>{pendingEmail}</strong>
               </p>
@@ -106,7 +106,7 @@ const ProfileEditModal = ({ isOpen, onClose, profile: initialProfile }) => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
               First Name
             </label>
             <input
@@ -115,7 +115,7 @@ const ProfileEditModal = ({ isOpen, onClose, profile: initialProfile }) => {
               type="text"
               value={formData.firstName}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               placeholder="John"
               required
               disabled={isSaving}
@@ -123,7 +123,7 @@ const ProfileEditModal = ({ isOpen, onClose, profile: initialProfile }) => {
           </div>
 
           <div>
-            <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
               Last Name
             </label>
             <input
@@ -132,7 +132,7 @@ const ProfileEditModal = ({ isOpen, onClose, profile: initialProfile }) => {
               type="text"
               value={formData.lastName}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               placeholder="Smith"
               required
               disabled={isSaving}
@@ -140,7 +140,7 @@ const ProfileEditModal = ({ isOpen, onClose, profile: initialProfile }) => {
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
               Email Address
             </label>
             <input
@@ -149,7 +149,7 @@ const ProfileEditModal = ({ isOpen, onClose, profile: initialProfile }) => {
               type="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               placeholder="john@example.com"
               required
               disabled={isSaving}
@@ -157,8 +157,8 @@ const ProfileEditModal = ({ isOpen, onClose, profile: initialProfile }) => {
           </div>
 
           <div>
-            <label htmlFor="currentPassword" className="block text-sm font-medium text-red-700 mb-1">
-              Current Password <span className="text-xs font-normal text-gray-500">(required)</span>
+            <label htmlFor="currentPassword" className="block text-sm font-medium text-red-700 mb-1 dark:text-red-600">
+              Current Password <span className="text-xs font-normal text-gray-500 dark:text-gray-400">(required)</span>
             </label>
             <input
               id="currentPassword"
@@ -166,12 +166,12 @@ const ProfileEditModal = ({ isOpen, onClose, profile: initialProfile }) => {
               type="password"
               value={formData.currentPassword}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              className="w-full px-3 py-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:border-red-600 dark:bg-gray-800 dark:text-white"
               placeholder="••••••••"
               required
               disabled={isSaving}
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Required to save any changes
             </p>
           </div>
@@ -180,7 +180,7 @@ const ProfileEditModal = ({ isOpen, onClose, profile: initialProfile }) => {
             <button
               type="submit"
               disabled={isSaving}
-              className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+              className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors dark:bg-indigo-500 dark:hover:bg-indigo-600"
             >
               {isSaving ? 'Saving...' : 'Save Changes'}
             </button>
@@ -188,7 +188,7 @@ const ProfileEditModal = ({ isOpen, onClose, profile: initialProfile }) => {
               type="button"
               onClick={onClose}
               disabled={isSaving}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors dark:border-gray-600 dark:bg-gray-500 dark:hover:bg-gray-700 disabled:opacity-50"
             >
               Cancel
             </button>

@@ -200,17 +200,14 @@ function Signup() {
   };
 
   const handleGoogleSignup = () => {
-    console.log('Google signup initiated');
-    // Implement Google signup logic
+    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="Logo flex justify-center mx-auto mb-2">
-          <span className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            SpendWise
-          </span>
+          <img src="/logo.svg" alt="SpendWise" className="h-9" />
         </div>
         <h2 className="mt-3 text-center text-2xl font-extrabold text-gray-900">
           Create your account
