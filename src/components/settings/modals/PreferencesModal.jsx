@@ -1,4 +1,4 @@
-// PreferencesModal.jsx - Clean production version
+// PreferencesModal.jsx - With Dark Mode Support
 import { useState, useEffect } from 'react';
 import { X, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
@@ -234,43 +234,43 @@ const PreferencesModal = ({
   if (showCurrencyConfirmation && conversionData) {
     return (
       <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg p-6">
           <div className="flex items-start gap-3 mb-4">
-            <AlertCircle className="w-6 h-6 text-yellow-500 flex-shrink-0 mt-1" />
+            <AlertCircle className="w-6 h-6 text-yellow-500 dark:text-yellow-400 flex-shrink-0 mt-1" />
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 Convert Existing Data?
               </h3>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 You have {conversionData.expenseCount} expenses and {conversionData.budgetCount} budgets. What would you like to do?
               </p>
             </div>
           </div>
 
           {/* Data Summary */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <p className="text-gray-600">Current Currency</p>
-                <p className="font-semibold text-gray-900">
+                <p className="text-gray-600 dark:text-gray-400">Current Currency</p>
+                <p className="font-semibold text-gray-900 dark:text-gray-100">
                   {conversionData.currentCurrency} ({getCurrencyLabel(conversionData.currentCurrency)})
                 </p>
               </div>
               <div>
-                <p className="text-gray-600">New Currency</p>
-                <p className="font-semibold text-indigo-600">
+                <p className="text-gray-600 dark:text-gray-400">New Currency</p>
+                <p className="font-semibold text-indigo-600 dark:text-indigo-400">
                   {conversionData.newCurrency} ({getCurrencyLabel(conversionData.newCurrency)})
                 </p>
               </div>
               <div>
-                <p className="text-gray-600">Expenses</p>
-                <p className="font-semibold text-gray-900">
+                <p className="text-gray-600 dark:text-gray-400">Expenses</p>
+                <p className="font-semibold text-gray-900 dark:text-gray-100">
                   {conversionData.expenseCount}
                 </p>
               </div>
               <div>
-                <p className="text-gray-600">Budgets</p>
-                <p className="font-semibold text-gray-900">
+                <p className="text-gray-600 dark:text-gray-400">Budgets</p>
+                <p className="font-semibold text-gray-900 dark:text-gray-100">
                   {conversionData.budgetCount}
                 </p>
               </div>
@@ -281,8 +281,8 @@ const PreferencesModal = ({
           <div className="space-y-3 mb-6">
             <label className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition-all ${
               convertExisting 
-                ? 'border-indigo-500 bg-indigo-50' 
-                : 'border-gray-300 hover:border-gray-400'
+                ? 'border-indigo-500 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20' 
+                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
             }`}>
               <input
                 type="radio"
@@ -292,10 +292,10 @@ const PreferencesModal = ({
                 className="mt-1 mr-3 text-indigo-600 focus:ring-indigo-500"
               />
               <div className="flex-1">
-                <p className="font-medium text-gray-900">
+                <p className="font-medium text-gray-900 dark:text-gray-100">
                   ✓ Convert all existing data
                 </p>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                   All expenses and budgets will be converted using current exchange rates.
                   Original amounts will be preserved for reference.
                 </p>
@@ -304,8 +304,8 @@ const PreferencesModal = ({
 
             <label className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition-all ${
               !convertExisting 
-                ? 'border-indigo-500 bg-indigo-50' 
-                : 'border-gray-300 hover:border-gray-400'
+                ? 'border-indigo-500 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20' 
+                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
             }`}>
               <input
                 type="radio"
@@ -315,10 +315,10 @@ const PreferencesModal = ({
                 className="mt-1 mr-3 text-indigo-600 focus:ring-indigo-500"
               />
               <div className="flex-1">
-                <p className="font-medium text-gray-900">
+                <p className="font-medium text-gray-900 dark:text-gray-100">
                   Keep amounts unchanged
                 </p>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                   Only new expenses will use {conversionData.newCurrency}.
                   Existing amounts stay the same (numbers won't change).
                 </p>
@@ -334,7 +334,7 @@ const PreferencesModal = ({
                 setConversionData(null);
               }}
               disabled={isSaving}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium text-gray-900 disabled:opacity-50"
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium text-gray-900 dark:text-gray-100 disabled:opacity-50"
             >
               Cancel
             </button>
@@ -354,12 +354,12 @@ const PreferencesModal = ({
   // Main Preferences Modal
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">Preferences</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Preferences</h2>
           <button
             onClick={handleCancel}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
             disabled={isSaving}
           >
             <X className="w-6 h-6" />
@@ -369,15 +369,15 @@ const PreferencesModal = ({
         <div className="space-y-5">
           {/* Theme Selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Theme
             </label>
             <div className="grid grid-cols-2 gap-3">
               {['light', 'dark'].map((theme) => (
                 <label key={theme} className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${
                   formData.theme === theme
-                    ? 'border-indigo-500 bg-indigo-50'
-                    : 'border-gray-300 hover:bg-gray-50'
+                    ? 'border-indigo-500 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20'
+                    : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}>
                   <input
                     type="radio"
@@ -388,7 +388,7 @@ const PreferencesModal = ({
                     className="mr-2 text-indigo-600 focus:ring-indigo-500"
                     disabled={isSaving}
                   />
-                  <span className="text-gray-900">{theme === 'light' ? '☀️ Light' : '🌙 Dark'}</span>
+                  <span className="text-gray-900 dark:text-gray-100">{theme === 'light' ? '☀️ Light' : '🌙 Dark'}</span>
                 </label>
               ))}
             </div>
@@ -396,14 +396,14 @@ const PreferencesModal = ({
 
           {/* Currency */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Default currency
             </label>
             <select
               name="currency"
               value={formData.currency}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
               disabled={isSaving}
             >
               {CURRENCIES.map((curr) => (
@@ -413,7 +413,7 @@ const PreferencesModal = ({
               ))}
             </select>
             {formData.currency !== originalCurrency && (
-              <p className="text-xs text-blue-600 mt-2 flex items-center gap-1">
+              <p className="text-xs text-blue-600 dark:text-blue-400 mt-2 flex items-center gap-1">
                 <AlertCircle className="w-3 h-3" />
                 Currency will be updated when you save
               </p>
@@ -422,15 +422,15 @@ const PreferencesModal = ({
 
           {/* Currency format */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Currency format
             </label>
             <div className="grid grid-cols-2 gap-3">
               {['symbol', 'code'].map((format) => (
                 <label key={format} className={`flex items-center p-3 border rounded-lg cursor-pointer ${
                   formData.currencyFormat === format 
-                    ? 'border-indigo-500 bg-indigo-50' 
-                    : 'border-gray-300 hover:bg-gray-50'
+                    ? 'border-indigo-500 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20' 
+                    : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}>
                   <input
                     type="radio"
@@ -441,7 +441,7 @@ const PreferencesModal = ({
                     className="mr-2"
                     disabled={isSaving}
                   />
-                  <span className="text-gray-900 text-sm">{formatSampleAmount(1234, format)}</span>
+                  <span className="text-gray-900 dark:text-gray-100 text-sm">{formatSampleAmount(1234, format)}</span>
                 </label>
               ))}
             </div>
@@ -449,7 +449,7 @@ const PreferencesModal = ({
 
           {/* Font size */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Font size
             </label>
             <div className="grid grid-cols-3 gap-3">
@@ -462,8 +462,8 @@ const PreferencesModal = ({
                   key={size.value}
                   className={`flex items-center justify-center p-3 border rounded-lg cursor-pointer ${
                     formData.fontSize === size.value
-                      ? 'border-indigo-500 bg-indigo-50'
-                      : 'border-gray-300 hover:bg-gray-50'
+                      ? 'border-indigo-500 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20'
+                      : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
                   }`}
                 >
                   <input
@@ -475,17 +475,17 @@ const PreferencesModal = ({
                     className="sr-only"
                     disabled={isSaving}
                   />
-                  <span className="text-gray-900">{size.label}</span>
+                  <span className="text-gray-900 dark:text-gray-100">{size.label}</span>
                 </label>
               ))}
             </div>
           </div>
 
           {/* Email Notifications */}
-          <div className="flex items-center justify-between p-3 border border-gray-300 rounded-lg bg-gray-50">
+          <div className="flex items-center justify-between p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50">
             <div>
-              <p className="font-medium text-gray-900">Email Notifications</p>
-              <p className="text-sm text-gray-500">
+              <p className="font-medium text-gray-900 dark:text-gray-100">Email Notifications</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Receive budget alerts and summaries
               </p>
             </div>
@@ -498,7 +498,7 @@ const PreferencesModal = ({
                 className="sr-only peer"
                 disabled={isSaving}
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+              <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
             </label>
           </div>
 
@@ -514,7 +514,7 @@ const PreferencesModal = ({
             <button
               onClick={handleCancel}
               disabled={isSaving}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium text-gray-900 disabled:opacity-50"
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium text-gray-900 dark:text-gray-100 disabled:opacity-50"
             >
               Cancel
             </button>

@@ -67,7 +67,7 @@ const SettingsContent = ({ onDataChange }) => {
         await updatePreferences({ currency });
       }
       
-      toast.success('Preferences saved!');
+      // toast.success('Preferences saved!');
     } catch (err) {
       console.error('Failed to save preferences:', err);
       toast.error('Failed to save preferences');

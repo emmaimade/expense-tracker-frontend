@@ -94,7 +94,7 @@ const CategoryManagementModal = ({ isOpen, onClose, userId }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-start justify-center p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-start justify-center p-4 overflow-y-auto ">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg mt-10 p-6 transform transition-all">
         {/* Modal Header */}
         <div className="flex justify-between items-center pb-3 border-b border-gray-200 dark:border-gray-700">
@@ -103,7 +103,7 @@ const CategoryManagementModal = ({ isOpen, onClose, userId }) => {
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors dark:text-gray-400 rounded-lg p-2 disabled:opacity-50 dark:bg-gray-500 dark:hover:bg-gray-700"
             aria-label="Close modal"
           >
             <X className="w-6 h-6" />
