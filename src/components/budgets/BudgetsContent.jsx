@@ -1,4 +1,5 @@
 import { useBudget } from './hooks/useBudget';
+import { useNotificationTriggers } from '../../hooks/useNotificationTriggers';
 import BudgetHeader from './components/BudgetHeader';
 import BudgetOverview from './components/BudgetOverview';
 import BudgetStats from './components/BudgetStats';
@@ -13,7 +14,7 @@ import {
   CategoryBudgetsSkeleton
 } from '../common/AnalyticsSkeletons';
 
-const BudgetsContent = ({ recentTransactions = [] }) => {
+const BudgetsContent = ({ recentTransactions = [], userId }) => {
   const {
     loading,
     categoryBudgets,
@@ -35,11 +36,6 @@ const BudgetsContent = ({ recentTransactions = [] }) => {
     categories,
   } = useBudget(recentTransactions);
 
-  // Show full page skeleton on initial load
-  if (loading && !calculations) {
-    return <BudgetPageSkeleton />;
-  }
-
   const {
     totalBudget,
     spent,
@@ -53,6 +49,32 @@ const BudgetsContent = ({ recentTransactions = [] }) => {
     daysRemaining,
     categorySpending,
   } = calculations || {};
+
+  // Format budgets for notification triggers
+  const formattedBudgets = categoryBudgets?.map(budget => {
+    const spent = categorySpending?.[budget.category] || 0;
+    const percentage = (spent / budget.limit) * 100;
+
+    return {
+      id: budget.category,
+      category: budget.category,
+      limit: budget.limit,
+      spent: spent
+    };
+  }) || [];
+
+  // Trigger notifications based on budget changes
+  // This will automatically create notifications when budgets exceed thresholds
+  useNotificationTriggers({ 
+    budgets: formattedBudgets, 
+    transactions: recentTransactions, 
+    userId 
+  });
+
+  // Show full page skeleton on initial load
+  if (loading && !calculations) {
+    return <BudgetPageSkeleton />;
+  }
 
   return (
     <div className="space-y-6">

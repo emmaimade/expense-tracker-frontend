@@ -18,11 +18,11 @@ const BudgetStats = ({
       <Card>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-600">Daily Average</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">
+            <p className="text-sm text-gray-600 dark:text-gray-400">Daily Average</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
               {formatCurrency(dailyAverage)}
             </p>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Based on day {currentDay}
             </p>
           </div>
@@ -36,8 +36,8 @@ const BudgetStats = ({
       <Card>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-600">Projected Total</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">
+            <p className="text-sm text-gray-600 dark:text-gray-400">Projected Total</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
               {formatCurrency(projectedSpending)}
             </p>
             <p
@@ -72,14 +72,14 @@ const BudgetStats = ({
       <Card>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-600">Budget Status</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Budget Status</p>
             <p
               className={`text-2xl font-bold mt-1 ${
                 isOverBudget
-                  ? "text-red-600"
+                  ? "text-red-600 dark:text-red-400"
                   : percentageUsed > 80
-                  ? "text-yellow-600"
-                  : "text-green-600"
+                  ? "text-yellow-600 dark:text-yellow-400"
+                  : "text-green-600 dark:text-green-400"
               }`}
             >
               {isOverBudget
@@ -88,7 +88,7 @@ const BudgetStats = ({
                 ? "Warning"
                 : "On Track"}
             </p>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               {isOverBudget ? "Reduce spending" : "Keep it up!"}
             </p>
           </div>

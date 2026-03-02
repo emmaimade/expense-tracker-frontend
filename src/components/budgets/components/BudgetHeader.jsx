@@ -6,16 +6,16 @@ const BudgetHeader = () => {
     <Card>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             Budget Management
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
             Track and manage your monthly spending limits by category
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Calendar className="w-5 h-5 text-gray-400" />
-          <span className="text-sm text-gray-600">
+          <Calendar className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+          <span className="text-sm text-gray-600 dark:text-gray-400">
             {new Date().toLocaleDateString("en-US", {
               month: "long",
               year: "numeric",
