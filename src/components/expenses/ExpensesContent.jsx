@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import ExpensesHeader from "./components/ExpensesHeader";
 import TransactionTable from "./components/TransactionTable";
 import AddExpenseModal from "./modals/AddExpenseModal";
@@ -60,23 +60,6 @@ const ExpensesContent = ({ recentTransactions, onDataChange, userId }) => {
     setFilterBy,
   } = useFilterAndSearch(dateFilteredTransactions);
 
-  // 🔍 DEBUG (remove after fixing)
-  useEffect(() => {
-    console.log('🔍 ExpensesContent State:', {
-      recentTransactions,
-      recentTransactionsIsNull: recentTransactions === null,
-      recentTransactionsIsUndefined: recentTransactions === undefined,
-      recentTransactionsLength: recentTransactions?.length,
-      
-      categories,
-      categoriesIsNull: categories === null,
-      isCategoriesLoading,
-      
-      dateFilteredTransactions,
-      dateFilteredIsNull: dateFilteredTransactions === null,
-    });
-  }, [recentTransactions, categories, isCategoriesLoading, dateFilteredTransactions]);
-
   // Handlers
   const handleAddSubmit = async (data) => {
     try {
@@ -84,7 +67,6 @@ const ExpensesContent = ({ recentTransactions, onDataChange, userId }) => {
       setIsAddModalOpen(false);
       if (onDataChange) onDataChange();
     } catch (err) {
-      console.error('Add expense error:', err);
       setError(err.message);
     }
   };
@@ -99,7 +81,6 @@ const ExpensesContent = ({ recentTransactions, onDataChange, userId }) => {
       setSelectedTransaction(null);
       if (onDataChange) onDataChange();
     } catch (err) {
-      console.error('Update expense error:', err);
       setError(err.message);
     }
   };
@@ -113,7 +94,7 @@ const ExpensesContent = ({ recentTransactions, onDataChange, userId }) => {
       await deleteExpense(transactionId);
       if (onDataChange) onDataChange();
     } catch (err) {
-      console.error('Delete expense error:', err);
+      setError(err.message);
     }
   };
 
@@ -123,7 +104,7 @@ const ExpensesContent = ({ recentTransactions, onDataChange, userId }) => {
     resetToDefault();
   };
 
-  // ✅ ROBUST LOADING STATE DETECTION
+  // LOADING STATE DETECTION
   const isMutating = isAdding || isUpdating || isDeleting;
   
   // Check if we're in initial loading state

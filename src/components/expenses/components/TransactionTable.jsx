@@ -114,28 +114,28 @@ const TransactionTable = ({
     <Card>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <h2 className="text-lg font-semibold text-gray-900">All Transactions</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">All Transactions</h2>
 
         <div className="flex flex-col sm:flex-row gap-3">
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               placeholder="Search transactions..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-full sm:w-64"
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-full sm:w-64 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             />
           </div>
 
           {/* Category Filter */}
           <div className="relative">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
             <select
               value={filterBy}
               onChange={(e) => setFilterBy(e.target.value)}
-              className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white"
+              className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             >
               {categoryOptions.map((category) => (
                 <option key={category} value={category}>
@@ -148,28 +148,28 @@ const TransactionTable = ({
           {/* Date Range Button */}
           <button
             onClick={onDateRangeClick}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-800"
             disabled={loading}
           >
-            <Calendar className="w-4 h-4 text-gray-400" />
+            <Calendar className="w-4 h-4 text-gray-400 dark:text-gray-500" />
             Filter by Date
           </button>
         </div>
       </div>
 
       {/* Results Summary */}
-      <div className="flex justify-between items-center mb-4 text-sm text-gray-600">
+      <div className="flex justify-between items-center mb-4 text-sm text-gray-600 dark:text-gray-400">
         <div>
           Showing {startIndex + 1} to{" "}
           {Math.min(startIndex + effectiveItemsPerPage, sortedTransactions.length)} of{" "}
           {sortedTransactions.length} transactions
           {searchTerm && (
-            <span className="ml-2 px-2 py-1 bg-gray-100 rounded text-xs">
+            <span className="ml-2 px-2 py-1 bg-gray-100 rounded text-xs dark:bg-gray-700 dark:text-gray-300">
               Filtered by: "{searchTerm}"
             </span>
           )}
           {filterBy !== "all" && (
-            <span className="ml-2 px-2 py-1 bg-gray-100 rounded text-xs">
+            <span className="ml-2 px-2 py-1 bg-gray-100 rounded text-xs dark:bg-gray-700 dark:text-gray-300">
               Category: {filterBy}
             </span>
           )}
@@ -188,7 +188,7 @@ const TransactionTable = ({
               }
               setCurrentPage(1);
             }}
-            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+            className="text-sm text-blue-600 hover:text-blue-800 font-medium dark:text-blue-400 dark:hover:text-blue-600 transition-colors"
           >
             Clear filters
           </button>
@@ -199,44 +199,44 @@ const TransactionTable = ({
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-gray-200">
+            <tr className="border-b border-gray-200 dark:border-gray-700">
               <th
-                className="text-left py-3 px-2 text-sm font-medium text-gray-600 cursor-pointer hover:text-gray-900 select-none"
+                className="text-left py-3 px-2 text-sm font-medium text-gray-600 cursor-pointer hover:text-gray-900 select-none dark:text-gray-400"
                 onClick={() => handleSort("date")}
               >
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 dark:text-gray-400">
                   Date
                   <SortIcon field="date" />
                 </div>
               </th>
               <th
-                className="text-left py-3 px-2 text-sm font-medium text-gray-600 cursor-pointer hover:text-gray-900 select-none"
+                className="text-left py-3 px-2 text-sm font-medium text-gray-600 cursor-pointer hover:text-gray-900 select-none dark:text-gray-400"
                 onClick={() => handleSort("name")}
               >
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 dark:text-gray-400">
                   Description
                   <SortIcon field="name" />
                 </div>
               </th>
               <th
-                className="text-left py-3 px-2 text-sm font-medium text-gray-600 cursor-pointer hover:text-gray-900 select-none"
+                className="text-left py-3 px-2 text-sm font-medium text-gray-600 cursor-pointer hover:text-gray-900 select-none dark:text-gray-400"
                 onClick={() => handleSort("category")}
               >
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 dark:text-gray-400">
                   Category
                   <SortIcon field="category" />
                 </div>
               </th>
               <th
-                className="text-right py-3 px-2 text-sm font-medium text-gray-600 cursor-pointer hover:text-gray-900 select-none"
+                className="text-right py-3 px-2 text-sm font-medium text-gray-600 cursor-pointer hover:text-gray-900 select-none dark:text-gray-400"
                 onClick={() => handleSort("amount")}
               >
-                <div className="flex items-center gap-1 justify-end">
+                <div className="flex items-center gap-1 justify-end dark:text-gray-400">
                   Amount
                   <SortIcon field="amount" />
                 </div>
               </th>
-              <th className="text-center py-3 px-2 text-sm font-medium text-gray-600">
+              <th className="text-center py-3 px-2 text-sm font-medium text-gray-600 dark:text-gray-400">
                 Actions
               </th>
             </tr>
@@ -244,19 +244,19 @@ const TransactionTable = ({
           <tbody>
             {paginatedTransactions.length > 0 ? (
               paginatedTransactions.map((transaction) => (
-                <tr key={transaction.id || transaction._id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="py-4 px-2 text-sm text-gray-700">
+                <tr key={transaction.id || transaction._id} className="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
+                  <td className="py-4 px-2 text-sm text-gray-700 dark:text-gray-300">
                     {new Date(transaction.date).toLocaleDateString()}
                   </td>
-                  <td className="py-4 px-2 text-sm text-gray-700">
+                  <td className="py-4 px-2 text-sm text-gray-700 dark:text-gray-300">
                     {transaction.description || transaction.name || '—'}
                   </td>
-                  <td className="py-4 px-2 text-sm text-gray-700">
+                  <td className="py-4 px-2 text-sm text-gray-700 dark:text-gray-300">
                     {typeof transaction.category === 'object'
                       ? transaction.category?.name
                       : transaction.category || 'Uncategorized'}
                   </td>
-                  <td className="py-4 px-2 text-right">
+                  <td className="py-4 px-2 text-right dark:text-gray-300">
                     <span
                       className={`font-medium ${
                         transaction.type === "expense" ? "text-red-600" : "text-green-600"
@@ -268,20 +268,20 @@ const TransactionTable = ({
                   <td className="py-4 px-2 text-center">
                     <div className="flex items-center justify-center gap-2">
                       <button
-                        className="p-1 hover:bg-gray-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="p-1 hover:bg-gray-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed dark:hover:bg-gray-700"
                         onClick={() => onEdit(transaction)}
                         disabled={loading}
                         title="Edit transaction"
                       >
-                        <Edit className="w-4 h-4 text-gray-600" />
+                        <Edit className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                       </button>
                       <button
-                        className="p-1 hover:bg-gray-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="p-1 hover:bg-gray-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed dark:hover:bg-gray-700"
                         onClick={() => onDelete(transaction.id || transaction._id)}
                         disabled={loading}
                         title="Delete transaction"
                       >
-                        <Trash2 className="w-4 h-4 text-red-600" />
+                        <Trash2 className="w-4 h-4 text-red-600 dark:text-red-500" />
                       </button>
                     </div>
                   </td>
@@ -292,10 +292,10 @@ const TransactionTable = ({
                 <td colSpan="5" className="py-12 text-center">
                   <div className="flex flex-col items-center gap-2">
                     <div className="text-gray-400">
-                      <Calendar className="w-12 h-12" />
+                      <Calendar className="w-12 h-12 dark:text-gray-500" />
                     </div>
-                    <p className="text-gray-600 font-medium">No transactions found</p>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-gray-600 font-medium dark:text-gray-400">No transactions found</p>
+                    <p className="text-sm text-gray-500 mt-1 dark:text-gray-500">
                       {searchTerm || filterBy !== "all"
                         ? "Try adjusting your search or filter criteria"
                         : "Start by adding your first expense"}
@@ -310,13 +310,13 @@ const TransactionTable = ({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+        <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             <span>Show</span>
             <select
               value={effectiveItemsPerPage}
               onChange={(e) => handleItemsPerPageChange(parseInt(e.target.value))}
-              className="border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
             >
               <option value={5}>5</option>
               <option value={10}>10</option>
@@ -352,7 +352,7 @@ const TransactionTable = ({
                     <button
                       key={1}
                       onClick={() => handlePageChange(1)}
-                      className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 transition-colors"
+                      className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 transition-colors dark:border-gray-600 dark:hover:bg-gray-700"
                     >
                       1
                     </button>
@@ -386,7 +386,7 @@ const TransactionTable = ({
                     <button
                       key={totalPages}
                       onClick={() => handlePageChange(totalPages)}
-                      className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 transition-colors"
+                      className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 transition-colors dark:border-gray-600 dark:hover:bg-gray-700"
                     >
                       {totalPages}
                     </button>
@@ -400,7 +400,7 @@ const TransactionTable = ({
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="flex items-center gap-1 px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1 px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-600 dark:hover:bg-gray-700"
             >
               Next
               <ChevronRight className="w-4 h-4" />
