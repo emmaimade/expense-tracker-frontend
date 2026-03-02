@@ -1,0 +1,14 @@
+<svg width="200" height="44" viewBox="0 0 200 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6"/>
+      <stop offset="100%" style="stop-color:#6366f1"/>
+    </linearGradient>
+  </defs>
+  <rect width="40" height="40" rx="11" fill="url(#g)" y="2"/>
+  <path d="M20 29 L20 15 M20 15 L14.5 20 M20 15 L25.5 20" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <circle cx="20" cy="29" r="2.8" fill="white"/>
+  <circle cx="31" cy="11" r="7" fill="#10b981"/>
+  <polyline points="27.5,11 29.5,13 34.5,9" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <text x="52" y="28" font-size="22" font-weight="800" fill="url(#g)" font-family="system-ui, -apple-system, sans-serif">SpendWise</text>
+</svg>
