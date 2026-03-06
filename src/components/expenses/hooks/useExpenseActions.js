@@ -1,4 +1,4 @@
-import { toast } from "react-toastify";
+﻿import { toast } from "react-toastify";
 import { expenseService } from "../../../services/expenseService";
 import { dateUtils } from "../../../utils/dateUtils";
 
@@ -72,7 +72,6 @@ export const useExpenseActions = ({
     rangeType = "custom",
     passedDateRange = null
   ) => {
-    console.log('🔍 fetchCustomDateRangeTransactions called:', { rangeType, passedDateRange });
     
     setLoading(true);
     setError(null);
@@ -82,7 +81,6 @@ export const useExpenseActions = ({
 
       if (rangeType === "reset") {
         // Reset to default state - clear custom range and fetch all transactions
-        console.log('🔄 Resetting date range');
         resetToDefault();
 
         if (onDataChange) {
@@ -122,7 +120,6 @@ export const useExpenseActions = ({
         return;
       }
 
-      console.log('📡 Fetching transactions from API for range:', effectiveRange);
       
       const data = await expenseService.getTransactionsByDateRange(
         rangeType,
@@ -144,11 +141,9 @@ export const useExpenseActions = ({
           }))
         : [];
 
-      console.log('✅ API returned transactions:', transformedData.length);
 
       // Apply the custom date range to activate filtering in useExpenseData
       if (applyCustomDateRange) {
-        console.log('📅 Applying custom date range:', effectiveRange);
         applyCustomDateRange(effectiveRange.startDate, effectiveRange.endDate);
       } else {
         console.warn('⚠️ applyCustomDateRange function not provided!');
@@ -170,13 +165,10 @@ export const useExpenseActions = ({
         );
       }
 
-      console.log("Transformed transactions:", transformedData);
-      console.log("Sample transaction:", transformedData[0]);
       
       // Call onDataChange to refresh the data in Dashboard
       // This will fetch all transactions, but useExpenseData will filter them
       if (onDataChange) {
-        console.log('🔄 Triggering data refresh');
         onDataChange();
       }
       

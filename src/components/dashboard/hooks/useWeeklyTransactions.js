@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { expenseService } from '../../../services/expenseService';
 
 const useWeeklyTransactions = () => {
@@ -12,16 +12,13 @@ const useWeeklyTransactions = () => {
       setLoading(true);
       setError(null);
       setFallbackUsed(false);
-      console.log('Fetching weekly transactions...');
       
       try {
         const transformedData = await expenseService.getTransactionsByDateRange('weekly');
-        console.log('Weekly transactions data:', transformedData);
         setWeeklyTransactions(transformedData);
       } catch (err) {
         // Handle the specific case where API returns 404 for "No expenses found"
         if (err.message === 'No expenses found') {
-          console.log('No weekly expenses found - trying fallback to monthly data');
           
           try {
             // Fallback 1: Try monthly data
@@ -34,13 +31,11 @@ const useWeeklyTransactions = () => {
               
               setWeeklyTransactions(recentTransactions);
               setFallbackUsed(true);
-              console.log('Using recent monthly transactions as fallback');
             } else {
               // Fallback 2: No data at all
               setWeeklyTransactions([]);
             }
-          } catch (fallbackErr) {
-            console.log('Fallback also failed, showing empty state');
+          } catch {
             setWeeklyTransactions([]);
           }
           

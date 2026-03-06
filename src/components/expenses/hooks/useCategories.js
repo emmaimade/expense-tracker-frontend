@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+﻿import { useState, useEffect, useMemo, useCallback } from "react";
 import { categoryService } from "../../../services/categoryService";
 
 export const useCategories = () => {
-  // ✅ FIX: Initialize as null, not []
+  // Initialize as null, not []
   const [categories, setCategories] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -23,7 +23,7 @@ export const useCategories = () => {
     } catch (err) {
       console.error("Failed to fetch categories:", err);
       setError("Server is waking up or unreachable. Please refresh in a moment.");
-      // ✅ FIX: Set to empty array on error (not null), so we know fetch was attempted
+      // Set to empty array on error (not null), so we know fetch was attempted
       setCategories([]);
     } finally {
       setIsLoading(false);
@@ -71,7 +71,7 @@ export const useCategories = () => {
   return useMemo(
     () => ({
       categories,
-      isLoading, // ✅ Changed from 'loading' to match ExpensesContent
+      isLoading,
       error,
       createCategory,
       updateCategory,
@@ -81,3 +81,4 @@ export const useCategories = () => {
     [categories, isLoading, error, fetchCategories]
   );
 };
+

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+﻿import { useState, useEffect, useMemo, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { budgetService } from '../../../services/budgetService';
 import { useCategories } from '../../expenses/hooks/useCategories';
@@ -30,9 +30,6 @@ export const useBudget = (recentTransactions = []) => {
         budgetService.getBudgetAlerts().catch(() => ({ data: [] })),
       ]);
 
-      console.log("=== FETCH BUDGET DATA ===");
-      console.log("Raw Budgets Response:", budgets);
-      console.log("Budget Alerts:", alerts);
 
       setBudget(budgets?.data || {});
       setCategoryBudgets(budgets?.data?.categories || []);
@@ -83,7 +80,6 @@ export const useBudget = (recentTransactions = []) => {
         year: year,
       };
 
-      console.log("Adding budget:", budgetData);
       
       await budgetService.setMonthlyBudget(budgetData);
 
@@ -116,7 +112,6 @@ export const useBudget = (recentTransactions = []) => {
         year: year,
       };
 
-      console.log("Updating budget:", budgetData);
       
       await budgetService.setMonthlyBudget(budgetData);
 
@@ -145,7 +140,6 @@ export const useBudget = (recentTransactions = []) => {
 
   // Memoized budget calculations
   const calculations = useMemo(() => {
-    console.log("\n=== CALCULATIONS START ===");
 
     // Calculate spending by category from transactions
     const categorySpending = {};
@@ -170,7 +164,6 @@ export const useBudget = (recentTransactions = []) => {
           tx.category || 
           "Uncategorized";
 
-        console.log("Extracted Category ID:", categoryId);
 
         const amount = Math.abs(tx.amount || 0);
         categorySpending[categoryId] = (categorySpending[categoryId] || 0) + amount;
@@ -196,7 +189,6 @@ export const useBudget = (recentTransactions = []) => {
     const projectedSpending = dailyAverage * daysInMonth;
     const daysRemaining = daysInMonth - currentDay;
 
-    console.log("=== CALCULATIONS END ===\n");
 
     return {
       totalBudget,
@@ -244,3 +236,4 @@ export const useBudget = (recentTransactions = []) => {
     categories,
   };
 };
+
