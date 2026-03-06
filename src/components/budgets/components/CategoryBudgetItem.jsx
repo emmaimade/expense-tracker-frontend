@@ -1,4 +1,4 @@
-import { Edit2, Save, X, MoreVertical, Trash2 } from 'lucide-react';
+﻿import { Edit2, Save, X, MoreVertical, Trash2 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { usePreferencesContext } from '../../../context/PreferencesContext';
 

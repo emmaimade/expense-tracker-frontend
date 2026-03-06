@@ -1,4 +1,4 @@
-import { useBudget } from './hooks/useBudget';
+﻿import { useBudget } from './hooks/useBudget';
 import { useNotificationTriggers } from '../../hooks/useNotificationTriggers';
 import BudgetHeader from './components/BudgetHeader';
 import BudgetOverview from './components/BudgetOverview';
@@ -53,7 +53,6 @@ const BudgetsContent = ({ recentTransactions = [], userId }) => {
   // Format budgets for notification triggers
   const formattedBudgets = categoryBudgets?.map(budget => {
     const spent = categorySpending?.[budget.category] || 0;
-    const percentage = (spent / budget.limit) * 100;
 
     return {
       id: budget.category,

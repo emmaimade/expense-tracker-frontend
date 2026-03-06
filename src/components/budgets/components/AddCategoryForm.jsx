@@ -1,4 +1,4 @@
-import { usePreferencesContext } from '../../../context/PreferencesContext';
+﻿import { usePreferencesContext } from '../../../context/PreferencesContext';
 
 const AddCategoryForm = ({
   newCategory,
@@ -7,7 +7,7 @@ const AddCategoryForm = ({
   handleAddCategory,
   setShowAddCategory,
 }) => {
-  const { formatCurrency, getCurrencySymbol } = usePreferencesContext();
+  const { getCurrencySymbol } = usePreferencesContext();
   const currencySymbol = getCurrencySymbol();
 
   return (
