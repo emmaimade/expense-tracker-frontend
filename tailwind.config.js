@@ -4,9 +4,13 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
-  darkMode: 'class', // ✅ CRITICAL: This enables dark mode based on the 'dark' class
+  darkMode: 'class', // This enables dark mode based on the 'dark' class
   theme: {
-    extend: {},
+    extend: {
+      transitionProperty: {
+        'colors': 'color, background-color, border-color, text-decoration-color, fill, stroke',
+      },
+    },
   },
   plugins: [],
 }

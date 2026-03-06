@@ -4,9 +4,13 @@ import 'react-toastify/dist/ReactToastify.css';
 import { QueryProvider } from './providers/QueryProvider';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { PreferencesProvider, usePreferencesContext } from './context/PreferencesContext';
+import LandingPage from './components/pages/LandingPage';
 import Login from './components/pages/Login';
 import Signup from './components/pages/Signup';
 import Dashboard from './components/pages/Dashboard';
+import ForgotPassword from './components/pages/ForgotPassword';
+import ResetPassword from './components/pages/ResetPassword';
+import AuthCallback from './components/auth/AuthCallback';
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -52,8 +56,12 @@ function AppContent() {
     <PreferencesProvider userId={user?.id}>
       <Router>
         <Routes>
+          <Route path="/" element={<LandingPage />}/>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Signup />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route
             path="/dashboard/*"
             element={
