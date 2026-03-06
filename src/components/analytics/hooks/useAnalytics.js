@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+﻿import { useState, useEffect, useMemo, useCallback } from 'react';
 import { budgetService } from '../../../services/budgetService';
 
 /**
@@ -7,20 +7,12 @@ import { budgetService } from '../../../services/budgetService';
  * @param {string} timeRange - Time range: '3months', '6months', or '1year'
  * @returns {Object} Analytics data, loading state, and utility functions
  */
-// ✅ FIX: Remove default parameters so we can detect when data hasn't loaded
+// Remove default parameters so we can detect when data hasn't loaded
 export const useAnalytics = (recentTransactions, timeRange = '6months') => {
   const [budgetData, setBudgetData] = useState(null);
-  const [categoryBudgets, setCategoryBudgets] = useState(null); // ✅ Changed from [] to null
+  const [categoryBudgets, setCategoryBudgets] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  console.log('🔧 useAnalytics called:', {
-    recentTransactions,
-    recentTransactionsIsNull: recentTransactions === null,
-    recentTransactionsIsUndefined: recentTransactions === undefined,
-    recentTransactionsLength: recentTransactions?.length,
-    timeRange,
-  });
 
   // Fetch budget data (once on mount)
   const fetchBudgetData = useCallback(async () => {
@@ -31,8 +23,6 @@ export const useAnalytics = (recentTransactions, timeRange = '6months') => {
       const [overview] = await Promise.all([
         budgetService.getBudgetOverview().catch(() => ({ data: {} })),
       ]);
-
-      console.log('Budget Overview:', overview?.data);
 
       setBudgetData(overview?.data || {});
       setCategoryBudgets(overview?.data?.categories || []); // Now sets [] after fetch, not initially
@@ -52,13 +42,10 @@ export const useAnalytics = (recentTransactions, timeRange = '6months') => {
 
   // Calculate analytics metrics
   const analytics = useMemo(() => {
-    // ✅ FIX: Return null if transactions haven't loaded yet
+    // Return null if transactions haven't loaded yet
     if (recentTransactions === null || recentTransactions === undefined) {
-      console.log('⏳ Transactions not loaded yet, returning null analytics');
       return null;
     }
-
-    console.log('⚙️ Computing analytics for', recentTransactions.length, 'transactions');
 
     // Default safe state (after transactions loaded but empty)
     const defaultAnalytics = {
@@ -72,7 +59,6 @@ export const useAnalytics = (recentTransactions, timeRange = '6months') => {
     };
 
     if (recentTransactions.length === 0) {
-      console.log('📭 No transactions, returning default analytics');
       return {
         ...defaultAnalytics,
         totalBudget: budgetData?.totalBudget || 0,
@@ -81,7 +67,6 @@ export const useAnalytics = (recentTransactions, timeRange = '6months') => {
 
     const expenses = recentTransactions.filter(tx => tx.type === 'expense');
     if (expenses.length === 0) {
-      console.log('📭 No expenses found, returning default analytics');
       return {
         ...defaultAnalytics,
         totalBudget: budgetData?.totalBudget || 0,
@@ -100,7 +85,6 @@ export const useAnalytics = (recentTransactions, timeRange = '6months') => {
     });
 
     if (recentExpenses.length === 0) {
-      console.log('📭 No expenses in time range, returning default analytics');
       return {
         ...defaultAnalytics,
         totalBudget: budgetData?.totalBudget || 0,
@@ -163,13 +147,6 @@ export const useAnalytics = (recentTransactions, timeRange = '6months') => {
       amount: Math.round(item.amount),
     }));
 
-    console.log('📊 useAnalytics - Generated analytics:', {
-      categoryDataCount: categoryData.length,
-      monthlyDataCount: monthlyData.length,
-      totalSpent,
-      avgMonthlySpending: Math.round(avgMonthlySpending),
-    });
-
     // Budget adherence: compare time-range spending to prorated budget
     const monthlyBudget = budgetData?.totalBudget || 0;
     const totalBudgetForRange = monthlyBudget * monthsToAnalyze;
@@ -202,7 +179,7 @@ export const useAnalytics = (recentTransactions, timeRange = '6months') => {
 
   // Trend insight: compare current month vs previous month
   const trendInsight = useMemo(() => {
-    // ✅ FIX: Handle null analytics
+    // Handle null analytics
     if (!analytics || !analytics.monthlyData || analytics.monthlyData.length < 2) {
       return null;
     }
@@ -235,7 +212,7 @@ export const useAnalytics = (recentTransactions, timeRange = '6months') => {
 
   // Export to CSV
   const exportToCSV = useCallback(() => {
-    // ✅ FIX: Handle null analytics
+    // Handle null analytics
     if (!analytics) {
       console.warn('No analytics data to export');
       return;
@@ -280,3 +257,4 @@ export const useAnalytics = (recentTransactions, timeRange = '6months') => {
     refetch: fetchBudgetData,
   };
 };
+

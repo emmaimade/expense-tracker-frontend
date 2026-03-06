@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+﻿import { useMemo } from 'react';
 
 /**
  * Custom hook for transforming analytics data into chart-ready format
@@ -8,14 +8,13 @@ import { useMemo } from 'react';
  * @returns {Object} Processed chart data and statistics
  */
 export const useChartData = (categoryData = [], monthlyData = [], timeRange = '6months') => {
-  console.log('🧮 useChartData - Input monthlyData:', monthlyData);
   
   return useMemo(() => {
     const MONTHS_BACK = { '3months': 3, '6months': 6, '1year': 12 }[timeRange] || 6;
 
-    // ──────────────────────────────────────────────────────
-    // MONTHLY DATA PROCESSING
-    // ──────────────────────────────────────────────────────
+
+    // Process monthly trend data
+
     
     // Generate month range (including current month)
     const now = new Date();
@@ -38,7 +37,7 @@ export const useChartData = (categoryData = [], monthlyData = [], timeRange = '6
       currentDate.setMonth(currentDate.getMonth() + 1);
     }
 
-    // ✅ FIXED: Parse monthly data by matching YYYY-MM keys
+    // Normalize and aggregate monthly records by YYYY-MM key
     const monthMap = new Map();
     
     if (Array.isArray(monthlyData)) {
@@ -58,7 +57,6 @@ export const useChartData = (categoryData = [], monthlyData = [], timeRange = '6
       });
     }
 
-    console.log('🗺️ useChartData - monthMap:', Array.from(monthMap.entries()));
 
     // Build filtered monthly data with display labels
     const monthlyDataFiltered = allMonths.map((m) => ({
@@ -67,7 +65,6 @@ export const useChartData = (categoryData = [], monthlyData = [], timeRange = '6
       key: m.key, // Keep raw key for debugging
     }));
 
-    console.log('📊 useChartData - monthlyDataFiltered:', monthlyDataFiltered);
 
     // Calculate monthly statistics
     const allAmounts = monthlyDataFiltered.map((m) => m.amount);
@@ -83,9 +80,9 @@ export const useChartData = (categoryData = [], monthlyData = [], timeRange = '6
     const monthMax = actualAmounts.length > 0 ? Math.max(...actualAmounts) : 0;
     const monthMin = actualAmounts.length > 0 ? Math.min(...actualAmounts) : 0;
 
-    // ──────────────────────────────────────────────────────
-    // CATEGORY DATA PROCESSING
-    // ──────────────────────────────────────────────────────
+
+    // Process category distribution data
+
     
     // Process and validate category data
     const validCategories = Array.isArray(categoryData)
@@ -105,9 +102,9 @@ export const useChartData = (categoryData = [], monthlyData = [], timeRange = '6
 
     const catTotal = top5.reduce((sum, c) => sum + c.value, 0);
 
-    // ──────────────────────────────────────────────────────
-    // RETURN PROCESSED DATA
-    // ──────────────────────────────────────────────────────
+
+    // Return chart-ready analytics data
+
     
     return {
       // Category data
@@ -133,3 +130,5 @@ export const useChartData = (categoryData = [], monthlyData = [], timeRange = '6
 };
 
 export default useChartData;
+
+
