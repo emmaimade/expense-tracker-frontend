@@ -1,8 +1,8 @@
-import { Home, CreditCard, BarChart3, Target, Settings } from 'lucide-react';
+﻿import { Home, CreditCard, BarChart3, Target, Settings } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import Logo from '../common/Logo';
+import SpendWiseLogo from '../common/SpendWiseLogo';
 
-const Sidebar = ({ isOpen, onClose = () => {} }) => {
+const Sidebar = ({ isOpen, setIsOpen }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -34,7 +34,7 @@ const Sidebar = ({ isOpen, onClose = () => {} }) => {
 
   const handleNavigation = (item) => {
     navigate(item.path);
-    onClose(); // Close mobile sidebar after navigation
+    if (setIsOpen) setIsOpen(false); 
   };
 
   return (
@@ -45,13 +45,11 @@ const Sidebar = ({ isOpen, onClose = () => {} }) => {
     >
       <div className="p-6 flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            SpendWise
-          </span>
+          <SpendWiseLogo showText={true} className="h-8" />
         </div>
         {/* Mobile close button */}
         <button
-          onClick={onClose}
+          onClick={() => { if (setIsOpen) setIsOpen(false); }}
           className="lg:hidden text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
         >
           ×
