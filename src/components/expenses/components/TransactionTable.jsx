@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Search, Filter, Calendar, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import LoadingOverlay from '../../common/LoadingOverlay';
 import { usePreferencesContext } from '../../../context/PreferencesContext';
@@ -19,7 +19,6 @@ const TransactionTable = ({
   categories = [],
   itemsPerPage = 10,
   onItemsPerPageChange,
-  onClearFilters,
 }) => {
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState('desc');
@@ -52,12 +51,13 @@ const TransactionTable = ({
         aValue = (a.description || a.name || '').toLowerCase();
         bValue = (b.description || b.name || '').toLowerCase();
         break;
-      case 'category':
+      case 'category': {
         const aCat = typeof a.category === 'object' ? a.category?.name : a.category;
         const bCat = typeof b.category === 'object' ? b.category?.name : b.category;
         aValue = (aCat || '').toLowerCase();
         bValue = (bCat || '').toLowerCase();
         break;
+      }
       default:
         return 0;
     }

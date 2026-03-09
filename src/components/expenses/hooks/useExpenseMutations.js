@@ -1,5 +1,4 @@
-// hooks/useExpenseMutations.js
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+﻿import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import { expenseService } from '../../../services/expenseService';
 
@@ -18,7 +17,7 @@ export const useExpenseMutations = (categories = []) => {
       // Snapshot the previous value
       const previousTransactions = queryClient.getQueryData(['currentMonthTransactions']);
 
-      // ✅ ROBUST FIX: Get categories from either cache OR passed prop
+      // Use categories from props first, then fall back to query cache
       let categoriesData = categories;
       if (!categoriesData || categoriesData.length === 0) {
         categoriesData = queryClient.getQueryData(['categories']) || [];
@@ -26,11 +25,6 @@ export const useExpenseMutations = (categories = []) => {
       
       const categoryObj = categoriesData.find(cat => cat._id === newExpense.category);
 
-      console.log('🔍 Optimistic Add - Category lookup:', {
-        categoryId: newExpense.category,
-        foundCategory: categoryObj,
-        availableCategories: categoriesData.length
-      });
 
       // Optimistically update to the new value
       const optimisticExpense = {
@@ -39,7 +33,7 @@ export const useExpenseMutations = (categories = []) => {
         name: newExpense.name,
         description: newExpense.name,
         date: newExpense.date,
-        // ✅ FIX: Use category object with fallback
+        // Use category object with fallback
         category: categoryObj ? {
           _id: categoryObj._id,
           name: categoryObj.name,
@@ -53,7 +47,6 @@ export const useExpenseMutations = (categories = []) => {
         createdAt: new Date().toISOString(),
       };
 
-      console.log('✅ Optimistic expense created:', optimisticExpense);
 
       queryClient.setQueryData(['currentMonthTransactions'], (old = []) => [
         optimisticExpense,
@@ -100,7 +93,7 @@ export const useExpenseMutations = (categories = []) => {
 
       const previousTransactions = queryClient.getQueryData(['currentMonthTransactions']);
 
-      // ✅ ROBUST FIX: Get categories from either cache OR passed prop
+      // Use categories from props first, then fall back to query cache
       let categoriesData = categories;
       if (!categoriesData || categoriesData.length === 0) {
         categoriesData = queryClient.getQueryData(['categories']) || [];
@@ -108,11 +101,6 @@ export const useExpenseMutations = (categories = []) => {
       
       const categoryObj = categoriesData.find(cat => cat._id === data.category);
 
-      console.log('🔍 Optimistic Update - Category lookup:', {
-        categoryId: data.category,
-        foundCategory: categoryObj,
-        availableCategories: categoriesData.length
-      });
 
       queryClient.setQueryData(['currentMonthTransactions'], (old = []) =>
         old.map((expense) =>
@@ -122,7 +110,7 @@ export const useExpenseMutations = (categories = []) => {
                 name: data.name || expense.name,
                 description: data.name || expense.description,
                 date: data.date || expense.date,
-                // ✅ FIX: Use category object with fallback
+                // Use category object with fallback
                 category: categoryObj ? {
                   _id: categoryObj._id,
                   name: categoryObj.name,
@@ -206,7 +194,7 @@ export const useExpenseMutations = (categories = []) => {
   });
 
   return {
-    // ✅ Use mutateAsync for promise-based handling in components
+    // Expose mutateAsync for promise-based flows in components
     addExpense: addExpenseMutation.mutateAsync,
     updateExpense: updateExpenseMutation.mutateAsync,
     deleteExpense: deleteExpenseMutation.mutateAsync,
@@ -237,3 +225,5 @@ export const useExpenseMutations = (categories = []) => {
     resetDelete: deleteExpenseMutation.reset,
   };
 };
+
+

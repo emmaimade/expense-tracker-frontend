@@ -70,10 +70,10 @@ const ExportModal = ({ isOpen, onClose, onExport, loading, error, setError }) =>
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 dark:bg-gray-900/50">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-md dark:bg-gray-800">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             Export Expenses
           </h3>
           <button
@@ -81,21 +81,21 @@ const ExportModal = ({ isOpen, onClose, onExport, loading, error, setError }) =>
               onClose();
               setError && setError(null);
             }}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors dark:bg-gray-500 dark:hover:bg-gray-700 disabled:opacity-50"
             disabled={loading}
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
           </button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2 dark:text-gray-300">
               Export Format
             </label>
             <select
               value={exportOptions.fileFormat}
               onChange={(e) => setExportOptions({ ...exportOptions, fileFormat: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               disabled={loading}
             >
               <option value="csv">CSV</option>
@@ -103,13 +103,13 @@ const ExportModal = ({ isOpen, onClose, onExport, loading, error, setError }) =>
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2 dark:text-gray-300">
               Category
             </label>
             <select
               value={exportOptions.category}
               onChange={(e) => setExportOptions({ ...exportOptions, category: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               disabled={loading}
             >
               <option value="all">All Categories</option>
@@ -128,7 +128,7 @@ const ExportModal = ({ isOpen, onClose, onExport, loading, error, setError }) =>
             <button
               type="button"
               onClick={() => setQuickDateRange("weekly")}
-              className="px-2 py-0.5 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50"
+              className="px-2 py-0.5 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50 dark:bg-gray-500 dark:text-gray-300 dark:hover:bg-gray-700"
               disabled={loading}
             >
               Last 7 Days
@@ -136,7 +136,7 @@ const ExportModal = ({ isOpen, onClose, onExport, loading, error, setError }) =>
             <button
               type="button"
               onClick={() => setQuickDateRange("monthly")}
-              className="px-2 py-0.5 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50"
+              className="px-2 py-0.5 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50 dark:bg-gray-500 dark:text-gray-300 dark:hover:bg-gray-700"
               disabled={loading}
             >
               Last Month
@@ -144,14 +144,14 @@ const ExportModal = ({ isOpen, onClose, onExport, loading, error, setError }) =>
             <button
               type="button"
               onClick={() => setQuickDateRange("three-months")}
-              className="px-2 py-0.5 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50"
+              className="px-2 py-0.5 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50 dark:bg-gray-500 dark:text-gray-300 dark:hover:bg-gray-700"
               disabled={loading}
             >
               Last 3 Months
             </button>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2 dark:text-gray-300">
               Start Date
             </label>
             <input
@@ -161,12 +161,12 @@ const ExportModal = ({ isOpen, onClose, onExport, loading, error, setError }) =>
                 setExportOptions({ ...exportOptions, startDate: e.target.value });
                 setError && setError(null);
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               disabled={loading}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2 dark:text-gray-300">
               End Date
             </label>
             <input
@@ -176,7 +176,7 @@ const ExportModal = ({ isOpen, onClose, onExport, loading, error, setError }) =>
                 setExportOptions({ ...exportOptions, endDate: e.target.value });
                 setError && setError(null);
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               disabled={loading}
             />
           </div>
@@ -190,14 +190,14 @@ const ExportModal = ({ isOpen, onClose, onExport, loading, error, setError }) =>
                 onClose();
                 setError && setError(null);
               }}
-              className="flex-1 px-3 py-1.5 border border-gray-300 text-sm rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+              className="flex-1 px-3 py-1.5 border border-gray-300 text-sm rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
               disabled={loading}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 px-3 py-1.5 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50"
+              className="flex-1 px-3 py-1.5 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50 dark:bg-indigo-500 dark:hover:bg-indigo-600"
               disabled={loading}
             >
               {loading ? "Exporting..." : "Export"}

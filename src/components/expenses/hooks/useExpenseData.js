@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+﻿import { useState, useMemo, useCallback } from 'react';
 
 // Helper function to get the start of the day for filtering
 const getStartOfDay = (date) => {
@@ -14,7 +14,7 @@ const getEndOfDay = (date) => {
   return d;
 };
 
-// ✅ FIX: Remove default parameter so we can detect when data hasn't loaded
+// Remove default parameter so we can detect when data hasn't loaded
 export const useExpenseData = (recentTransactions) => {
   const [dateRangeType, setDateRangeType] = useState("year");
   const [customDateRange, setCustomDateRange] = useState({
@@ -22,18 +22,9 @@ export const useExpenseData = (recentTransactions) => {
     endDate: "",
   });
 
-  console.log('🔧 useExpenseData state:', {
-    dateRangeType,
-    customDateRange,
-    isUsingCustomRange: dateRangeType === "custom",
-    transactionsCount: recentTransactions?.length,
-    transactionsIsNull: recentTransactions === null,
-    transactionsIsUndefined: recentTransactions === undefined,
-  });
 
   // Reset to default function
   const resetToDefault = useCallback(() => {
-    console.log('🔄 Resetting to default');
     setDateRangeType("month");
     setCustomDateRange({
       startDate: "",
@@ -48,7 +39,6 @@ export const useExpenseData = (recentTransactions) => {
       customDateRange.startDate &&
       customDateRange.endDate
     ) {
-      console.log('📅 Using custom date range:', customDateRange);
       return {
         startDate: getStartOfDay(customDateRange.startDate),
         endDate: getEndOfDay(customDateRange.endDate),
@@ -82,7 +72,6 @@ export const useExpenseData = (recentTransactions) => {
         startDate = new Date(now.getFullYear(), now.getMonth(), 1);
     }
 
-    console.log('📅 Using preset range:', rangeType);
     return {
       startDate: getStartOfDay(startDate),
       endDate: getEndOfDay(now),
@@ -91,29 +80,22 @@ export const useExpenseData = (recentTransactions) => {
 
   // Function to filter transactions based on the determined date range
   const getDateFilteredTransactions = useMemo(() => {
-    // ✅ FIX: Return null if data hasn't loaded yet
+    // Return null if data hasn't loaded yet
     if (recentTransactions === null || recentTransactions === undefined) {
-      console.log('⏳ Transactions not loaded yet, returning null');
       return null;
     }
 
     const { startDate, endDate } = getEffectiveDateRange(dateRangeType);
 
-    console.log('📅 Effective date range:', {
-      type: dateRangeType,
-      start: startDate.toISOString(),
-      end: endDate.toISOString(),
-      totalTransactions: recentTransactions.length
-    });
 
     if (startDate > endDate) {
-      console.warn("⚠️ Invalid date range: startDate after endDate");
+      console.warn("Invalid date range: startDate is after endDate");
       return [];
     }
 
     const filtered = recentTransactions.filter((tx) => {
       if (!tx.date) {
-        console.warn('⚠️ Transaction missing date:', tx);
+        console.warn('Transaction missing date:', tx);
         return false;
       }
       
@@ -123,18 +105,13 @@ export const useExpenseData = (recentTransactions) => {
       return isInRange;
     });
 
-    console.log('✅ Date filtered transactions:', {
-      filtered: filtered.length,
-      total: recentTransactions.length,
-      dateRangeType
-    });
     
     return filtered;
   }, [recentTransactions, dateRangeType, getEffectiveDateRange]);
 
   // 1. Calculate category data for pie chart
   const categoryData = useMemo(() => {
-    // ✅ FIX: Return null if filtered transactions not ready
+    // Return null if filtered transactions not ready
     if (!getDateFilteredTransactions) return null;
     
     return getDateFilteredTransactions
@@ -155,7 +132,7 @@ export const useExpenseData = (recentTransactions) => {
 
   // 2. Calculate monthly spending data
   const monthlyData = useMemo(() => {
-    // ✅ FIX: Return null if transactions not ready
+    // Return null if transactions not ready
     if (!recentTransactions) return null;
     
     const monthlyTotals = {};
@@ -216,25 +193,21 @@ export const useExpenseData = (recentTransactions) => {
 
   // Function to update custom date range and set type
   const updateCustomDateRange = useCallback((newRange) => {
-    console.log('📅 updateCustomDateRange called with:', newRange);
     
     setCustomDateRange(newRange);
     
     if (newRange.startDate && newRange.endDate) {
-      console.log('✅ Setting dateRangeType to "custom"');
       setDateRangeType("custom");
     } else if (!newRange.startDate && !newRange.endDate) {
-      console.log('🔄 Resetting dateRangeType to "month"');
       setDateRangeType("month");
     }
   }, []);
 
   // Explicit function to apply custom date range with validation
   const applyCustomDateRange = useCallback((startDate, endDate) => {
-    console.log('📅 applyCustomDateRange called:', { startDate, endDate });
     
     if (!startDate || !endDate) {
-      console.error('❌ Both startDate and endDate are required');
+      console.error('Both startDate and endDate are required');
       return;
     }
 
@@ -243,7 +216,6 @@ export const useExpenseData = (recentTransactions) => {
       endDate: typeof endDate === 'string' ? endDate : endDate.toISOString().split('T')[0],
     };
 
-    console.log('✅ Setting custom date range:', newRange);
     setCustomDateRange(newRange);
     setDateRangeType("custom");
   }, []);
@@ -277,14 +249,13 @@ export const useExpenseData = (recentTransactions) => {
       endDate: endDate.toISOString().split("T")[0],
     };
     
-    console.log('📅 Applying quick range:', rangeType, newRange);
     setCustomDateRange(newRange);
     setDateRangeType("custom");
   }, [resetToDefault]);
 
   const isUsingCustomRange = dateRangeType === "custom";
 
-  // ✅ FIX: Add isLoading indicator
+  // Add isLoading indicator
   const isLoading = recentTransactions === null || recentTransactions === undefined;
 
   return {
@@ -299,6 +270,8 @@ export const useExpenseData = (recentTransactions) => {
     resetToDefault,
     applyQuickRange,
     filteredTransactions: getDateFilteredTransactions,
-    isLoading, // ✅ NEW: Expose loading state
+    isLoading,
   };
 };
+
+

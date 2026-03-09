@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+﻿import { useState, useMemo } from 'react';
 import { X, Plus } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useCategories } from '../hooks/useCategories';
@@ -73,7 +73,6 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
         userId: userId,
       });
 
-      console.log("Created new category:", newCategory);
 
       // The returned category should have _id and name properties
       const categoryId = newCategory._id || newCategory.id;
@@ -102,24 +101,24 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
-          <h3 className="text-lg font-semibold text-gray-900">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto dark:bg-gray-800">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 sticky top-0 bg-white z-10 dark:border-gray-700 dark:bg-gray-800">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             Add Expense
           </h3>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors dark:hover:bg-gray-700 dark:bg-gray-500 disabled:opacity-50"
             disabled={loading}
           >
-            <X className="h-5 w-5 text-gray-500" />
+            <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2 dark:text-gray-300">
               Name
             </label>
             <input
@@ -127,7 +126,7 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
               required
               value={newExpense.name}
               onChange={(e) => setNewExpense({ ...newExpense, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               placeholder="Expense name"
               disabled={loading}
             />
@@ -135,7 +134,7 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
 
           {/* Category */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2 dark:text-gray-300">
               Category
             </label>
             
@@ -143,7 +142,7 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
               <button
                 type="button"
                 onClick={() => setIsAddingCategory(true)}
-                className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-700 mb-2"
+                className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-700 mb-2 dark:text-indigo-400 dark:hover:text-indigo-500"
                 disabled={loading}
               >
                 <Plus className="h-4 w-4" />
@@ -161,7 +160,7 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
                   type="text"
                   value={newCategoryName}
                   onChange={(e) => setNewCategoryName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                   placeholder="New category name"
                   disabled={loading}
                 />
@@ -169,7 +168,7 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
                   <button
                     type="button"
                     onClick={handleAddCategory}
-                    className="flex-1 px-3 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition-colors"
+                    className="flex-1 px-3 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition-colors dark:bg-indigo-500 dark:hover:bg-indigo-600"
                   >
                     Add Category
                   </button>
@@ -180,7 +179,7 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
                       setNewCategoryName('');
                       setCategoryError(null);
                     }}
-                    className="flex-1 px-3 py-2 border border-gray-300 text-sm rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex-1 px-3 py-2 border border-gray-300 text-sm rounded-lg hover:bg-gray-50 transition-colors dark:border-gray-600 dark:bg-gray-500 dark:hover:bg-gray-700"
                   >
                     Cancel
                   </button>
@@ -192,7 +191,7 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
                 required
                 value={newExpense.category}
                 onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 disabled={loading}
               >
                 <option value="">Select category</option>
@@ -206,7 +205,7 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
             
             {/* Helper text */}
             {!isAddingCategory && categories.length > 0 && (
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 {categories.length} categories available
               </p>
             )}
@@ -214,11 +213,11 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
 
           {/* Amount */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2 dark:text-gray-300">
               Amount
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400">
                 {getCurrencySymbol()}
               </span>
               <input
@@ -228,7 +227,7 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
                 min="0.01"
                 value={newExpense.amount}
                 onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
-                className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 placeholder="0.00"
                 disabled={loading}
               />
@@ -237,7 +236,7 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
 
           {/* Date */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2 dark:text-gray-300">
               Date
             </label>
             <input
@@ -246,7 +245,7 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
               value={newExpense.date}
               max={new Date().toISOString().split('T')[0]}
               onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               disabled={loading}
             />
           </div>
@@ -256,14 +255,14 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors dark:border-gray-600 dark:bg-gray-500 dark:hover:bg-gray-700"
               disabled={loading}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
+              className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 dark:bg-indigo-500 dark:hover:bg-indigo-600"
               disabled={loading}
             >
               {loading ? 'Adding...' : 'Add Expense'}
