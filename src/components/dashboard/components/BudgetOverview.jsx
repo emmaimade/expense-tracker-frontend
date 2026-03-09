@@ -4,7 +4,6 @@ import Card from '../../../components/common/Card';
 
 const BudgetOverview = ({ budgetData }) => {
   const { formatCurrency } = usePreferencesContext();
-  // Check if budgetData exists (loading state handled by parent)
   if (!budgetData) {
     return (
       <Card className="text-center py-10">
@@ -13,7 +12,6 @@ const BudgetOverview = ({ budgetData }) => {
     );
   }
 
-  // Destructure budget data from props
   const {
     totalSpentThisMonth,
     budgetLimit,
@@ -22,7 +20,6 @@ const BudgetOverview = ({ budgetData }) => {
     isOverBudget
   } = budgetData;
 
-  // Convert to numbers and provide defaults
   const totalSpent = Number(totalSpentThisMonth) || 0;
   const limit = Number(budgetLimit) || 0;
   const remaining = Number(totalRemaining) || 0;
@@ -57,7 +54,7 @@ const BudgetOverview = ({ budgetData }) => {
           {formatCurrency(totalSpent)}
         </p>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Total spent â€¢{" "}
+          Total spent •{" "}
           {isOverBudget
             ? "Over budget"
             : `${formatCurrency(remaining)} remaining`}
