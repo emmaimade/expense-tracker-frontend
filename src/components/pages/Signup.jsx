@@ -1,5 +1,4 @@
-// Signup.jsx - Fixed with proper auto-login
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -109,7 +108,6 @@ function Signup() {
               reason: data.message || `Detected from your location`
             });
             setValue('currency', data.currency);
-            console.log('✅ Currency detected:', data.currency);
           }
         }
       } catch (error) {
@@ -153,9 +151,8 @@ function Signup() {
         throw new Error(resData.message || 'Signup failed');
       }
 
-      console.log('✅ Signup response:', resData);
 
-      // ✅ CRITICAL FIX: Properly structure the user object for AuthContext
+      // Properly structure the user object for AuthContext
       const userObject = {
         // Use the ID from response (could be _id or id)
         id: resData.user?.id || resData.user?._id,
@@ -169,7 +166,6 @@ function Signup() {
         token: resData.token,
       };
 
-      console.log('👤 User object for login:', userObject);
 
       // Validate that we have required fields
       if (!userObject.id || !userObject.token) {
@@ -187,7 +183,6 @@ function Signup() {
       
       // Wait a bit for state to update, then redirect
       setTimeout(() => {
-        console.log('🚀 Redirecting to dashboard...');
         navigate('/dashboard', { replace: true });
       }, 1500);
 
@@ -352,7 +347,7 @@ function Signup() {
                         ✨ {suggestedCurrency.code} -{" "}
                         {
                           CURRENCIES.find(
-                            (c) => c.code === suggestedCurrency.code
+                            (c) => c.code === suggestedCurrency.code,
                           )?.name
                         }{" "}
                         ({suggestedCurrency.symbol}) - Suggested
@@ -453,3 +448,4 @@ function Signup() {
 }
 
 export default Signup;
+

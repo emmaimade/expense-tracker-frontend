@@ -1,7 +1,10 @@
-import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+﻿import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, Bell, User, LogOut } from 'lucide-react';
+import { useState } from 'react';
 import { useDashboard } from './hooks/useDashboard';
-import { useDashboardData } from '../dashboard/hooks/useDashboardData';
+import { useDashboardData } from '../../hooks/useDashboardData';
+import { NotificationProvider, useNotifications } from '../../context/NotificationContext';
+import NotificationPanel from '../notification/NotificationPanel';
 import Sidebar from '../layout/SideBar';
 import DashboardContent from '../dashboard/DashboardContent';
 import ExpensesContent from '../expenses/ExpensesContent';
@@ -9,9 +12,12 @@ import AnalyticsContent from '../analytics/AnalyticsContent';
 import BudgetsContent from '../budgets/BudgetsContent';
 import SettingsContent from '../settings/SettingsContent';
 
-const Dashboard = () => {
+// Inner component that has access to notification context
+const DashboardInner = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false);
+  const { unreadCount } = useNotifications();
   
   const {
     user,
@@ -28,7 +34,6 @@ const Dashboard = () => {
 
   const { 
     transactions, 
-    isLoading: isDataLoading,
     refreshData
   } = useDashboardData();
 
@@ -53,8 +58,6 @@ const Dashboard = () => {
   };
 
   const currentTitle = titles[location.pathname] || "Dashboard";
-
-  // ✅ FIX: Safely handle transactions.current - convert undefined to null
   const currentTransactions = transactions?.current ?? null;
 
   return (
@@ -87,9 +90,22 @@ const Dashboard = () => {
           </div>
 
           <div className="flex items-center gap-3 md:gap-4">
-            <button className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full relative">
+            {/* Notification Bell */}
+            <button 
+              onClick={() => setIsNotificationPanelOpen(!isNotificationPanelOpen)}
+              className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full relative transition-colors dark:text-gray-400 dark:hover:text-gray-300"
+            >
               <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-gray-800"></span>
+              {unreadCount > 0 && (
+                <>
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-gray-800 animate-pulse"></span>
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1.5 border-2 border-white dark:border-gray-800">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </>
+              )}
             </button>
 
             {/* Profile Dropdown */}
@@ -133,6 +149,12 @@ const Dashboard = () => {
           </div>
         </header>
 
+        {/* Notification Panel */}
+        <NotificationPanel 
+          isOpen={isNotificationPanelOpen}
+          onClose={() => setIsNotificationPanelOpen(false)}
+        />
+
         {/* Main Content Area */}
         <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50 dark:bg-gray-900/50">
           <Routes>
@@ -142,7 +164,7 @@ const Dashboard = () => {
               path="expenses"
               element={
                 <ExpensesContent 
-                  recentTransactions={currentTransactions} // ✅ FIX: Pass null instead of undefined
+                  recentTransactions={currentTransactions}
                   userId={userId}
                   onDataChange={refreshData}
                 />
@@ -153,7 +175,7 @@ const Dashboard = () => {
               path="analytics"
               element={
                 <AnalyticsContent
-                  recentTransactions={currentTransactions} // ✅ FIX: Pass null instead of undefined
+                  recentTransactions={currentTransactions}
                 />
               }
             />
@@ -162,7 +184,7 @@ const Dashboard = () => {
               path="budgets"
               element={
                 <BudgetsContent 
-                  recentTransactions={currentTransactions} // ✅ FIX: Pass null instead of undefined
+                  recentTransactions={currentTransactions}
                   onDataChange={refreshData}
                   userId={userId}
                 />
@@ -187,6 +209,17 @@ const Dashboard = () => {
         />
       )}
     </div>
+  );
+};
+
+// Wrapper component with notification provider
+const Dashboard = () => {
+  const { userId } = useDashboard();
+  
+  return (
+    <NotificationProvider userId={userId}>
+      <DashboardInner />
+    </NotificationProvider>
   );
 };
 
