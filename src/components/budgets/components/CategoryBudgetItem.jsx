@@ -17,9 +17,6 @@ const CategoryBudgetItem = ({
   const [showMenu, setShowMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
   const buttonRef = useRef(null);
-
-  if (!category || !(category.id || category._id)) return null;
-
   const { formatCurrency, getCurrencySymbol } = usePreferencesContext();
 
   const amount = Number(category.amount ?? category.budget ?? 0);
@@ -42,6 +39,8 @@ const CategoryBudgetItem = ({
       });
     }
   }, [showMenu]);
+
+  if (!category || !(category.id || category._id)) return null;
 
   const getStatusColor = () => {
     if (categoryPercentage >= 100) return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800';
@@ -298,3 +297,4 @@ const CategoryBudgetItem = ({
 };
 
 export default CategoryBudgetItem;
+

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+﻿import { useState } from "react";
 import ExpensesHeader from "./components/ExpensesHeader";
 import TransactionTable from "./components/TransactionTable";
 import AddExpenseModal from "./modals/AddExpenseModal";
@@ -96,12 +96,6 @@ const ExpensesContent = ({ recentTransactions, onDataChange, userId }) => {
     } catch (err) {
       setError(err.message);
     }
-  };
-
-  const handleClearFilters = () => {
-    setSearchTerm("");
-    setFilterBy("all");
-    resetToDefault();
   };
 
   // LOADING STATE DETECTION
@@ -213,7 +207,6 @@ const ExpensesContent = ({ recentTransactions, onDataChange, userId }) => {
             categories={categories || []}
             itemsPerPage={itemsPerPage}
             onItemsPerPageChange={setItemsPerPage}
-            onClearFilters={handleClearFilters}
           />
         </>
       )}
@@ -277,3 +270,4 @@ const ExpensesContent = ({ recentTransactions, onDataChange, userId }) => {
 };
 
 export default ExpensesContent;
+

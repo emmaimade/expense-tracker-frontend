@@ -1,6 +1,4 @@
-// components/common/AnalyticsSkeletons.jsx
-import React from 'react';
-import { Skeleton } from './Skeletons';
+﻿import { Skeleton } from './Skeletons';
 
 // Metrics Card Skeleton
 export const MetricsCardSkeleton = () => (
@@ -20,7 +18,7 @@ export const MetricsCardSkeleton = () => (
 );
 
 // Chart Skeleton
-export const ChartSkeleton = ({ title = "Chart" }) => (
+export const ChartSkeleton = () => (
   <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
     <div className="flex items-center justify-between mb-6">
       <Skeleton className="h-6 w-48" />

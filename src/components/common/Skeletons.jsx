@@ -1,6 +1,4 @@
-import React from 'react';
-
-// Base Skeleton Component
+﻿// Base Skeleton Component
 export const Skeleton = ({ className = '', variant = 'default' }) => {
   const variants = {
     default: 'bg-gray-200 dark:bg-gray-700',
@@ -193,5 +191,3 @@ export default {
   FormSkeleton
 };
 
-export * from './AnalyticsSkeletons';
-export * from './SettingsSkeletons';

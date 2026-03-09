@@ -1,4 +1,4 @@
-import { TrendingUp, ShoppingBag, Coffee, Home, Car, MoreHorizontal } from 'lucide-react';
+﻿import { TrendingUp, ShoppingBag, Coffee, Home, Car, MoreHorizontal } from 'lucide-react';
 import { startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { usePreferencesContext } from '../../../context/PreferencesContext';
 import Card from '../../../components/common/Card';
@@ -42,6 +42,7 @@ const TopSpendingCategories = ({ transactions = [], onViewAnalytics }) => {
   };
 
   const categories = getCategoryBreakdown();
+  const { formatCurrency } = usePreferencesContext();
 
   // Icon & Color helpers (unchanged)
   const getCategoryIcon = (categoryName) => {
@@ -79,8 +80,6 @@ const TopSpendingCategories = ({ transactions = [], onViewAnalytics }) => {
       </Card>
     );
   }
-
-  const { formatCurrency } = usePreferencesContext();
 
   return (
     <Card>
@@ -136,3 +135,4 @@ const TopSpendingCategories = ({ transactions = [], onViewAnalytics }) => {
 };
 
 export default TopSpendingCategories;
+

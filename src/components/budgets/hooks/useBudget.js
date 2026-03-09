@@ -19,7 +19,7 @@ export const useBudget = (recentTransactions = []) => {
   });
 
   // Fetch categories using existing hook
-  const { categories, loading: categoriesLoading } = useCategories();
+  const { categories, isLoading: categoriesLoading } = useCategories();
 
   // Fetch all budget data
   const fetchBudgetData = useCallback(async () => {
@@ -143,7 +143,6 @@ export const useBudget = (recentTransactions = []) => {
 
     // Calculate spending by category from transactions
     const categorySpending = {};
-    let totalSpent = 0;
 
     recentTransactions
       .filter((tx) => {
@@ -167,7 +166,6 @@ export const useBudget = (recentTransactions = []) => {
 
         const amount = Math.abs(tx.amount || 0);
         categorySpending[categoryId] = (categorySpending[categoryId] || 0) + amount;
-        totalSpent += amount;
 
       });
 
@@ -203,7 +201,7 @@ export const useBudget = (recentTransactions = []) => {
       daysRemaining,
       categorySpending,
     };
-  }, [recentTransactions, budget, categoryBudgets]);
+  }, [recentTransactions, budget]);
 
   // Combine loading states
   const totalLoading = loading || categoriesLoading;
@@ -236,4 +234,5 @@ export const useBudget = (recentTransactions = []) => {
     categories,
   };
 };
+
 
