@@ -1,5 +1,4 @@
-// SettingsContent.jsx - Optimized with skeletons
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useProfile } from './hooks/useProfile';
@@ -24,7 +23,7 @@ const SettingsContent = ({ onDataChange }) => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const { profile, loading: profileLoading, refetch } = useProfile();
-  const { preferences, updatePreferences, changeCurrency } = usePreferencesContext();
+  const { preferences, updatePreferences } = usePreferencesContext();
 
   // Get initial section from URL query params or default to 'profile'
   const initialSection = searchParams.get('section') || 'profile';
@@ -76,14 +75,12 @@ const SettingsContent = ({ onDataChange }) => {
 
   // Handle successful currency conversion
   const handleCurrencyChangeComplete = async () => {
-    console.log('Currency change completed, refreshing data...');
     
     if (onDataChange) {
       try {
         await onDataChange();
-        console.log('✅ Data refresh completed');
       } catch (e) {
-        console.warn('⚠️ Failed to refresh data:', e);
+        console.warn('Failed to refresh data:', e);
         toast.warning('Currency updated but data refresh failed. Please reload the page.');
       }
     }
@@ -163,7 +160,7 @@ const SettingsContent = ({ onDataChange }) => {
                   {profile?.emailChangeInProgress && (
                     <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg text-sm">
                       <p className="font-medium text-yellow-800 dark:text-yellow-200">
-                        ⚠️ Email change pending
+                        Email change pending
                       </p>
                       <p className="text-yellow-700 dark:text-yellow-300 mt-1">
                         Check <strong>{profile.user?.email}</strong> for verification link.
@@ -285,3 +282,4 @@ const SettingsContent = ({ onDataChange }) => {
 };
 
 export default SettingsContent;
+

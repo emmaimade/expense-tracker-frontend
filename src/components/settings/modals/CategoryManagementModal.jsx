@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+﻿import { useState, useMemo } from 'react';
 import { X } from 'lucide-react';
 import { toast } from 'react-toastify';
 import LoadingOverlay from '../../common/LoadingOverlay';
@@ -11,7 +11,7 @@ const CategoryManagementModal = ({ isOpen, onClose, userId }) => {
   const [editingCategory, setEditingCategory] = useState(null);
   const [editCategoryName, setEditCategoryName] = useState('');
 
-  // ✅ FIX: Handle null categories with useMemo
+  // Handle null categories with useMemo
   const { defaultCategories, userCategories } = useMemo(() => {
     // Return empty arrays if categories haven't loaded yet
     if (!allCategories || allCategories === null) {
@@ -146,7 +146,7 @@ const CategoryManagementModal = ({ isOpen, onClose, userId }) => {
             All Categories
           </h3>
 
-          {/* ✅ FIX: Show skeleton when categories is null (initial load) */}
+          {/* Show skeleton when categories is null (initial load) */}
           {allCategories === null || isLoading ? (
             <div className="space-y-3">
               {[...Array(5)].map((_, i) => (

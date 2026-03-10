@@ -1,5 +1,4 @@
-// PreferencesModal.jsx - With Dark Mode Support
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { X, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { toast } from 'react-toastify';
@@ -86,7 +85,7 @@ const PreferencesModal = ({
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }).format(value);
-    } catch (e) {
+    } catch {
       const code = formData.currency || 'USD';
       const label = display === 'code' ? code : getCurrencyLabel(code);
       return `${label} ${value.toLocaleString()}`;
@@ -131,7 +130,7 @@ const PreferencesModal = ({
       return;
     }
 
-    // Currency changed - call API with undefined to trigger confirmation dialog
+    // Currency change flow
     setIsSaving(true);
     try {
       const result = await changeCurrency(formData.currency, undefined);
@@ -148,7 +147,7 @@ const PreferencesModal = ({
         return;
       }
 
-      // Success without conversion needed
+      // If no conversion needed, just save preferences
       await onSave(formData);
       setOriginalCurrency(formData.currency);
       toast.success(`Currency updated to ${formData.currency}!`);
@@ -293,7 +292,7 @@ const PreferencesModal = ({
               />
               <div className="flex-1">
                 <p className="font-medium text-gray-900 dark:text-gray-100">
-                  ✓ Convert all existing data
+                  ✔ Convert all existing data
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                   All expenses and budgets will be converted using current exchange rates.

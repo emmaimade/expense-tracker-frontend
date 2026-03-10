@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { X, AlertCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 import LoadingOverlay from '../../common/LoadingOverlay';
@@ -58,13 +58,12 @@ const ProfileEditModal = ({ isOpen, onClose, profile: initialProfile }) => {
 
       await updateProfile(payload);
       
-      // ✅ Small delay to ensure toast renders before modal closes
+      // Small delay to ensure toast renders before modal closes
       await new Promise(resolve => setTimeout(resolve, 150));
       
       setFormData(prev => ({ ...prev, currentPassword: '' }));
       onClose();
     } catch (err) {
-      // Error toast already shown by hook
       console.error('Update failed:', err);
     } finally {
       setIsSaving(false);

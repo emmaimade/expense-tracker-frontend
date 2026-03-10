@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { profileService } from '../../../services/profileService';
 import { userService } from '../../../services/userService';
 import { useAuth } from '../../../context/AuthContext';
@@ -15,7 +15,6 @@ export const useProfile = () => {
     try {
       setLoading(true);
       const data = await profileService.getProfile();
-      console.log("Profile fetched:", data);
       setProfile(data);
     } catch (err) {
       setError(err.message);
@@ -37,9 +36,8 @@ export const useProfile = () => {
         currentPassword,
       });
       
-      console.log("✅ Profile updated:", updated);
       
-      // ✅ Handle different API response structures
+      // Handle different API response structures
       let userData;
       
       if (updated.user) {
@@ -52,12 +50,11 @@ export const useProfile = () => {
         userData = updated;
       }
 
-      console.log("✅ Extracted user data:", userData);
       
       // Update local profile state
       setProfile({ user: userData });
       
-      // ✅ Get current token
+      // Get current token
       const currentUser = userService.getCurrentUser();
       const token = currentUser?.token || localStorage.getItem('authToken');
       
@@ -65,7 +62,7 @@ export const useProfile = () => {
         console.error('❌ No token found! User might get logged out.');
       }
       
-      // ✅ Build complete user object with token
+      // Build complete user object with token
       const completeUserData = {
         id: userData.id || userData._id,
         fullName: userData.fullName || `${userData.firstName} ${userData.lastName}`.trim(),
@@ -75,20 +72,18 @@ export const useProfile = () => {
         token: token,
       };
       
-      console.log("✅ Complete user data to save:", completeUserData);
       
       // Update localStorage
       userService.setUser(completeUserData);
       
-      // ✅ Update AuthContext
+      // Update AuthContext
       if (updateUser) {
         updateUser(completeUserData);
-        console.log("✅ AuthContext updated");
       } else {
         console.error("❌ updateUser function not available!");
       }
 
-      // ✅ Show toast notification
+      // Show toast notification
       const emailChanged = email && oldEmail && email.toLowerCase() !== oldEmail.toLowerCase();
       
       if (emailChanged) {
@@ -157,3 +152,4 @@ export const useProfile = () => {
     passwordChangeLoading,
   };
 };
+

@@ -1,5 +1,4 @@
-// src/settings/modals/ChangePasswordModal.jsx
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { X, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'react-toastify';
 import LoadingOverlay from '../../common/LoadingOverlay';
@@ -42,7 +41,6 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
     try {
       await changePassword({ currentPassword, newPassword, confirmPassword });
 
-      // ✅ Success toast is handled by useProfile hook
       // Reset form and close modal with small delay for toast to show
       setFormData({ currentPassword: '', newPassword: '', confirmPassword: '' });
       
@@ -50,7 +48,6 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
 
       onClose();
     } catch (err) {
-      // ✅ Error toast is already shown by useProfile hook
       console.error('Password change failed:', err);
     }
   };
