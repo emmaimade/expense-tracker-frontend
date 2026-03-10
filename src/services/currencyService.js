@@ -1,4 +1,4 @@
-import { API_BASE_URL } from './apiService';
+﻿import { API_BASE_URL } from './apiService';
 
 /**
  * Public currency detection using backend endpoint (no auth required)
@@ -15,8 +15,8 @@ export const detectCurrency = async (timeoutMs = 3000) => {
     if (!res.ok) return null;
     const json = await res.json();
     return json;
-  } catch (err) {
-    console.debug('currencyService.detectCurrency failed:', err?.message || err);
+  } catch {
     return null;
   }
 };
+

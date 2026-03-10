@@ -1,20 +1,27 @@
-import { apiService } from './apiService';
+﻿import { apiService } from './apiService';
 
+/**
+ * Service module for managing user budget data.
+ * Provides methods for retrieving, creating, updating, and deleting budget entries.
+ */
 export const budgetService = {
   /**
-   * Fetches the budget overview, showing summary, remaining budget, total spent, etc.
-   * @returns {Promise<object>} The budget overview data.
+   * Retrieves the budget overview including summary, remaining budget, and total spent.
+   * Normalizes category fields for consistent downstream consumption.
+   *
+   * @async
+   * @returns {Promise<{ data: { categories: Array<object> } }>} Resolved budget overview with normalized categories.
+   * @returns {Promise<{ data: { categories: [] } }>} Empty categories array on failure.
    */
   async getBudgetOverview() {
     try {
       const response = await apiService.get(`/budget/overview`);
-      console.log("Raw budget overview response:", response.data);
       const { data } = response;
       const normalizedCategories = (data?.categories || []).map((category) => ({
         ...category,
-        amount: category.amount ?? category.budget ?? 0, // Prioritize amount, then budget
-        id: category.id ?? category._id, // Ensure id is set
-        categoryId: category.category, // Map category to categoryId
+        amount: category.amount ?? category.budget ?? 0,
+        id: category.id ?? category._id,
+        categoryId: category.category,
       }));
       return {
         ...response,
@@ -27,39 +34,44 @@ export const budgetService = {
   },
 
   /**
-   * Fetches the total monthly budget amount set by the user.
-   * @returns {Promise<object>} The total monthly budget amount.
+   * Retrieves the total monthly budget amount configured by the user.
+   *
+   * @async
+   * @returns {Promise<object>} Resolved total monthly budget data.
    */
   async getTotalMonthlyBudget() {
     return apiService.get(`/budget/total`);
   },
 
   /**
-   * Fetches data points to show budget trends over time.
-   * @returns {Promise<object>} Budget trends data.
+   * Retrieves historical budget data points for trend analysis over time.
+   *
+   * @async
+   * @returns {Promise<object>} Resolved budget trends data.
    */
   async getBudgetTrends() {
     return apiService.get(`/budget/trends`);
   },
 
   /**
-   * Fetches any current budget alerts (e.g., close to limit, over budget).
-   * @returns {Promise<object>} An object with a data property containing an array of budget alert objects.
+   * Retrieves active budget alerts, normalizing near-limit and over-budget
+   * entries into a single unified alert array.
+   *
+   * @async
+   * @returns {Promise<{ data: Array<object> }>} Resolved object containing a flat array of normalized alert objects.
+   * @returns {Promise<{ success: false, message: string, data: [] }>} Failure response with empty alerts on error.
    */
   async getBudgetAlerts() {
     try {
       const response = await apiService.get(`/budget/alerts`);
       const { data } = response;
 
-      // Normalize alerts into a single array
       const normalizedAlerts = [
         ...(data?.nearLimit || []).map((alert) => ({
           severity: alert.severity || "medium",
           message:
             alert.message ||
-            `Approaching budget limit for ${
-              alert.category.name
-            } (${alert.percentageUsed.toFixed(2)}% used)`,
+            `Approaching budget limit for ${alert.category.name} (${alert.percentageUsed.toFixed(2)}% used)`,
           suggestion:
             alert.suggestion || "Consider reducing spending in this category.",
           ...alert,
@@ -72,8 +84,6 @@ export const budgetService = {
           ...alert,
         })),
       ];
-
-      console.log("Normalized Budget Alerts:", normalizedAlerts);
 
       return {
         ...response,
@@ -90,20 +100,27 @@ export const budgetService = {
   },
 
   /**
-   * Sets or Updates the monthly budget for the user.
-   * This function handles both the initial creation and subsequent modification
-   * of the current monthly budget via the POST /budget/ route.
-   * @param {object} budgetData - The budget details (e.g., { category: 'Groceries', amount: 500, month: '2025-10' }).
-   * @returns {Promise<object>} The newly set or updated budget object.
+   * Creates or updates the monthly budget for the authenticated user.
+   * Targets the POST /budget/ endpoint, which handles both initial creation
+   * and modification of an existing monthly budget.
+   *
+   * @async
+   * @param {object} budgetData - Budget payload to persist.
+   * @param {string} budgetData.category - The budget category label (e.g., "Groceries").
+   * @param {number} budgetData.amount - The allocated budget amount in the user's currency.
+   * @param {string} budgetData.month - The target month in ISO 8601 year-month format (e.g., "2025-10").
+   * @returns {Promise<object>} Resolved newly created or updated budget object.
    */
   async setMonthlyBudget(budgetData) {
     return apiService.post(`/budget/`, budgetData);
   },
 
   /**
-   * Deletes a specific budget entry (likely by category or ID).
-   * @param {string} id - The unique ID of the budget entry to delete.
-   * @returns {Promise<void>} A promise that resolves upon successful deletion.
+   * Deletes a budget entry by its unique identifier.
+   *
+   * @async
+   * @param {string} id - The unique identifier of the budget entry to delete.
+   * @returns {Promise<void>} Resolves on successful deletion with no return value.
    */
   async deleteBudget(id) {
     return apiService.delete(`/budget/${id}`);
