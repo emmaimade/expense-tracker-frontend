@@ -1,53 +1,67 @@
-/**
- * Preferences Context - Production version
- */
-
-import { createContext, useContext, useState, useEffect } from 'react';
-import { apiService } from '../services/apiService';
-import { useAuth } from './AuthContext';
+﻿import { createContext, useContext, useState, useEffect } from "react";
+import { apiService } from "../services/apiService";
+import { useAuth } from "./AuthContext";
 
 const PreferencesContext = createContext();
 
 const DEFAULT_PREFERENCES = {
-  theme: 'light',
-  currency: 'USD',
-  currencyFormat: 'symbol',
+  theme: "light",
+  currency: "USD",
+  currencyFormat: "symbol",
   notifications: true,
-  language: 'en',
-  fontSize: 'md',
+  language: "en",
+  fontSize: "md",
 };
 
 const CURRENCY_SYMBOLS = {
-  USD: '$',
-  EUR: '€',
-  GBP: '£',
-  INR: '₹',
-  NGN: '₦',
-  JPY: '¥',
-  CAD: '$',
-  AUD: '$',
-  ZAR: 'R',
+  USD: "$",
+  EUR: "€",
+  GBP: "£",
+  INR: "₹",
+  NGN: "₦",
+  JPY: "¥",
+  CAD: "$",
+  AUD: "$",
+  ZAR: "R",
 };
 
 export const PreferencesProvider = ({ children, userId }) => {
   const { user, updateUser } = useAuth();
   const [preferences, setPreferences] = useState(DEFAULT_PREFERENCES);
 
+  // Detect system theme preference on mount
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+    const handleChange = (e) => {
+      // Only auto-switch if user hasn't manually set a preference
+      const storageKey = userId ? `preferences_${userId}` : "preferences_local";
+      const saved = localStorage.getItem(storageKey);
+
+      if (!saved) {
+        updatePreferences({ theme: e.matches ? "dark" : "light" });
+      }
+    };
+
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, [userId]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Apply dark mode class to HTML element whenever theme changes
   useEffect(() => {
     const root = document.documentElement;
-    
-    if (preferences.theme === 'dark') {
-      root.classList.add('dark');
+
+    if (preferences.theme === "dark") {
+      root.classList.add("dark");
     } else {
-      root.classList.remove('dark');
+      root.classList.remove("dark");
     }
   }, [preferences.theme]);
 
   // Apply font-size class to HTML element when font size preference changes
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.remove('font-size-sm', 'font-size-md', 'font-size-lg');
+    root.classList.remove("font-size-sm", "font-size-md", "font-size-lg");
     const sizeClass = `font-size-${preferences.fontSize || DEFAULT_PREFERENCES.fontSize}`;
     root.classList.add(sizeClass);
   }, [preferences.fontSize]);
@@ -56,7 +70,9 @@ export const PreferencesProvider = ({ children, userId }) => {
   useEffect(() => {
     const loadPreferences = () => {
       try {
-        const storageKey = userId ? `preferences_${userId}` : 'preferences_local';
+        const storageKey = userId
+          ? `preferences_${userId}`
+          : "preferences_local";
         const saved = localStorage.getItem(storageKey);
 
         if (saved) {
@@ -65,16 +81,16 @@ export const PreferencesProvider = ({ children, userId }) => {
         } else {
           const initial = {
             ...DEFAULT_PREFERENCES,
-            currency: user?.currency || DEFAULT_PREFERENCES.currency
+            currency: user?.currency || DEFAULT_PREFERENCES.currency,
           };
           setPreferences(initial);
           localStorage.setItem(storageKey, JSON.stringify(initial));
         }
       } catch (error) {
-        console.error('Failed to load preferences:', error);
+        console.error("Failed to load preferences:", error);
         setPreferences({
           ...DEFAULT_PREFERENCES,
-          currency: user?.currency || DEFAULT_PREFERENCES.currency
+          currency: user?.currency || DEFAULT_PREFERENCES.currency,
         });
       }
     };
@@ -87,10 +103,12 @@ export const PreferencesProvider = ({ children, userId }) => {
       const merged = { ...prev, ...newPrefs };
 
       try {
-        const storageKey = userId ? `preferences_${userId}` : 'preferences_local';
+        const storageKey = userId
+          ? `preferences_${userId}`
+          : "preferences_local";
         localStorage.setItem(storageKey, JSON.stringify(merged));
       } catch (error) {
-        console.error('Failed to save preferences:', error);
+        console.error("Failed to save preferences:", error);
       }
 
       return merged;
@@ -111,43 +129,43 @@ export const PreferencesProvider = ({ children, userId }) => {
     }
 
     try {
-      const requestBody = { 
-        currency: newCurrency, 
-        convertExisting: convertExisting 
+      const requestBody = {
+        currency: newCurrency,
+        convertExisting: convertExisting,
       };
-      
-      const response = await apiService.put('/user/currency', requestBody);
+
+      const response = await apiService.put("/user/currency", requestBody);
 
       // On success, update preferences and user profile
       updatePreferences({ currency: newCurrency });
-      
+
       try {
         if (response.data) {
-          updateUser({ 
+          updateUser({
             currency: response.data.currency || newCurrency,
-            lastCurrencyChange: response.data.lastCurrencyChange
+            lastCurrencyChange: response.data.lastCurrencyChange,
           });
         }
       } catch (e) {
-        console.warn('Could not update user in AuthContext:', e);
+        console.warn("Could not update user in AuthContext:", e);
       }
 
       return {
         success: true,
         converted: response.data?.dataConverted || false,
         conversion: response.data?.conversion,
-        conversionRate: response.data?.conversionRate
+        conversionRate: response.data?.conversionRate,
       };
     } catch (err) {
       // Check if it requires conversion decision
       if (err?.status === 400 && err?.data?.requiresConversion) {
         return {
           requiresConversion: true,
-          existingData: err.data.existingData
+          existingData: err.data.existingData,
         };
       }
 
-      console.error('Currency change failed:', err);
+      console.error("Currency change failed:", err);
       throw err;
     }
   };
@@ -158,23 +176,24 @@ export const PreferencesProvider = ({ children, userId }) => {
    * @returns {string} Formatted currency string
    */
   const formatCurrency = (amount) => {
-    const num = typeof amount === 'number' ? amount : 0;
+    const num = typeof amount === "number" ? amount : 0;
 
     try {
-      const formatter = new Intl.NumberFormat(preferences.language || 'en-US', {
-        style: 'currency',
+      const formatter = new Intl.NumberFormat(preferences.language || "en-US", {
+        style: "currency",
         currency: preferences.currency || DEFAULT_PREFERENCES.currency,
-        currencyDisplay: preferences.currencyFormat === 'code' ? 'code' : 'symbol',
+        currencyDisplay:
+          preferences.currencyFormat === "code" ? "code" : "symbol",
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       });
 
       return formatter.format(num);
-    } catch (err) {
-      const symbol = CURRENCY_SYMBOLS[preferences.currency] || '$';
-      return `${symbol}${num.toLocaleString('en-US', { 
-        minimumFractionDigits: 2, 
-        maximumFractionDigits: 2 
+    } catch {
+      const symbol = CURRENCY_SYMBOLS[preferences.currency] || "$";
+      return `${symbol}${num.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
       })}`;
     }
   };
@@ -184,7 +203,7 @@ export const PreferencesProvider = ({ children, userId }) => {
    * @returns {string} Currency symbol
    */
   const getCurrencySymbol = () => {
-    return CURRENCY_SYMBOLS[preferences.currency] || '$';
+    return CURRENCY_SYMBOLS[preferences.currency] || "$";
   };
 
   const value = {
@@ -208,10 +227,13 @@ export const PreferencesProvider = ({ children, userId }) => {
   );
 };
 
+// Custom hook with error boundary
 export const usePreferencesContext = () => {
   const context = useContext(PreferencesContext);
   if (!context) {
-    throw new Error('usePreferencesContext must be used within PreferencesProvider');
+    throw new Error(
+      "usePreferencesContext must be used within PreferencesProvider",
+    );
   }
   return context;
 };

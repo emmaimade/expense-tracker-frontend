@@ -1,5 +1,4 @@
-// src/context/AuthContext.jsx
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+﻿import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { userService } from '../services/userService';
 
 const AuthContext = createContext();
@@ -43,7 +42,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   /**
-   * ✅ NEW: Update user data (for profile changes)
+   * Update user data after profile edits
    * @param {Object} updatedData - Partial user data to update
    */
   const updateUser = useCallback((updatedData) => {
@@ -60,7 +59,6 @@ export const AuthProvider = ({ children }) => {
       // Update state (triggers re-render everywhere)
       setUser(updatedUser);
       
-      console.log('✅ User updated in AuthContext:', updatedUser);
     } catch (error) {
       console.error('Update user failed:', error);
       throw error;
@@ -87,7 +85,7 @@ export const AuthProvider = ({ children }) => {
     user,
     login,
     logout,
-    updateUser, // ✅ NEW: Export this function
+    updateUser,
     loading,
     isAuthenticated: !!user,
   };
@@ -109,3 +107,6 @@ export const useAuth = () => {
   }
   return context;
 };
+
+
+
