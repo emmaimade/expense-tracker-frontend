@@ -426,7 +426,7 @@ const LandingPage = () => {
             <div className="sw-section-label">FAQ</div>
             <h2 className="sw-section-title centered">Questions? We've got answers</h2>
             <p className="sw-section-sub centered">
-              Can't find what you're looking for? <Link to="/support" style={{ color: "#6366f1", fontWeight: 600, textDecoration: "none" }}>Contact support →</Link>
+              Can't find what you're looking for? <a href="mailto:emmaimade14@gmail.com?subject=SpendWise Support" style={{ color: "#6366f1", fontWeight: 600, textDecoration: "none" }}>Contact support →</a>
             </p>
           </div>
 
@@ -499,7 +499,7 @@ const LandingPage = () => {
               <h4>Legal</h4>
               <Link to="/privacy">Privacy Policy</Link>
               <Link to="/terms">Terms of Service</Link>
-              <Link to="/support">Support</Link>
+              <a href="/support" style={{ color: "#6b7280", textDecoration: "none", display: "block", marginBottom: 9, fontSize: 13, transition: "color 0.2s" }}>Support</a>
             </div>
           </div>
           <div className="sw-footer-bottom">

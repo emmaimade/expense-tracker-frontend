@@ -11,6 +11,7 @@ import Dashboard from './components/pages/Dashboard';
 import ForgotPassword from './components/pages/ForgotPassword';
 import ResetPassword from './components/pages/ResetPassword';
 import AuthCallback from './components/auth/AuthCallback';
+import SupportPage from './components/support/SupportPage';
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -62,6 +63,7 @@ function AppContent() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+           <Route path="/support" element={<SupportPage />} />
           <Route
             path="/dashboard/*"
             element={
