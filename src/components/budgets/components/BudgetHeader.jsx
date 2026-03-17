@@ -4,9 +4,9 @@ import Card from '../../../components/common/Card';
 const BudgetHeader = () => {
   return (
     <Card>
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
             Budget Management
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">

@@ -7,17 +7,17 @@ const BudgetOverview = ({
   daysRemaining, 
   spent, 
   percentageUsed 
-}) => {
+  }) => {
   const { formatCurrency } = usePreferencesContext();
   return (
-    <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-8 rounded-xl text-white">
-      <div className="flex items-center justify-between mb-6">
-        <div>
+    <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-5 sm:p-8 rounded-xl text-white">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+        <div className="min-w-0">
           <p className="text-indigo-100 text-sm font-medium">
             TOTAL MONTHLY BUDGET
           </p>
-          <div className="flex items-center gap-3 mt-2">
-            <h2 className="text-4xl font-bold">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mt-2">
+            <h2 className="text-3xl sm:text-4xl font-bold break-words">
               {formatCurrency(totalBudget)}
             </h2>
             <span className="text-sm text-indigo-200">
@@ -25,10 +25,10 @@ const BudgetOverview = ({
             </span>
           </div>
         </div>
-        <div className="text-right">
+        <div className="text-left sm:text-right">
           <p className="text-indigo-100 text-sm font-medium">REMAINING</p>
           <h3
-            className={`text-3xl font-bold mt-2 ${
+            className={`text-2xl sm:text-3xl font-bold mt-2 break-words ${
               isOverBudget ? "text-red-200" : "text-white"
             }`}
           >
@@ -42,7 +42,7 @@ const BudgetOverview = ({
 
       {/* Progress Bar */}
       <div className="space-y-2">
-        <div className="flex justify-between text-sm">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between text-sm">
           <span className="text-indigo-100">Spent: {formatCurrency(spent)}</span>
           <span className="text-indigo-100">
             {percentageUsed.toFixed(1)}%
