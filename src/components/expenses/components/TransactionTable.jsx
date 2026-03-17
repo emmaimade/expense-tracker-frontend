@@ -24,6 +24,7 @@ const TransactionTable = ({
   const [sortOrder, setSortOrder] = useState('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [internalItemsPerPage, setInternalItemsPerPage] = useState(itemsPerPage);
+  const [expandedTransactionId, setExpandedTransactionId] = useState(null);
 
   // Detect controlled vs uncontrolled
   const isControlled = typeof onItemsPerPageChange === 'function';
@@ -32,6 +33,7 @@ const TransactionTable = ({
   // Reset current page when filters, search, or itemsPerPage change
   useEffect(() => {
     setCurrentPage(1);
+    setExpandedTransactionId(null);
   }, [searchTerm, filterBy, transactions.length, effectiveItemsPerPage]);
 
   // Sort transactions
@@ -82,8 +84,15 @@ const TransactionTable = ({
     setCurrentPage(1);
   };
 
+  const handleMobileSortChange = (nextSortBy) => {
+    setSortBy(nextSortBy);
+    setSortOrder('desc');
+    setCurrentPage(1);
+  };
+
   const handlePageChange = (page) => {
     setCurrentPage(page);
+    setExpandedTransactionId(null);
   };
 
   const handleItemsPerPageChange = (newItemsPerPage) => {
@@ -158,18 +167,20 @@ const TransactionTable = ({
       </div>
 
       {/* Results Summary */}
-      <div className="flex justify-between items-center mb-4 text-sm text-gray-600 dark:text-gray-400">
-        <div>
-          Showing {startIndex + 1} to{" "}
-          {Math.min(startIndex + effectiveItemsPerPage, sortedTransactions.length)} of{" "}
-          {sortedTransactions.length} transactions
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-4 text-sm text-gray-600 dark:text-gray-400">
+        <div className="flex flex-wrap items-center gap-2">
+          <span>
+            Showing {startIndex + 1} to{" "}
+            {Math.min(startIndex + effectiveItemsPerPage, sortedTransactions.length)} of{" "}
+            {sortedTransactions.length} transactions
+          </span>
           {searchTerm && (
-            <span className="ml-2 px-2 py-1 bg-gray-100 rounded text-xs dark:bg-gray-700 dark:text-gray-300">
+            <span className="px-2 py-1 bg-gray-100 rounded text-xs dark:bg-gray-700 dark:text-gray-300">
               Filtered by: "{searchTerm}"
             </span>
           )}
           {filterBy !== "all" && (
-            <span className="ml-2 px-2 py-1 bg-gray-100 rounded text-xs dark:bg-gray-700 dark:text-gray-300">
+            <span className="px-2 py-1 bg-gray-100 rounded text-xs dark:bg-gray-700 dark:text-gray-300">
               Category: {filterBy}
             </span>
           )}
@@ -195,8 +206,131 @@ const TransactionTable = ({
         )}
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto">
+      {/* Mobile List (key fields + expand for details) */}
+      <div className="sm:hidden">
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600 dark:text-gray-400">Sort</span>
+            <select
+              value={sortBy}
+              onChange={(e) => handleMobileSortChange(e.target.value)}
+              className="border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              aria-label="Sort transactions"
+            >
+              <option value="date">Date</option>
+              <option value="name">Description</option>
+              <option value="category">Category</option>
+              <option value="amount">Amount</option>
+            </select>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+            className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 transition-colors dark:border-gray-600 dark:hover:bg-gray-700"
+            aria-label={`Sort order ${sortOrder === 'asc' ? 'ascending' : 'descending'}`}
+          >
+            {sortOrder === 'asc' ? 'Asc' : 'Desc'}
+          </button>
+        </div>
+
+        {paginatedTransactions.length > 0 ? (
+          <div className="space-y-2">
+            {paginatedTransactions.map((transaction) => {
+              const id = transaction.id || transaction._id;
+              const description = transaction.description || transaction.name || '—';
+              const category =
+                typeof transaction.category === 'object'
+                  ? transaction.category?.name
+                  : transaction.category || 'Uncategorized';
+              const isExpanded = expandedTransactionId === id;
+
+              return (
+                <div
+                  key={id}
+                  className="border border-gray-200 rounded-lg p-3 dark:border-gray-700"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setExpandedTransactionId(isExpanded ? null : id)}
+                    className="w-full text-left"
+                    aria-expanded={isExpanded}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className={`text-sm text-gray-900 dark:text-gray-100 ${isExpanded ? '' : 'truncate'}`}>
+                          {description}
+                        </p>
+                        <div className="mt-1 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                          <span>{new Date(transaction.date).toLocaleDateString()}</span>
+                          <span className="px-2 py-0.5 bg-gray-100 rounded dark:bg-gray-800">
+                            {category}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="shrink-0 text-right">
+                        <span
+                          className={`text-sm font-semibold ${
+                            transaction.type === "expense" ? "text-red-600" : "text-green-600"
+                          }`}
+                        >
+                          {transaction.type === "expense" ? "-" : "+"}
+                          {formatCurrency(Math.abs(transaction.amount || 0))}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+
+                  {isExpanded && (
+                    <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          type="button"
+                          className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded text-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-600 dark:hover:bg-gray-700"
+                          onClick={() => onEdit(transaction)}
+                          disabled={loading}
+                          aria-label="Edit transaction"
+                        >
+                          <Edit className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          className="flex items-center gap-2 px-3 py-2 border border-red-200 text-red-700 rounded text-sm hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed dark:border-red-900/40 dark:text-red-400 dark:hover:bg-red-900/20"
+                          onClick={() => onDelete(id)}
+                          disabled={loading}
+                          aria-label="Delete transaction"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="py-12 text-center">
+            <div className="flex flex-col items-center gap-2">
+              <div className="text-gray-400">
+                <Calendar className="w-12 h-12 dark:text-gray-500" />
+              </div>
+              <p className="text-gray-600 font-medium dark:text-gray-400">No transactions found</p>
+              <p className="text-sm text-gray-500 mt-1 dark:text-gray-500">
+                {searchTerm || filterBy !== "all"
+                  ? "Try adjusting your search or filter criteria"
+                  : "Start by adding your first expense"}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Table */}
+      <div className="hidden sm:block overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-200 dark:border-gray-700">
@@ -310,8 +444,8 @@ const TransactionTable = ({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-center sm:justify-start gap-2 text-sm text-gray-600 dark:text-gray-400">
             <span>Show</span>
             <select
               value={effectiveItemsPerPage}
@@ -326,17 +460,18 @@ const TransactionTable = ({
             <span>per page</span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2">
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="flex items-center gap-1 px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1 px-2 sm:px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Previous page"
             >
               <ChevronLeft className="w-4 h-4" />
-              Previous
+              <span className="hidden sm:inline">Previous</span>
             </button>
 
-            <div className="flex items-center gap-1">
+            <div className="flex flex-wrap items-center justify-center gap-1">
               {(() => {
                 const pages = [];
                 const showPages = 5;
@@ -400,9 +535,10 @@ const TransactionTable = ({
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="flex items-center gap-1 px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-600 dark:hover:bg-gray-700"
+              className="flex items-center gap-1 px-2 sm:px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-600 dark:hover:bg-gray-700"
+              aria-label="Next page"
             >
-              Next
+              <span className="hidden sm:inline">Next</span>
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>

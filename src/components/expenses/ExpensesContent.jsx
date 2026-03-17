@@ -10,7 +10,7 @@ import { useExpenseMutations } from "./hooks/useExpenseMutations";
 import { useFilterAndSearch } from "./hooks/useFilterAndSearch";
 import { useExpenseData } from "./hooks/useExpenseData";
 import { useCategories } from "./hooks/useCategories";
-import { TableSkeleton } from "../common/Skeletons";
+import { TableSkeleton, TransactionListSkeleton } from "../common/Skeletons";
 
 const ExpensesContent = ({ recentTransactions, onDataChange, userId }) => {
   // Modal states
@@ -158,8 +158,15 @@ const ExpensesContent = ({ recentTransactions, onDataChange, userId }) => {
 
       {/* Loading States */}
       {shouldShowSkeleton ? (
-        // Initial Load - Show skeleton
-        <TableSkeleton rows={10} columns={5} />
+        // Initial Load - Show responsive skeletons
+        <>
+          <div className="sm:hidden">
+            <TransactionListSkeleton items={8} />
+          </div>
+          <div className="hidden sm:block">
+            <TableSkeleton rows={10} columns={5} />
+          </div>
+        </>
       ) : (
         <>
           {/* Background Refetch Indicator */}

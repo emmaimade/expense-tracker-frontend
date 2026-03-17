@@ -10,23 +10,23 @@ const ExpensesHeader = ({ onAddExpense, onExport, loading }) => {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Expenses</h1>
           <p className="text-gray-600 mt-1 dark:text-gray-400">Manage and track your spending</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
           <button
             onClick={onAddExpense}
             disabled={loading}
-            className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
+            className="flex w-full sm:w-auto items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
           >
             <Plus className="w-4 h-4" />
             Add Expense
           </button>
-          <button className="flex items-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 dark:bg-gray-500 dark:border-gray-700 dark:hover:bg-gray-800 transition-colors">
+          <button className="flex w-full sm:w-auto items-center justify-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 dark:bg-gray-500 dark:border-gray-700 dark:hover:bg-gray-800 transition-colors">
             <Upload className="w-4 h-4" />
             Import
           </button>
           <button
             onClick={onExport}
             disabled={loading}
-            className="flex items-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 dark:bg-gray-500 dark:border-gray-700 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+            className="flex w-full sm:w-auto items-center justify-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 dark:bg-gray-500 dark:border-gray-700 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
           >
             <Download className="w-4 h-4" />
             Export

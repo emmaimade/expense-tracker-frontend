@@ -73,6 +73,30 @@ export const TransactionRowSkeleton = () => (
   </div>
 );
 
+// Transaction Card Skeleton (Mobile list view)
+export const TransactionCardSkeleton = () => (
+  <div className="border border-gray-200 rounded-lg p-3 dark:border-gray-700">
+    <div className="flex items-start justify-between gap-3">
+      <div className="min-w-0 flex-1">
+        <Skeleton className="h-4 w-4/5 mb-2" />
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-3 w-20" />
+          <Skeleton className="h-5 w-24 rounded" />
+        </div>
+      </div>
+      <Skeleton className="h-5 w-20" />
+    </div>
+  </div>
+);
+
+export const TransactionListSkeleton = ({ items = 8 }) => (
+  <div className="space-y-2">
+    {[...Array(items)].map((_, i) => (
+      <TransactionCardSkeleton key={i} />
+    ))}
+  </div>
+);
+
 // Recent Activity Skeleton
 export const RecentActivitySkeleton = () => (
   <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
@@ -184,6 +208,8 @@ export default {
   StatsCardSkeleton,
   BudgetOverviewSkeleton,
   TransactionRowSkeleton,
+  TransactionCardSkeleton,
+  TransactionListSkeleton,
   RecentActivitySkeleton,
   CategoryChartSkeleton,
   TableSkeleton,
