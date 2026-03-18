@@ -51,7 +51,7 @@ CategoryLegend.propTypes = {
 
 // ────── Stats Grid Component ──────
 const StatsGrid = ({ avg, max, min, formatCurrency }) => (
-  <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 grid grid-cols-3 gap-3">
+  <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3 gap-3">
     <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
       <p className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">Average</p>
       <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{formatCurrency(Math.round(avg))}</p>
@@ -72,7 +72,7 @@ StatsGrid.propTypes = { avg: PropTypes.number.isRequired, max: PropTypes.number.
 // ────── Main Component ──────
 const AnalyticsDashboard = ({ categoryData = [], monthlyData = [], timeRange = '6months' }) => {
   const chartData = useChartData(categoryData, monthlyData, timeRange);
-  const { formatCurrency, getCurrencySymbol, theme } = usePreferencesContext();
+  const { formatCurrency, getCurrencySymbol, theme, currencyFormat } = usePreferencesContext();
 
   const isDark = theme === 'dark';
 
@@ -95,13 +95,16 @@ const AnalyticsDashboard = ({ categoryData = [], monthlyData = [], timeRange = '
   const axisFormatter = (v) => {
     const num = Number(v);
     if (isNaN(num)) return formatCurrency(0);
-    return num >= 1000 ? `${getCurrencySymbol()}${(num / 1000).toFixed(0)}k` : `${getCurrencySymbol()}${num}`;
+    const joiner = currencyFormat === 'code' ? ' ' : '';
+    return num >= 1000
+      ? `${getCurrencySymbol()}${joiner}${(num / 1000).toFixed(0)}k`
+      : `${getCurrencySymbol()}${joiner}${num}`;
   };
 
   const { top5, catTotal, hasCategoryData, monthlyDataFiltered, monthlyAvg, monthMax, monthMin, hasMonthlyData, monthsCount } = chartData;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
       {/* ────── Top Spending Categories Chart ────── */}
       <Card>
         <div className="mb-4">

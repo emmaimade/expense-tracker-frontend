@@ -62,13 +62,13 @@ const AnalyticsContent = ({ recentTransactions }) => {
               Analyze your spending patterns and trends
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
             <select
               value={timeRange}
               onChange={(e) => setTimeRange(e.target.value)}
               disabled={isLoading}
               aria-label="Select time range for analytics"
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              className="w-full sm:w-auto px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             >
               <option value="3months">Last 3 Months</option>
               <option value="6months">Last 6 Months</option>
@@ -78,7 +78,7 @@ const AnalyticsContent = ({ recentTransactions }) => {
               onClick={exportToCSV}
               disabled={isLoading || !hasData}
               aria-label="Export analytics data as CSV"
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Download className="w-4 h-4" />
               Export

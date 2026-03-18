@@ -73,7 +73,7 @@ const CategoryBudgets = ({ categoryData = [], categoryBudgets = [], isLoading = 
 
   return (
     <Card>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             Category Budget Performance For {getCurrentMonth()}
@@ -85,7 +85,7 @@ const CategoryBudgets = ({ categoryData = [], categoryBudgets = [], isLoading = 
         {setActiveTab && (
           <button
             onClick={() => setActiveTab('budgets')}
-            className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
+            className="self-start sm:self-auto text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
           >
             Manage Budgets →
           </button>
@@ -160,7 +160,7 @@ const CategoryBudgets = ({ categoryData = [], categoryBudgets = [], isLoading = 
 
       {sortedData.length > 0 && (
         <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
-          <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
             <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Budget</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
