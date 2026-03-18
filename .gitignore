@@ -11,6 +11,9 @@ node_modules
 dist
 dist-ssr
 *.local
+.npmrc
+.gitconfig-codex
+_update-notifier-last-checked
 
 # Editor directories and files
 .vscode/*
@@ -24,3 +27,6 @@ dist-ssr
 *.sw?
 
 .env
+
+# Local temp data
+.localappdata/
