@@ -145,6 +145,27 @@ export const NotificationProvider = ({ children, userId }) => {
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
+  // ── Notification helpers ───────────────────────────────────
+  const notifyMonthlyReset = () => {
+    addNotification({
+      type: 'summary',
+      priority: 'low',
+      title: 'Budgets Reset',
+      message: "A new month has started. Your budgets have been reset and are ready to track.",
+      actionUrl: '/dashboard/budgets',
+    });
+  };
+
+  const notifyProfileUpdated = () => {
+    addNotification({
+      type: 'achievement',
+      priority: 'low',
+      title: 'Profile Updated',
+      message: 'Your profile information has been updated successfully.',
+      actionUrl: '/dashboard/settings',
+    });
+  };
+
   return (
     <NotificationContext.Provider
       value={{
@@ -154,11 +175,12 @@ export const NotificationProvider = ({ children, userId }) => {
         markAllAsRead,
         deleteNotification,
         clearAll,
-        addNotification
+        addNotification,
+        notifyMonthlyReset,
+        notifyProfileUpdated,
       }}
     >
       {children}
     </NotificationContext.Provider>
   );
 };
-

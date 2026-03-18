@@ -112,14 +112,14 @@ const NotificationPanel = ({ isOpen, onClose }) => {
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Mobile-only dim scrim — non-blocking, just visual depth */}
       <div
-        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 animate-in fade-in duration-200"
+        className="fixed inset-0 top-16 bg-black/30 z-40 sm:hidden animate-in fade-in duration-200"
         onClick={onClose}
       />
 
       {/* Panel */}
-      <div className="fixed top-16 right-4 w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden animate-in slide-in-from-top-4 fade-in duration-300">
+      <div className="fixed top-16 left-0 right-0 sm:absolute sm:top-10 sm:left-auto sm:right-0 sm:w-96 max-h-[85vh] bg-white dark:bg-gray-800 sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden animate-in slide-in-from-top-2 fade-in duration-200 flex flex-col">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
           <div className="flex items-center justify-between">
@@ -165,7 +165,7 @@ const NotificationPanel = ({ isOpen, onClose }) => {
         )}
 
         {/* Notifications List */}
-        <div className="max-h-[calc(100vh-16rem)] overflow-y-auto">
+        <div className="flex-1 overflow-y-auto">
           {notifications.length === 0 ? (
             <div className="py-16 px-6 text-center">
               <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">

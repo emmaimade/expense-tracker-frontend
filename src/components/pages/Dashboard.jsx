@@ -1,6 +1,6 @@
 ﻿import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, Bell, User, LogOut } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useDashboard } from './hooks/useDashboard';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { NotificationProvider, useNotifications } from '../../context/NotificationContext';
@@ -17,8 +17,9 @@ const DashboardInner = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false);
+  const notificationRef = useRef(null);
   const { unreadCount } = useNotifications();
-  
+
   const {
     user,
     userId,
@@ -32,10 +33,23 @@ const DashboardInner = () => {
     handleLogout,
   } = useDashboard();
 
-  const { 
-    transactions, 
+  const {
+    transactions,
     refreshData
   } = useDashboardData();
+
+  // Close notification panel when clicking outside of it
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (notificationRef.current && !notificationRef.current.contains(e.target)) {
+        setIsNotificationPanelOpen(false);
+      }
+    };
+    if (isNotificationPanelOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isNotificationPanelOpen]);
 
   if (!user) return null;
 
@@ -57,7 +71,7 @@ const DashboardInner = () => {
     '/dashboard/settings': 'Settings'
   };
 
-  const currentTitle = titles[location.pathname] || "Dashboard";
+  const currentTitle = titles[location.pathname] || 'Dashboard';
   const currentTransactions = transactions?.current ?? null;
 
   return (
@@ -72,6 +86,8 @@ const DashboardInner = () => {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Header */}
         <header className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 md:px-8 z-20">
+
+          {/* Left — hamburger + title */}
           <div className="flex items-center gap-4">
             <button
               onClick={() => setIsSidebarOpen(true)}
@@ -89,24 +105,32 @@ const DashboardInner = () => {
             </div>
           </div>
 
+          {/* Right — bell + profile */}
           <div className="flex items-center gap-3 md:gap-4">
-            {/* Notification Bell */}
-            <button 
-              onClick={() => setIsNotificationPanelOpen(!isNotificationPanelOpen)}
-              className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full relative transition-colors dark:text-gray-400 dark:hover:text-gray-300"
-            >
-              <Bell className="w-5 h-5" />
-              {unreadCount > 0 && (
-                <>
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-gray-800 animate-pulse"></span>
-                  {unreadCount > 0 && (
+
+            {/* Notification Bell — wrapped in ref for click-outside detection */}
+            <div ref={notificationRef} className="relative">
+              <button
+                onClick={() => setIsNotificationPanelOpen(!isNotificationPanelOpen)}
+                className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full relative transition-colors dark:text-gray-400 dark:hover:text-gray-300"
+              >
+                <Bell className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <>
+                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-gray-800 animate-pulse"></span>
                     <span className="absolute -top-1 -right-1 min-w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1.5 border-2 border-white dark:border-gray-800">
                       {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
-                  )}
-                </>
-              )}
-            </button>
+                  </>
+                )}
+              </button>
+
+              {/* Non-blocking notification panel — lives inside the ref div */}
+              <NotificationPanel
+                isOpen={isNotificationPanelOpen}
+                onClose={() => setIsNotificationPanelOpen(false)}
+              />
+            </div>
 
             {/* Profile Dropdown */}
             <div className="relative" ref={dropdownRef}>
@@ -146,24 +170,19 @@ const DashboardInner = () => {
                 </div>
               )}
             </div>
+
           </div>
         </header>
-
-        {/* Notification Panel */}
-        <NotificationPanel 
-          isOpen={isNotificationPanelOpen}
-          onClose={() => setIsNotificationPanelOpen(false)}
-        />
 
         {/* Main Content Area */}
         <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50 dark:bg-gray-900/50">
           <Routes>
             <Route index element={<DashboardContent onDataChange={refreshData} />} />
-            
+
             <Route
               path="expenses"
               element={
-                <ExpensesContent 
+                <ExpensesContent
                   recentTransactions={currentTransactions}
                   userId={userId}
                   onDataChange={refreshData}
@@ -183,7 +202,7 @@ const DashboardInner = () => {
             <Route
               path="budgets"
               element={
-                <BudgetsContent 
+                <BudgetsContent
                   recentTransactions={currentTransactions}
                   onDataChange={refreshData}
                   userId={userId}
@@ -215,7 +234,7 @@ const DashboardInner = () => {
 // Wrapper component with notification provider
 const Dashboard = () => {
   const { userId } = useDashboard();
-  
+
   return (
     <NotificationProvider userId={userId}>
       <DashboardInner />
