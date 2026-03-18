@@ -77,7 +77,11 @@ const PreferencesModal = ({
   const formatSampleAmount = (value = 1234, display = null) => {
     try {
       const locale = navigator?.language || 'en-US';
-      const currencyDisplay = display ? (display === 'code' ? 'code' : 'symbol') : (formData.currencyFormat === 'code' ? 'code' : 'symbol');
+      const resolvedDisplay = display || formData.currencyFormat;
+      const currencyDisplay =
+        resolvedDisplay === 'code'
+          ? 'code'
+          : (formData.currency === 'NGN' ? 'narrowSymbol' : 'symbol');
       return new Intl.NumberFormat(locale, {
         style: 'currency',
         currency: formData.currency || 'USD',
@@ -422,7 +426,7 @@ const PreferencesModal = ({
           {/* Currency format */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Currency format
+              Currency format{formData.currency === 'NGN' ? ' (₦ or NGN)' : ''}
             </label>
             <div className="grid grid-cols-2 gap-3">
               {['symbol', 'code'].map((format) => (
@@ -440,7 +444,9 @@ const PreferencesModal = ({
                     className="mr-2"
                     disabled={isSaving}
                   />
-                  <span className="text-gray-900 dark:text-gray-100 text-sm">{formatSampleAmount(1234, format)}</span>
+                  <span className="text-gray-900 dark:text-gray-100 text-sm">
+                    {formatSampleAmount(1234, format)}
+                  </span>
                 </label>
               ))}
             </div>

@@ -3,9 +3,11 @@ import { X, AlertCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 import LoadingOverlay from '../../common/LoadingOverlay';
 import { useProfile } from '../hooks/useProfile';
+import { useNotifications } from '../../../context/NotificationContext';
 
 const ProfileEditModal = ({ isOpen, onClose, profile: initialProfile }) => {
   const { updateProfile } = useProfile();
+  const { notifyProfileUpdated } = useNotifications();
   const [isSaving, setIsSaving] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -57,7 +59,8 @@ const ProfileEditModal = ({ isOpen, onClose, profile: initialProfile }) => {
       };
 
       await updateProfile(payload);
-      
+      notifyProfileUpdated();
+
       // Small delay to ensure toast renders before modal closes
       await new Promise(resolve => setTimeout(resolve, 150));
       

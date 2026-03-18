@@ -8,19 +8,19 @@ export const ProfileInfoSkeleton = () => (
     <Skeleton className="h-6 w-48 mb-4" />
     <div className="space-y-4">
       {/* Name */}
-      <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
         <Skeleton className="h-4 w-20" />
         <Skeleton className="h-4 w-40" />
       </div>
       {/* Email */}
-      <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
         <Skeleton className="h-4 w-20" />
         <Skeleton className="h-4 w-56" />
       </div>
       {/* Buttons */}
-      <div className="mt-6 flex gap-3">
-        <Skeleton className="h-10 w-32 rounded-lg" />
-        <Skeleton className="h-10 w-40 rounded-lg" />
+      <div className="mt-6 flex flex-col sm:flex-row gap-3">
+        <Skeleton className="h-10 w-full sm:w-32 rounded-lg" />
+        <Skeleton className="h-10 w-full sm:w-40 rounded-lg" />
       </div>
     </div>
   </div>
@@ -28,9 +28,9 @@ export const ProfileInfoSkeleton = () => (
 
 // Account Stats Skeleton
 export const AccountStatsSkeleton = () => (
-  <div className="bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800 p-6">
+  <div className="bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800 p-4 sm:p-6">
     <Skeleton className="h-5 w-40 mb-3" />
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
         <Skeleton className="h-3 w-16 mb-2" />
         <Skeleton className="h-4 w-32" />
@@ -73,7 +73,7 @@ export const PreferencesCardSkeleton = () => (
 
 // Settings Navigation Skeleton
 export const SettingsNavSkeleton = () => (
-  <div className="flex space-x-1 mb-6 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
+  <div className="grid grid-cols-3 gap-1 mb-6 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
     {[...Array(3)].map((_, i) => (
       <Skeleton key={i} className="flex-1 h-10 rounded-md" />
     ))}
@@ -82,7 +82,7 @@ export const SettingsNavSkeleton = () => (
 
 // Full Settings Page Skeleton
 export const SettingsPageSkeleton = () => (
-  <div className="p-6 max-w-4xl mx-auto">
+  <div className="p-0 sm:p-6 max-w-4xl mx-auto">
     <Skeleton className="h-8 w-48 mb-6" />
     <SettingsNavSkeleton />
     <ProfileSectionSkeleton />

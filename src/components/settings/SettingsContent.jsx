@@ -102,18 +102,18 @@ const SettingsContent = ({ onDataChange }) => {
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
+    <div className="p-0 sm:p-6 max-w-4xl mx-auto">
+      <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6">
         Settings
       </h2>
 
       {/* Navigation Tabs */}
-      <div className="flex space-x-1 mb-6 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
+      <div className="grid grid-cols-3 gap-1 mb-6 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
         {["profile", "categories", "preferences"].map((tab) => (
           <button
             key={tab}
             onClick={() => handleSectionChange(tab)}
-            className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors capitalize ${
+            className={`min-w-0 py-2 px-2 sm:px-4 rounded-md font-medium transition-colors capitalize text-xs sm:text-sm whitespace-nowrap ${
               activeSection === tab
                 ? "bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 shadow-sm"
                 : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
@@ -141,7 +141,7 @@ const SettingsContent = ({ onDataChange }) => {
                   Profile Information
                 </h3>
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                     <span className="text-gray-600 dark:text-gray-400 font-medium">Name:</span>
                     <span className="text-gray-900 dark:text-white">
                       {profile?.user?.fullName || 
@@ -150,9 +150,9 @@ const SettingsContent = ({ onDataChange }) => {
                     </span>
                   </div>
                   
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                     <span className="text-gray-600 dark:text-gray-400 font-medium">Email:</span>
-                    <span className="text-gray-900 dark:text-white">
+                    <span className="text-gray-900 dark:text-white break-all sm:break-normal">
                       {profile?.user?.email || 'Not set'}
                     </span>
                   </div>
@@ -169,16 +169,16 @@ const SettingsContent = ({ onDataChange }) => {
                     </div>
                   )}
 
-                  <div className="mt-6 flex gap-3">
+                  <div className="mt-6 flex flex-col sm:flex-row gap-3">
                     <button
                       onClick={() => setIsProfileModalOpen(true)}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+                      className="w-full sm:w-auto px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
                     >
                       Edit Profile
                     </button>
                     <button
                       onClick={() => setIsPasswordModalOpen(true)}
-                      className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium text-gray-900 dark:text-white"
+                      className="w-full sm:w-auto px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium text-gray-900 dark:text-white"
                     >
                       Change Password
                     </button>
@@ -187,11 +187,11 @@ const SettingsContent = ({ onDataChange }) => {
               </Card>
 
               {/* Account Stats */}
-              <div className="bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800 p-6">
+              <div className="bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800 p-4 sm:p-6">
                 <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                   Account Information
                 </h4>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <p className="text-xs text-gray-600 dark:text-gray-400">User ID</p>
                     <p className="text-sm font-mono text-gray-900 dark:text-white mt-1">
@@ -225,7 +225,7 @@ const SettingsContent = ({ onDataChange }) => {
             </p>
             <button
               onClick={() => setIsCategoryModalOpen(true)}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+              className="w-full sm:w-auto px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
             >
               Manage Categories
             </button>
@@ -247,7 +247,7 @@ const SettingsContent = ({ onDataChange }) => {
             </p>
             <button
               onClick={() => setIsPreferencesModalOpen(true)}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+              className="w-full sm:w-auto px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
             >
               Edit Preferences
             </button>

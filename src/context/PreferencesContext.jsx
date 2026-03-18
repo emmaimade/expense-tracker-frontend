@@ -1,4 +1,5 @@
-﻿import { createContext, useContext, useState, useEffect } from "react";
+﻿/* eslint-disable react-refresh/only-export-components */
+import { createContext, useContext, useState, useEffect } from "react";
 import { apiService } from "../services/apiService";
 import { useAuth } from "./AuthContext";
 
@@ -179,19 +180,31 @@ export const PreferencesProvider = ({ children, userId }) => {
     const num = typeof amount === "number" ? amount : 0;
 
     try {
+      const currency = preferences.currency || DEFAULT_PREFERENCES.currency;
+      const currencyDisplay =
+        preferences.currencyFormat === "code"
+          ? "code"
+          : currency === "NGN"
+            ? "narrowSymbol"
+            : "symbol";
+
       const formatter = new Intl.NumberFormat(preferences.language || "en-US", {
         style: "currency",
-        currency: preferences.currency || DEFAULT_PREFERENCES.currency,
-        currencyDisplay:
-          preferences.currencyFormat === "code" ? "code" : "symbol",
+        currency,
+        currencyDisplay,
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       });
 
       return formatter.format(num);
     } catch {
-      const symbol = CURRENCY_SYMBOLS[preferences.currency] || "$";
-      return `${symbol}${num.toLocaleString("en-US", {
+      const currency = preferences.currency || DEFAULT_PREFERENCES.currency;
+      const symbol =
+        preferences.currencyFormat === "code"
+          ? currency
+          : CURRENCY_SYMBOLS[currency] || "$";
+
+      return `${symbol}${num.toLocaleString(preferences.language || "en-US", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       })}`;
@@ -203,7 +216,9 @@ export const PreferencesProvider = ({ children, userId }) => {
    * @returns {string} Currency symbol
    */
   const getCurrencySymbol = () => {
-    return CURRENCY_SYMBOLS[preferences.currency] || "$";
+    const currency = preferences.currency || DEFAULT_PREFERENCES.currency;
+    if (preferences.currencyFormat === "code") return currency;
+    return CURRENCY_SYMBOLS[currency] || "$";
   };
 
   const value = {
