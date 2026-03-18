@@ -63,11 +63,11 @@ const BudgetOverview = ({ budgetData }) => {
 
       {/* Budget Progress */}
       <Card className="md:col-span-2">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between mb-4 min-w-0">
           <h3 className="font-semibold text-gray-900 dark:text-gray-100">
             Monthly Budget Progress
           </h3>
-          <span className="text-sm text-gray-600 dark:text-gray-400">
+          <span className="text-sm text-gray-600 dark:text-gray-400 break-words sm:text-right">
             {formatCurrency(totalSpent)} / {formatCurrency(limit)}
           </span>
         </div>

@@ -72,6 +72,7 @@ function Login() {
 
       const userWithToken = {
         ...resData.user,
+        isFirstLogin: resData.isFirstLogin === true,
         token: resData.token,
       };
 

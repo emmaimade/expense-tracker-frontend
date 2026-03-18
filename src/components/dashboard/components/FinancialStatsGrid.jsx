@@ -8,13 +8,13 @@ const FinancialStatsGrid = ({ stats = [], onViewAnalytics }) => {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
           Financial Overview
         </h2>
         <button 
           onClick={onViewAnalytics} 
-          className="text-indigo-600 hover:text-indigo-700 text-sm font-medium"
+          className="hidden sm:inline-flex text-indigo-600 hover:text-indigo-700 text-sm font-medium text-left sm:text-right"
         >
           View Details →
         </button>
@@ -33,6 +33,13 @@ const FinancialStatsGrid = ({ stats = [], onViewAnalytics }) => {
           <StatCard stat={featuredStat} isFeatured={true} />
         </div>
       )}
+
+      <button
+        onClick={onViewAnalytics}
+        className="sm:hidden w-full mt-4 text-indigo-600 hover:text-indigo-700 text-sm font-medium text-left dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors"
+      >
+        View Details →
+      </button>
     </div>
   );
 };

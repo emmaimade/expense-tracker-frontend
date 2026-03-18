@@ -162,6 +162,9 @@ function Signup() {
         email: resData.user?.email || data.email.trim().toLowerCase(),
         // Currency from response (backend confirmed)
         currency: resData.user?.currency || data.currency,
+        isFirstLogin: true,
+        firstLoginAt: resData.user?.firstLoginAt,
+        lastLoginAt: resData.user?.lastLoginAt,
         // Token is REQUIRED for authenticated requests
         token: resData.token,
       };

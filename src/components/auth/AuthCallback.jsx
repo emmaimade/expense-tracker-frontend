@@ -19,17 +19,23 @@ function AuthCallback() {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          // Normalize user object to match regular login structure
-          // Regular login returns `name`, but /user/me returns `fullName`/`firstName`/`lastName`
-          const normalizedUser = {
-            ...data.user,
-            name: data.user.name
-              || data.user.fullName
-              || `${data.user.firstName} ${data.user.lastName}`,
-            token,
-          };
+        .then((data) => {
+          if (data.success) {
+            const isFirstLogin =
+              !!data.user?.firstLoginAt &&
+              !!data.user?.lastLoginAt &&
+              data.user.firstLoginAt === data.user.lastLoginAt;
+
+            // Normalize user object to match regular login structure
+            // Regular login returns `name`, but /user/me returns `fullName`/`firstName`/`lastName`
+            const normalizedUser = {
+              ...data.user,
+              name: data.user.name
+                || data.user.fullName
+                || `${data.user.firstName} ${data.user.lastName}`,
+              isFirstLogin,
+              token,
+            };
 
           localStorage.setItem('authToken', token);
           login(normalizedUser);

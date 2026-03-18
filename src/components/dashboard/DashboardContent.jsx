@@ -5,6 +5,7 @@ import FinancialStatsGrid from './components/FinancialStatsGrid';
 import RecentActivity from './components/RecentActivity';
 import TopSpendingCategories from './components/TopSpendingCategories';
 import useUserData from './hooks/useUserData';
+import useMonthlyResetNotification from '../../hooks/useMonthlyResetNotification';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { 
   DashboardSkeleton,
@@ -16,7 +17,12 @@ import {
 
 const DashboardContent = ({ setActiveTab }) => {
   const navigate = useNavigate();
-  const { userName } = useUserData();
+  const { userName, user } = useUserData();
+  const isFirstLogin =
+    user?.isFirstLogin === true ||
+    user?.firstLogin === true ||
+    user?.loginCount === 1 ||
+    (user?.firstLoginAt && user?.lastLoginAt && user.firstLoginAt === user.lastLoginAt);
 
   // Unified data source
   const { 
@@ -43,6 +49,9 @@ const DashboardContent = ({ setActiveTab }) => {
     else navigate('/dashboard/analytics');
   };
 
+  // Monthly reset notification
+  useMonthlyResetNotification();
+
   // Check if we have any data at all
   const hasAnyData = budget || stats || (transactions?.current && transactions.current.length > 0);
   
@@ -57,10 +66,11 @@ const DashboardContent = ({ setActiveTab }) => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Welcome Section - Static content, no skeleton needed */}
       <WelcomeSection
         userName={userName}
+        isFirstLogin={isFirstLogin}
         onQuickAdd={handleQuickAdd}
         onViewAllExpenses={handleViewAllExpenses}
       />

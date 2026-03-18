@@ -69,7 +69,7 @@ const RecentActivity = ({ weeklyTransactions = [], onViewAllExpenses, onAddExpen
 
   return (
     <Card>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-start sm:items-center justify-between gap-2 mb-4">
         <h3 className="font-semibold text-gray-900 dark:text-gray-100">Recent Activity</h3>
         {fallbackUsed && (
           <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full dark:bg-blue-900/20 dark:text-blue-400">
@@ -79,21 +79,23 @@ const RecentActivity = ({ weeklyTransactions = [], onViewAllExpenses, onAddExpen
       </div>
       
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between min-w-0">
           <span className="text-gray-600 dark:text-gray-400">Last expense</span>
-          <span className="font-medium text-gray-900 dark:text-gray-100">
+          <span className="font-medium text-gray-900 dark:text-gray-100 break-words sm:text-right">
             {activityData.lastExpense.name} - {formatCurrency(Math.abs(activityData.lastExpense.amount || 0))}
           </span>
         </div>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between min-w-0">
           <span className="text-gray-600 dark:text-gray-400">Largest expense</span>
-          <span className="font-medium text-gray-900 dark:text-gray-100">
+          <span className="font-medium text-gray-900 dark:text-gray-100 break-words sm:text-right">
             {activityData.largestExpense.name} - {formatCurrency(Math.abs(activityData.largestExpense.amount || 0))}
           </span>
         </div>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between min-w-0">
           <span className="text-gray-600 dark:text-gray-400">Most frequent category</span>
-          <span className="font-medium text-gray-900 dark:text-gray-100">{activityData.mostFrequentCategory}</span>
+          <span className="font-medium text-gray-900 dark:text-gray-100 break-words sm:text-right">
+            {activityData.mostFrequentCategory}
+          </span>
         </div>
       </div>
       
@@ -101,7 +103,7 @@ const RecentActivity = ({ weeklyTransactions = [], onViewAllExpenses, onAddExpen
         onClick={onViewAllExpenses}
         className="w-full mt-4 text-indigo-600 hover:text-indigo-700 text-sm font-medium dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors"
       >
-        View All Transactions â†’
+        View All Transactions →
       </button>
     </Card>
   );
