@@ -64,6 +64,7 @@ function Signup() {
   const [successMessage, setSuccessMessage] = useState('');
   const [suggestedCurrency, setSuggestedCurrency] = useState(null);
   const [isDetecting, setIsDetecting] = useState(true);
+  const [showEmailForm, setShowEmailForm] = useState(false);
 
   const {
     register,
@@ -202,18 +203,55 @@ function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="Logo flex justify-center mx-auto mb-2">
-          <img src="/logo.svg" alt="SpendWise" className="h-9" />
-        </div>
-        <h2 className="mt-3 text-center text-2xl font-extrabold text-gray-900">
-          Create your account
-        </h2>
-      </div>
+    <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md px-6">
+          <div className="flex flex-col items-center mb-8">
+            <img src="/logo.svg" alt="SpendWise" className="h-10 mb-5" />
+            <h2 className="text-2xl font-bold text-center text-gray-900">Create your account</h2>
+          </div>
 
-      <div className="mt-4 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          {/* ── Auth options screen ── */}
+          {!showEmailForm ? (
+            <div className="space-y-3">
+              <GoogleAuthButton onClick={handleGoogleSignup} disabled={isSubmitting} />
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-3 bg-white text-gray-400">or</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowEmailForm(true)}
+                className="w-full flex justify-center items-center gap-2 py-2.5 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+              >
+                <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Sign up with Email
+              </button>
+              <p className="text-center text-sm text-gray-500 mt-4">
+                Already have an account?{" "}
+                <button type="button" className="font-medium text-indigo-600 hover:text-indigo-500" onClick={() => navigate("/login")}>
+                  Sign in
+                </button>
+              </p>
+            </div>
+          ) : (
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowEmailForm(false)}
+                className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+                Back
+              </button>
+
           {generalError && (
             <AlertMessage
               type="error"
@@ -422,33 +460,19 @@ function Signup() {
             </button>
           </form>
 
-          {/* Google OAuth Button */}
-          <div className="mt-6">
-            <GoogleAuthButton
-              onClick={handleGoogleSignup}
-              disabled={isSubmitting}
-            />
-          </div>
-
-          {/* Sign In Link */}
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Already have an account?{" "}
-              <button
-                type="button"
-                className="font-medium text-indigo-600 hover:text-indigo-500"
-                onClick={() => navigate("/login")}
-                disabled={isSubmitting}
-              >
-                Sign in
-              </button>
-            </p>
-          </div>
-        </div>
+              <div className="mt-6 text-center">
+                <p className="text-sm text-gray-600">
+                  Already have an account?{" "}
+                  <button type="button" className="font-medium text-indigo-600 hover:text-indigo-500" onClick={() => navigate("/login")} disabled={isSubmitting}>
+                    Sign in
+                  </button>
+                </p>
+              </div>
+            </div>
+          )}
       </div>
     </div>
   );
 }
 
 export default Signup;
-
