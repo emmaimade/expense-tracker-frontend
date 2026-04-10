@@ -504,7 +504,6 @@ const LandingPage = () => {
           </div>
           <div className="sw-footer-bottom">
             <span>© {new Date().getFullYear()} SpendWise. All rights reserved.</span>
-            <span>Made with ♥ for people who care about their finances</span>
           </div>
         </div>
       </footer>
