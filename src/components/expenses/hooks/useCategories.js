@@ -1,5 +1,6 @@
-﻿import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { categoryService } from "../../../services/categoryService";
+import { normalizeCategories, normalizeCategory } from "../../../utils/categoryUtils";
 
 export const useCategories = () => {
   // Initialize as null, not []
@@ -16,7 +17,7 @@ export const useCategories = () => {
       const categoryList = response?.data || response || [];
 
       if (Array.isArray(categoryList)) {
-        setCategories(categoryList);
+        setCategories(normalizeCategories(categoryList));
       } else {
         setCategories([]); // Fallback to empty array (not null) after successful fetch
       }
@@ -33,7 +34,7 @@ export const useCategories = () => {
   const createCategory = async (categoryData) => {
     try {
       const response = await categoryService.createCategory(categoryData);
-      const newCategory = response.data || response;
+      const newCategory = normalizeCategory(response.data || response, categoryData?.userId);
       setCategories((prev) => [...(prev || []), newCategory]);
       return newCategory;
     } catch (err) {
@@ -44,7 +45,7 @@ export const useCategories = () => {
   const updateCategory = async (id, updateData) => {
     try {
       const response = await categoryService.updateCategory(id, updateData);
-      const updatedCategory = response.data || response;
+      const updatedCategory = normalizeCategory(response.data || response);
       setCategories((prev) =>
         (prev || []).map((cat) => (cat._id === id ? updatedCategory : cat))
       );
@@ -81,4 +82,3 @@ export const useCategories = () => {
     [categories, isLoading, error, fetchCategories]
   );
 };
-
