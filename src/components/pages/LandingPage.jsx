@@ -6,7 +6,6 @@ const NAV_LINKS = [
   { label: "About", href: "#about" },
   { label: "Features", href: "#features" },
   { label: "How It Works", href: "#how-it-works" },
-  { label: "Testimonials", href: "#testimonials" },
   { label: "FAQ", href: "#faq" },
 ];
 
@@ -15,7 +14,7 @@ const FEATURES = [
   { icon: "📊", title: "Smart Analytics", desc: "Beautiful charts that reveal exactly where your money goes." },
   { icon: "🎯", title: "Budget Goals", desc: "Set limits per category. Get alerts before you overspend." },
   { icon: "🌍", title: "Multi-Currency", desc: "Track in any currency with live exchange rates." },
-  { icon: "🔒", title: "Bank-Level Security", desc: "JWT sessions, encrypted data, and Google OAuth." },
+  { icon: "🔒", title: "Secure by Default", desc: "Hashed passwords, HTTPS everywhere, and Google sign-in." },
   { icon: "📱", title: "Works Everywhere", desc: "Fully responsive — desktop, tablet, and mobile." },
 ];
 
@@ -32,22 +31,16 @@ const STEPS = [
   { number: "03", title: "Gain clarity", desc: "Watch your dashboard come alive. Hit your savings goals.", color: "#06b6d4", icon: "📈" },
 ];
 
-const TESTIMONIALS = [
-  { name: "Amara O.", role: "Freelance Designer", avatar: "AO", color: "#6366f1", quote: "I've saved more in 3 months than I did all of last year. The analytics show exactly where my money disappears.", stars: 5 },
-  { name: "James K.", role: "Software Engineer", avatar: "JK", color: "#8b5cf6", quote: "The multi-currency support is a game changer. I travel for work and finally have everything in one place.", stars: 5 },
-  { name: "Priya M.", role: "Product Manager", avatar: "PM", color: "#06b6d4", quote: "I've tried 6 expense trackers. None had budgets this intuitive. The overspend alerts are genuinely useful.", stars: 5 },
-];
-
 const STATS = [
-  { value: "2K+", label: "Active Users" },
-  { value: "2M+", label: "Expenses Tracked" },
   { value: "7+", label: "Currencies" },
-  { value: "99.9%", label: "Uptime" },
+  { value: "100%", label: "Free" },
+  { value: "CSV & PDF", label: "Export" },
+  { value: "0", label: "Ads" },
 ];
 
 const FAQS = [
   { q: "Is SpendWise really free?", a: "Yes — 100% free, forever. No credit card required, no hidden fees, no premium tier. Everything you see is available to every user." },
-  { q: "Is my financial data safe?", a: "Absolutely. All data is encrypted, sessions are secured with JWT tokens, and we support Google OAuth. We never sell or share your data with third parties." },
+  { q: "Is my financial data safe?", a: "Passwords are hashed and never stored in plain text, all traffic uses HTTPS, sessions are secured with JWT tokens, and you can sign in with Google. We never sell or share your data with third parties." },
   { q: "Which currencies are supported?", a: "SpendWise supports 7+ currencies with live exchange rates. Your local currency is detected automatically when you sign up, and you can change it anytime in settings." },
   { q: "Can I use SpendWise on my phone?", a: "Yes. SpendWise is fully responsive and works on any device — desktop, tablet, or mobile — directly in your browser." },
   { q: "What happens if I change my currency?", a: "You can choose to convert your existing expenses and budgets using live exchange rates, or keep the numbers as-is and only apply the new currency going forward." },
@@ -55,14 +48,6 @@ const FAQS = [
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────
-
-const Stars = ({ count = 5 }) => (
-  <div style={{ display: "flex", gap: 2 }}>
-    {Array.from({ length: count }).map((_, i) => (
-      <span key={i} style={{ color: "#f59e0b", fontSize: 14 }}>★</span>
-    ))}
-  </div>
-);
 
 const useScrolled = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -159,9 +144,6 @@ const LandingPage = () => {
         .sw-hero-sub { font-size: 17px; color: #6b7280; max-width: 360px; line-height: 1.65; margin-bottom: 36px; }
         .sw-hero-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-bottom: 44px; }
         .sw-hero-social { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #9ca3af; }
-        .sw-hero-avatars { display: flex; }
-        .sw-avatar-sm { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; margin-left: -7px; }
-        .sw-avatar-sm:first-child { margin-left: 0; }
 
         .sw-stats { background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 56px 24px; }
         .sw-stats-inner { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: repeat(4,1fr); gap: 24px; text-align: center; }
@@ -189,13 +171,6 @@ const LandingPage = () => {
         .sw-step-title { font-size: 17px; font-weight: 700; color: #1a1a2e; margin-bottom: 7px; }
         .sw-step-desc { font-size: 13px; color: #6b7280; line-height: 1.65; }
 
-        .sw-testimonials-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; margin-top: 52px; }
-        .sw-testimonial { background: #fff; border: 1.5px solid #f3f4f6; border-radius: 18px; padding: 24px; transition: all 0.3s; }
-        .sw-testimonial:hover { border-color: #e0e0ff; box-shadow: 0 10px 36px rgba(99,102,241,0.1); transform: translateY(-2px); }
-        .sw-testimonial-quote { font-size: 14px; color: #4b5563; line-height: 1.75; font-style: italic; margin: 12px 0 18px; }
-        .sw-testimonial-quote::before { content: '"'; }
-        .sw-testimonial-quote::after { content: '"'; }
-        .sw-t-avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0; }
 
         .sw-cta { background: linear-gradient(135deg, #1a1a2e 0%, #2d1b69 100%); padding: 96px 24px; text-align: center; }
         .sw-cta h2 { font-family: 'Syne', sans-serif; font-size: clamp(30px, 4.5vw, 48px); font-weight: 800; color: #fff; margin: 0 auto 12px; letter-spacing: -1px; max-width: 500px; line-height: 1.1; }
@@ -282,12 +257,9 @@ const LandingPage = () => {
           <a href="#how-it-works" className="sw-btn-outline-lg" onClick={(e) => smoothScroll(e, "#how-it-works")}>How it works</a>
         </div>
         <div className="sw-hero-social">
-          <div className="sw-hero-avatars">
-            {[["#6366f1","AO"],["#8b5cf6","JK"],["#06b6d4","PM"],["#f59e0b","RN"]].map(([c,i]) => (
-              <div key={i} className="sw-avatar-sm" style={{ background: c }}>{i}</div>
-            ))}
-          </div>
-          <span>Loved by <strong style={{ color: "#1a1a2e" }}>2,000+</strong> users</span>
+          <span>✓ Free forever</span>
+          <span>✓ No credit card</span>
+          <span>✓ Sign up with Google</span>
         </div>
       </section>
 
@@ -391,36 +363,8 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* ── Testimonials ── */}
-      <section id="testimonials" style={{ padding: "88px 0", background: "#fff" }}>
-        <div className="sw-section-wrap">
-          <div style={{ textAlign: "center" }}>
-            <div className="sw-section-label">Testimonials</div>
-            <h2 className="sw-section-title centered">Real people, real results</h2>
-            <p className="sw-section-sub centered" style={{ marginBottom: 52 }}>
-              Join thousands who've taken control of their finances.
-            </p>
-          </div>
-          <div className="sw-testimonials-grid">
-            {TESTIMONIALS.map((t) => (
-              <div key={t.name} className="sw-testimonial">
-                <Stars count={t.stars} />
-                <p className="sw-testimonial-quote">{t.quote}</p>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div className="sw-t-avatar" style={{ background: t.color }}>{t.avatar}</div>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a2e" }}>{t.name}</div>
-                    <div style={{ fontSize: 12, color: "#9ca3af" }}>{t.role}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ── FAQ ── */}
-      <section id="faq" style={{ padding: "88px 0", background: "#f9f8ff" }}>
+      <section id="faq" style={{ padding: "88px 0", background: "#fff" }}>
         <div className="sw-section-wrap">
           <div style={{ textAlign: "center", marginBottom: 52 }}>
             <div className="sw-section-label">FAQ</div>
@@ -486,7 +430,6 @@ const LandingPage = () => {
               <h4>Product</h4>
               <a href="#features" onClick={(e) => smoothScroll(e, "#features")}>Features</a>
               <a href="#how-it-works" onClick={(e) => smoothScroll(e, "#how-it-works")}>How it works</a>
-              <a href="#testimonials" onClick={(e) => smoothScroll(e, "#testimonials")}>Testimonials</a>
               <a href="#faq" onClick={(e) => smoothScroll(e, "#faq")}>FAQ</a>
             </div>
             <div className="sw-footer-col">

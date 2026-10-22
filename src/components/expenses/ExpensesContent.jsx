@@ -11,8 +11,11 @@ import { useFilterAndSearch } from "./hooks/useFilterAndSearch";
 import { useExpenseData } from "./hooks/useExpenseData";
 import { useCategories } from "./hooks/useCategories";
 import { TableSkeleton, TransactionListSkeleton } from "../common/Skeletons";
+import { useConfirm } from "../../context/ConfirmContext";
 
 const ExpensesContent = ({ recentTransactions, onDataChange, userId }) => {
+  const confirm = useConfirm();
+
   // Modal states
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -86,9 +89,13 @@ const ExpensesContent = ({ recentTransactions, onDataChange, userId }) => {
   };
 
   const handleDeleteTransaction = async (transactionId) => {
-    if (!window.confirm("Are you sure you want to delete this transaction?")) {
-      return;
-    }
+    const confirmed = await confirm({
+      title: 'Delete transaction?',
+      message: 'This permanently removes the transaction and updates your budgets.',
+      confirmLabel: 'Delete',
+      destructive: true,
+    });
+    if (!confirmed) return;
     
     try {
       await deleteExpense(transactionId);

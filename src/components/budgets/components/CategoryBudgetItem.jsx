@@ -1,6 +1,7 @@
 ﻿import { Edit2, Save, X, MoreVertical, Trash2 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { usePreferencesContext } from '../../../context/PreferencesContext';
+import { useConfirm } from '../../../context/ConfirmContext';
 
 const CategoryBudgetItem = ({
   category,
@@ -18,6 +19,7 @@ const CategoryBudgetItem = ({
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
   const buttonRef = useRef(null);
   const { formatCurrency, getCurrencySymbol } = usePreferencesContext();
+  const confirm = useConfirm();
 
   const amount = Number(category.amount ?? category.budget ?? 0);
   const categoryRemaining = amount - categorySpent;
@@ -54,10 +56,14 @@ const CategoryBudgetItem = ({
     return 'bg-green-500 dark:bg-green-600';
   };
 
-  const handleDelete = () => {
-    if (window.confirm(`Delete budget for ${categoryName}?`)) {
-      onDelete(category.id || category._id);
-    }
+  const handleDelete = async () => {
+    const confirmed = await confirm({
+      title: `Delete budget for ${categoryName}?`,
+      message: 'Your expenses in this category are kept — only the budget limit is removed.',
+      confirmLabel: 'Delete budget',
+      destructive: true,
+    });
+    if (confirmed) onDelete(category.id || category._id);
   };
 
   return (

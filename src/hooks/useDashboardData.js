@@ -97,10 +97,14 @@ export const useDashboardData = () => {
     };
   }, [currentTransactions, prevTransactions, totalBudget, budgetOverview, formatCurrency]);
 
+  // Refetch everything (used after currency changes and by the Retry button)
+  const refreshData = () => Promise.all(queries.map((query) => query.refetch()));
+
   return {
     ...memoizedData,
     isLoading,
     error,
+    refreshData,
   };
 };
 

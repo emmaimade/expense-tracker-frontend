@@ -29,8 +29,7 @@ const DashboardContent = ({ setActiveTab }) => {
     budget, 
     stats,
     transactions, 
-    isLoading, 
-    error 
+    isLoading
   } = useDashboardData();
 
   // Helper Navigation Handlers
@@ -51,12 +50,6 @@ const DashboardContent = ({ setActiveTab }) => {
 
   // Monthly reset notification
   useMonthlyResetNotification();
-
-  // Check if we have any data at all
-  const hasAnyData = budget || stats || (transactions?.current && transactions.current.length > 0);
-  
-  // Only show error if we have an error AND no data AND not loading
-  const shouldShowError = error && !hasAnyData && !isLoading;
 
   // Show full skeleton only when loading AND data has never been fetched
   const isInitialLoad = isLoading && budget === null && stats === null && transactions.current === null;
@@ -116,28 +109,6 @@ const DashboardContent = ({ setActiveTab }) => {
         )}
       </div>
 
-      {/* Error Feedback - Only show if there's a critical error AND no data */}
-      {shouldShowError && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mt-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-100 dark:bg-red-800 rounded-full text-red-600 dark:text-red-200">
-              !
-            </div>
-            <div className="flex-1">
-              <p className="text-red-800 dark:text-red-200 font-medium">Connection Issue</p>
-              <p className="text-red-600 dark:text-red-300 text-sm">
-                Unable to load dashboard data. Please check your connection and try again.
-              </p>
-            </div>
-            <button 
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-red-600 text-white rounded-md text-sm hover:bg-red-700 transition-colors"
-            >
-              Retry
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -2,9 +2,11 @@
 import { X } from 'lucide-react';
 import { toast } from 'react-toastify';
 import LoadingOverlay from '../../common/LoadingOverlay';
+import { useConfirm } from '../../../context/ConfirmContext';
 import { useCategories } from '../../expenses/hooks/useCategories'; 
 
 const CategoryManagementModal = ({ isOpen, onClose, userId }) => {
+  const confirm = useConfirm();
   const { categories: allCategories, createCategory, updateCategory, deleteCategory, isLoading } = useCategories();
   
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -79,9 +81,13 @@ const CategoryManagementModal = ({ isOpen, onClose, userId }) => {
       return;
     }
     
-    if (!window.confirm(`Are you sure you want to delete the category "${category.name}"? This will affect existing transactions.`)) {
-      return;
-    }
+    const confirmed = await confirm({
+      title: `Delete "${category.name}"?`,
+      message: 'This will affect existing transactions in this category.',
+      confirmLabel: 'Delete category',
+      destructive: true,
+    });
+    if (!confirmed) return;
 
     try {
       await deleteCategory(category._id);

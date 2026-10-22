@@ -11,6 +11,7 @@ import ExpensesContent from '../expenses/ExpensesContent';
 import AnalyticsContent from '../analytics/AnalyticsContent';
 import BudgetsContent from '../budgets/BudgetsContent';
 import SettingsContent from '../settings/SettingsContent';
+import ConnectionErrorBanner from '../common/ConnectionErrorBanner';
 
 // Inner component that has access to notification context
 const DashboardInner = () => {
@@ -35,6 +36,7 @@ const DashboardInner = () => {
 
   const {
     transactions,
+    error: dataError,
     refreshData
   } = useDashboardData();
 
@@ -176,6 +178,7 @@ const DashboardInner = () => {
 
         {/* Main Content Area */}
         <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50 dark:bg-gray-900/50">
+          {dataError && <ConnectionErrorBanner onRetry={refreshData} />}
           <Routes>
             <Route index element={<DashboardContent onDataChange={refreshData} />} />
 

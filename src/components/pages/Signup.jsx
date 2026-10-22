@@ -10,6 +10,7 @@ import PasswordInput from "../common/PasswordInput";
 import GoogleAuthButton from "../auth/GoogleAuthButton";
 import getPasswordStrength from "../../utils/passwordUtils";
 import { API_BASE_URL } from '../../services/apiService';
+import SlowServerNotice from '../common/SlowServerNotice';
 
 // Validation schema with currency
 const schema = yup.object({
@@ -449,6 +450,7 @@ function Signup() {
                 "Sign Up"
               )}
             </button>
+            <SlowServerNotice active={isSubmitting} />
           </form>
 
               <div className="mt-6 text-center">
