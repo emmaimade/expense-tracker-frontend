@@ -3,6 +3,7 @@ import { X, Plus } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useCategories } from '../hooks/useCategories';
 import { usePreferencesContext } from '../../../context/PreferencesContext';
+import { dateUtils } from '../../../utils/dateUtils';
 
 const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
   const { categories: allCategories, createCategory, refreshCategories } = useCategories();
@@ -23,7 +24,7 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
     name: '',
     category: '',
     amount: '',
-    date: new Date().toISOString().split('T')[0],
+    date: dateUtils.toLocalDateString(),
   });
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -42,7 +43,7 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
       name: '',
       category: '',
       amount: '',
-      date: new Date().toISOString().split('T')[0],
+      date: dateUtils.toLocalDateString(),
     });
     onClose();
   };
@@ -243,7 +244,7 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
               type="date"
               required
               value={newExpense.date}
-              max={new Date().toISOString().split('T')[0]}
+              max={dateUtils.toLocalDateString()}
               onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               disabled={loading}

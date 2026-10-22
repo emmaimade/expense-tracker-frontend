@@ -1,4 +1,5 @@
 ﻿import { useState, useMemo, useCallback } from 'react';
+import { dateUtils } from '../../../utils/dateUtils';
 
 // Helper function to get the start of the day for filtering
 const getStartOfDay = (date) => {
@@ -212,8 +213,8 @@ export const useExpenseData = (recentTransactions) => {
     }
 
     const newRange = {
-      startDate: typeof startDate === 'string' ? startDate : startDate.toISOString().split('T')[0],
-      endDate: typeof endDate === 'string' ? endDate : endDate.toISOString().split('T')[0],
+      startDate: typeof startDate === 'string' ? startDate : dateUtils.toLocalDateString(startDate),
+      endDate: typeof endDate === 'string' ? endDate : dateUtils.toLocalDateString(endDate),
     };
 
     setCustomDateRange(newRange);
@@ -245,8 +246,8 @@ export const useExpenseData = (recentTransactions) => {
     }
 
     const newRange = {
-      startDate: startDate.toISOString().split("T")[0],
-      endDate: endDate.toISOString().split("T")[0],
+      startDate: dateUtils.toLocalDateString(startDate),
+      endDate: dateUtils.toLocalDateString(endDate),
     };
     
     setCustomDateRange(newRange);

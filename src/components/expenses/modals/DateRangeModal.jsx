@@ -1,4 +1,5 @@
 import { X } from 'lucide-react';
+import { dateUtils } from '../../../utils/dateUtils';
 
 const DateRangeModal = ({ 
   isOpen, 
@@ -47,8 +48,8 @@ const DateRangeModal = ({
 
     // Update the date range state immediately when quick range is selected
     const dateRangeUpdate = {
-       startDate: startDate.toISOString().split("T")[0],
-       endDate: endDate.toISOString().split("T")[0],
+       startDate: dateUtils.toLocalDateString(startDate),
+       endDate: dateUtils.toLocalDateString(endDate),
     };
 
     setCustomDateRange(dateRangeUpdate);
@@ -60,7 +61,7 @@ const DateRangeModal = ({
 
   const handleStartDateChange = (e) => {
     const newStartDate = e.target.value;
-    const currentEndDate = customDateRange.endDate || new Date().toISOString().split('T')[0];
+    const currentEndDate = customDateRange.endDate || dateUtils.toLocalDateString();
     
     if (new Date(newStartDate) <= new Date(currentEndDate)) {
       setCustomDateRange({ 
@@ -75,7 +76,7 @@ const DateRangeModal = ({
 
   const handleEndDateChange = (e) => {
     const newEndDate = e.target.value;
-    const currentStartDate = customDateRange.startDate || new Date().toISOString().split('T')[0];
+    const currentStartDate = customDateRange.startDate || dateUtils.toLocalDateString();
     
     if (new Date(currentStartDate) <= new Date(newEndDate)) {
       setCustomDateRange({ 
