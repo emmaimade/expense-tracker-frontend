@@ -20,7 +20,7 @@ const useMonthlyResetNotification = () => {
     }
 
     localStorage.setItem(storageKey, currentMonth);
-  }, []); // runs once on mount
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- runs once on mount
 };
 
 export default useMonthlyResetNotification;

@@ -66,7 +66,8 @@ export const expenseService = {
    * @async
    * @param {string} rangeType - The range preset identifier (e.g., "weekly", "monthly", "yearly"), or "custom" to use explicit dates.
    * @param {{ startDate: string, endDate: string } | null} customDateRange - Required when `rangeType` is "custom". Start and end dates in ISO 8601 format.
-   * @returns {Promise<Array<object>>} Resolved array of normalized transaction objects, or an empty array on error or no results.
+   * @returns {Promise<Array<object>>} Resolved array of normalized transaction objects (empty if there are none).
+   * @throws {Error} If the request fails, so callers can show an error instead of an empty state.
    */
   async getTransactionsByDateRange(rangeType, customDateRange) {
     try {
@@ -92,7 +93,7 @@ export const expenseService = {
 
     } catch (error) {
       console.error('Error fetching transactions:', error);
-      return [];
+      throw error;
     }
   },
 

@@ -1,28 +1,38 @@
+import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { QueryProvider } from './providers/QueryProvider';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { PreferencesProvider, usePreferencesContext } from './context/PreferencesContext';
+import { ConfirmProvider } from './context/ConfirmContext';
+import { API_BASE_URL } from './services/apiService';
 import LandingPage from './components/pages/LandingPage';
-import Login from './components/pages/Login';
-import Signup from './components/pages/Signup';
-import Dashboard from './components/pages/Dashboard';
-import ForgotPassword from './components/pages/ForgotPassword';
-import ResetPassword from './components/pages/ResetPassword';
-import AuthCallback from './components/auth/AuthCallback';
-import SupportPage from './components/support/SupportPage';
+
+// Code-split everything except the landing page, so first-time visitors
+// don't download the dashboard, charts and MUI up front
+const Login = lazy(() => import('./components/pages/Login'));
+const Signup = lazy(() => import('./components/pages/Signup'));
+const Dashboard = lazy(() => import('./components/pages/Dashboard'));
+const ForgotPassword = lazy(() => import('./components/pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./components/pages/ResetPassword'));
+const AuthCallback = lazy(() => import('./components/auth/AuthCallback'));
+const SupportPage = lazy(() => import('./components/support/SupportPage'));
+
+function PageSpinner() {
+  return (
+    <div className="flex h-screen items-center justify-center bg-white dark:bg-gray-900">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+    </div>
+  );
+}
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-white dark:bg-gray-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-      </div>
-    );
+    return <PageSpinner />;
   }
 
   return user ? children : <Navigate to="/login" replace />;
@@ -52,29 +62,38 @@ function ThemedToastContainer() {
 // App content with preferences
 function AppContent() {
   const { user } = useAuth();
-  
+
+  // The API host sleeps when idle - start waking it while the user reads the page
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/health`).catch(() => {});
+  }, []);
+
   return (
     <PreferencesProvider userId={user?.id}>
-      <Router>
-        <Routes>
-          <Route path="/" element={<LandingPage />}/>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Signup />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/auth/callback" element={<AuthCallback />} />
-           <Route path="/support" element={<SupportPage />} />
-          <Route
-            path="/dashboard/*"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
-      </Router>
+      <ConfirmProvider>
+        <Router>
+          <Suspense fallback={<PageSpinner />}>
+            <Routes>
+              <Route path="/" element={<LandingPage />}/>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Signup />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="/support" element={<SupportPage />} />
+              <Route
+                path="/dashboard/*"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+          </Suspense>
+        </Router>
+      </ConfirmProvider>
 
       <ThemedToastContainer />
     </PreferencesProvider>

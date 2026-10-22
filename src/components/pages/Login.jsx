@@ -11,6 +11,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import ErrorIcon from '@mui/icons-material/Error';
 import GoogleAuthButton from '../auth/GoogleAuthButton';
 import { API_BASE_URL } from '../../services/apiService';
+import SlowServerNotice from '../common/SlowServerNotice';
 
 // Validation schema
 const schema = yup.object({
@@ -273,6 +274,7 @@ function Login() {
                 "Sign in"
               )}
             </button>
+            <SlowServerNotice active={isLoading} />
           </form>
 
               <div className="mt-6 text-center">
