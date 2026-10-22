@@ -62,8 +62,6 @@ export const expenseService = {
   /**
    * Retrieves and normalizes expense transactions within a specified date range.
    * Supports predefined range types (e.g., "weekly", "monthly") and custom date ranges.
-   * Returns an empty array for 404 "no expenses found" responses, treating them as
-   * a valid empty state rather than an error condition.
    *
    * @async
    * @param {string} rangeType - The range preset identifier (e.g., "weekly", "monthly", "yearly"), or "custom" to use explicit dates.
@@ -93,10 +91,6 @@ export const expenseService = {
       })) || [];
 
     } catch (error) {
-      if (error.status === 404 && (error.message === 'No expenses found' || error.message?.includes('No expenses'))) {
-        return [];
-      }
-
       console.error('Error fetching transactions:', error);
       return [];
     }

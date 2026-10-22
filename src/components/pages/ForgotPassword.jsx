@@ -7,6 +7,7 @@ import EmailIcon from '@mui/icons-material/Email';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ErrorIcon from '@mui/icons-material/Error';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { API_BASE_URL } from '../../services/apiService';
 
 const schema = yup.object({
   email: yup.string().required('Email is required').email('Email is invalid'),
@@ -30,7 +31,7 @@ function ForgotPassword() {
 
     try {
       const response = await fetch(
-        'https://expense-tracker-api-hvss.onrender.com/user/forgot-password',
+        `${API_BASE_URL}/user/forgot-password`,
         {
           method: 'POST',
           headers: {

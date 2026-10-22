@@ -9,6 +9,7 @@ import FormInput from "../common/FormInput";
 import PasswordInput from "../common/PasswordInput";
 import GoogleAuthButton from "../auth/GoogleAuthButton";
 import getPasswordStrength from "../../utils/passwordUtils";
+import { API_BASE_URL } from '../../services/apiService';
 
 // Validation schema with currency
 const schema = yup.object({
@@ -97,7 +98,7 @@ function Signup() {
     const detectCurrency = async () => {
       try {
         const response = await fetch(
-          'https://expense-tracker-api-hvss.onrender.com/user/detect-currency'
+          `${API_BASE_URL}/user/detect-currency`
         );
         
         if (response.ok) {
@@ -129,7 +130,7 @@ function Signup() {
 
     try {
       const response = await fetch(
-        "https://expense-tracker-api-hvss.onrender.com/user/register",
+        `${API_BASE_URL}/user/register`,
         {
           method: "POST",
           headers: {
@@ -153,20 +154,10 @@ function Signup() {
       }
 
 
-      // Properly structure the user object for AuthContext
+      // Same shape as login and /user/me
       const userObject = {
-        // Use the ID from response (could be _id or id)
-        id: resData.user?.id || resData.user?._id,
-        // Full name for display
-        name: `${data.firstName.trim()} ${data.lastName.trim()}`,
-        // Email from response (or use submitted email)
-        email: resData.user?.email || data.email.trim().toLowerCase(),
-        // Currency from response (backend confirmed)
-        currency: resData.user?.currency || data.currency,
+        ...resData.user,
         isFirstLogin: true,
-        firstLoginAt: resData.user?.firstLoginAt,
-        lastLoginAt: resData.user?.lastLoginAt,
-        // Token is REQUIRED for authenticated requests
         token: resData.token,
       };
 
@@ -199,7 +190,7 @@ function Signup() {
   };
 
   const handleGoogleSignup = () => {
-    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
+    window.location.href = `${API_BASE_URL}/auth/google`;
   };
 
   return (

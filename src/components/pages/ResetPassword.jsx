@@ -8,6 +8,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import ErrorIcon from '@mui/icons-material/Error';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { API_BASE_URL } from '../../services/apiService';
 
 const schema = yup.object({
   password: yup
@@ -66,7 +67,7 @@ function ResetPassword() {
 
     try {
       const response = await fetch(
-        `https://expense-tracker-api-hvss.onrender.com/user/reset-password?token=${token}`,
+        `${API_BASE_URL}/user/reset-password?token=${token}`,
         {
           method: 'POST',
           headers: {

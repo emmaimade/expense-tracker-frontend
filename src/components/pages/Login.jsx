@@ -10,6 +10,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import ErrorIcon from '@mui/icons-material/Error';
 import GoogleAuthButton from '../auth/GoogleAuthButton';
+import { API_BASE_URL } from '../../services/apiService';
 
 // Validation schema
 const schema = yup.object({
@@ -49,7 +50,7 @@ function Login() {
 
     try {
       const response = await fetch(
-        "https://expense-tracker-api-hvss.onrender.com/user/login",
+        `${API_BASE_URL}/user/login`,
         {
           method: "POST",
           headers: {
@@ -89,7 +90,7 @@ function Login() {
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
   const handleGoogleLogin = () => {
-    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
+    window.location.href = `${API_BASE_URL}/auth/google`;
   };
 
   return (
