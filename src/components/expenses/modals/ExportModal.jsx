@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import { dateUtils } from '../../../utils/dateUtils';
 
 const ExportModal = ({ isOpen, onClose, onExport, loading, error, setError }) => {
   const [exportOptions, setExportOptions] = useState({
@@ -43,8 +44,8 @@ const ExportModal = ({ isOpen, onClose, onExport, loading, error, setError }) =>
     }
 
     const dateRangeUpdate = {
-      startDate: startDate.toISOString().split('T')[0],
-      endDate: endDate.toISOString().split('T')[0]
+      startDate: dateUtils.toLocalDateString(startDate),
+      endDate: dateUtils.toLocalDateString(endDate)
     };
 
     setExportOptions(prev => ({

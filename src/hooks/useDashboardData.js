@@ -3,6 +3,7 @@ import { useQueries } from '@tanstack/react-query';
 import { expenseService } from '../services/expenseService';
 import { budgetService } from '../services/budgetService';
 import { usePreferencesContext } from '../context/PreferencesContext';
+import { dateUtils } from '../utils/dateUtils';
 
 /**
  * Unified dashboard data hook - fetches all data in parallel using TanStack Query
@@ -112,8 +113,8 @@ const getPreviousMonthDateRange = () => {
   const previousMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
 
   return {
-    startDate: previousMonthStart.toISOString().split('T')[0],
-    endDate: previousMonthEnd.toISOString().split('T')[0],
+    startDate: dateUtils.toLocalDateString(previousMonthStart),
+    endDate: dateUtils.toLocalDateString(previousMonthEnd),
   };
 };
 

@@ -3,6 +3,7 @@ import { X, Plus } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useCategories } from '../hooks/useCategories';
 import { usePreferencesContext } from '../../../context/PreferencesContext';
+import { dateUtils } from '../../../utils/dateUtils';
 
 const EditExpenseModal = ({ isOpen, onClose, onSubmit, transaction, loading, userId }) => {
   const { categories: allCategories, createCategory, refreshCategories } = useCategories();
@@ -23,7 +24,7 @@ const EditExpenseModal = ({ isOpen, onClose, onSubmit, transaction, loading, use
     name: '',
     category: '',
     amount: '',
-    date: new Date().toISOString().split('T')[0],
+    date: dateUtils.toLocalDateString(),
   });
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -35,7 +36,7 @@ const EditExpenseModal = ({ isOpen, onClose, onSubmit, transaction, loading, use
         name: transaction.name || '',
         category: transaction.category?._id || transaction.category || '',
         amount: Math.abs(transaction.amount).toString() || '',
-        date: transaction.date ? transaction.date.split('T')[0] : new Date().toISOString().split('T')[0],
+        date: transaction.date ? transaction.date.split('T')[0] : dateUtils.toLocalDateString(),
       });
     }
   }, [transaction]);
@@ -258,7 +259,7 @@ const EditExpenseModal = ({ isOpen, onClose, onSubmit, transaction, loading, use
               type="date"
               required
               value={expenseData.date}
-              max={new Date().toISOString().split('T')[0]}
+              max={dateUtils.toLocalDateString()}
               onChange={(e) => setExpenseData({ ...expenseData, date: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               disabled={loading}
