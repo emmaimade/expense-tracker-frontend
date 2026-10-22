@@ -1,6 +1,7 @@
 ﻿import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { API_BASE_URL } from '../../services/apiService';
 
 function AuthCallback() {
   const [searchParams] = useSearchParams();
@@ -15,7 +16,7 @@ function AuthCallback() {
       return;
     }
 
-    fetch(`${import.meta.env.VITE_API_URL}/user/me`, {
+    fetch(`${API_BASE_URL}/user/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -26,13 +27,8 @@ function AuthCallback() {
               !!data.user?.lastLoginAt &&
               data.user.firstLoginAt === data.user.lastLoginAt;
 
-            // Normalize user object to match regular login structure
-            // Regular login returns `name`, but /user/me returns `fullName`/`firstName`/`lastName`
             const normalizedUser = {
               ...data.user,
-              name: data.user.name
-                || data.user.fullName
-                || `${data.user.firstName} ${data.user.lastName}`,
               isFirstLogin,
               token,
             };

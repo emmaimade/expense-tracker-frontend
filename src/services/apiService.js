@@ -1,4 +1,4 @@
-﻿export const API_BASE_URL = 'https://expense-tracker-api-hvss.onrender.com';
+﻿export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://expense-tracker-api-hvss.onrender.com';
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('authToken');
