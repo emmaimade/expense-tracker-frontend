@@ -174,7 +174,7 @@ function Signup() {
       // Login user (this updates AuthContext AND localStorage via userService)
       login(userObject);
 
-      setSuccessMessage('Account created successfully! Redirecting...');
+      setSuccessMessage(`Account created! We sent a confirmation link to ${userObject.email}. Redirecting...`);
       reset();
       
       // Wait a bit for state to update, then redirect
