@@ -174,7 +174,7 @@ function Signup() {
       // Login user (this updates AuthContext AND localStorage via userService)
       login(userObject);
 
-      setSuccessMessage('Account created successfully! Redirecting...');
+      setSuccessMessage(`Account created! We sent a confirmation link to ${userObject.email}. Redirecting...`);
       reset();
       
       // Wait a bit for state to update, then redirect
@@ -340,7 +340,7 @@ function Signup() {
               {suggestedCurrency && !isDetecting && (
                 <div className="mb-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-sm text-blue-800">
-                    💡 <strong>Suggested:</strong> {suggestedCurrency.code} (
+                    <strong>Suggested:</strong> {suggestedCurrency.code} (
                     {suggestedCurrency.symbol})
                   </p>
                   <p className="text-xs text-blue-600 mt-1">
@@ -377,7 +377,7 @@ function Signup() {
                   {suggestedCurrency && (
                     <>
                       <option value={suggestedCurrency.code}>
-                        ✨ {suggestedCurrency.code} -{" "}
+                        {suggestedCurrency.code} -{" "}
                         {
                           CURRENCIES.find(
                             (c) => c.code === suggestedCurrency.code,

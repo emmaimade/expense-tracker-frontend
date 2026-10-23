@@ -16,6 +16,7 @@ const Signup = lazy(() => import('./components/pages/Signup'));
 const Dashboard = lazy(() => import('./components/pages/Dashboard'));
 const ForgotPassword = lazy(() => import('./components/pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./components/pages/ResetPassword'));
+const VerifyEmail = lazy(() => import('./components/pages/VerifyEmail'));
 const AuthCallback = lazy(() => import('./components/auth/AuthCallback'));
 const SupportPage = lazy(() => import('./components/support/SupportPage'));
 
@@ -79,6 +80,7 @@ function AppContent() {
               <Route path="/register" element={<Signup />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/support" element={<SupportPage />} />
               <Route
