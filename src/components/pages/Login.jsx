@@ -22,7 +22,7 @@ const schema = yup.object({
   password: yup
     .string()
     .required('Password is required')
-    .min(8, 'Password must be at least 8 characters long'),
+    .min(6, 'Password must be at least 6 characters long'),
 }).required();
 
 function Login() {
@@ -31,7 +31,6 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState('');
-  const [showEmailForm, setShowEmailForm] = useState(false);
 
   const {
     register,
@@ -102,46 +101,16 @@ function Login() {
             <h1 className="text-2xl font-bold text-center text-gray-900">Welcome Back!</h1>
           </div>
 
-          {!showEmailForm ? (
-            <div className="space-y-3">
-              <GoogleAuthButton onClick={handleGoogleLogin} disabled={isLoading} />
-              <div className="relative my-4">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-3 bg-white text-gray-400">or</span>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowEmailForm(true)}
-                className="w-full flex justify-center items-center gap-2 py-2.5 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
-              >
-                <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                Continue with Email
-              </button>
-              <p className="text-center text-sm text-gray-500 mt-4">
-                Don't have an account?{" "}
-                <button type="button" className="font-medium text-indigo-600 hover:text-indigo-500" onClick={() => navigate("/register")}>
-                  Sign up
-                </button>
-              </p>
+          <GoogleAuthButton onClick={handleGoogleLogin} disabled={isLoading} />
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200" />
             </div>
-          ) : (
-            <div>
-              <button
-                type="button"
-                onClick={() => setShowEmailForm(false)}
-                className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6 transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                </svg>
-                Back
-              </button>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-3 bg-white text-gray-400">or continue with email</span>
+            </div>
+          </div>
 
           {serverError && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-center gap-2 text-red-700 text-sm">
@@ -210,6 +179,7 @@ function Login() {
                     onClick={togglePasswordVisibility}
                     className="text-gray-400 hover:text-gray-500 focus:outline-none"
                     disabled={isLoading}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? (
                       <VisibilityOffIcon className="h-5 w-5" />
@@ -277,16 +247,14 @@ function Login() {
             <SlowServerNotice active={isLoading} />
           </form>
 
-              <div className="mt-6 text-center">
-                <p className="text-sm text-gray-600">
-                  Don't have an account?{" "}
-                  <button type="button" className="font-medium text-indigo-600 hover:text-indigo-500" onClick={() => navigate("/register")} disabled={isLoading}>
-                    Sign up
-                  </button>
-                </p>
-              </div>
-            </div>
-          )}
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              Don't have an account?{" "}
+              <button type="button" className="font-medium text-indigo-600 hover:text-indigo-500" onClick={() => navigate("/register")} disabled={isLoading}>
+                Sign up
+              </button>
+            </p>
+          </div>
       </div>
     </div>
   );
