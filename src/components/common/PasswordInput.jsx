@@ -1,7 +1,5 @@
 import { useState } from "react";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-import ErrorIcon from "@mui/icons-material/Error";
+import { CircleAlert, Eye, EyeOff } from 'lucide-react';
 import { PasswordStrengthIndicator } from "./PasswordStrengthIndicator";
 
 export const PasswordInput = ({ 
@@ -55,21 +53,19 @@ export const PasswordInput = ({
           aria-label={showPassword ? "Hide password" : "Show password"}
         >
           {showPassword ? (
-            <VisibilityOffIcon
-              className="text-gray-400 hover:text-gray-500"
-              fontSize="small"
+            <EyeOff
+              className="text-gray-400 hover:text-gray-500 w-5 h-5"
             />
           ) : (
-            <VisibilityIcon
-              className="text-gray-400 hover:text-gray-500"
-              fontSize="small"
+            <Eye
+              className="text-gray-400 hover:text-gray-500 w-5 h-5"
             />
           )}
         </button>
       </div>
       {error && (
         <p id={`${name}-error`} className="mt-1 text-sm text-red-600 flex items-center" role="alert" aria-live="assertive">
-          <ErrorIcon className="mr-1" fontSize="small" />
+          <CircleAlert className="mr-1 w-5 h-5" />
           {error}
         </p>
       )}

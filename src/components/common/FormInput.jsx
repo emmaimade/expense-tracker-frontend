@@ -1,4 +1,4 @@
-import ErrorIcon from "@mui/icons-material/Error";
+import { CircleAlert } from 'lucide-react';
 
 export const FormInput = ({ 
   label, 
@@ -38,7 +38,7 @@ export const FormInput = ({
       />
       {error && (
         <p id={`${name}-error`} className="mt-1 text-sm text-red-600 flex items-center" role="alert" aria-live="assertive">
-          <ErrorIcon className="mr-1" fontSize="small" />
+          <CircleAlert className="mr-1 w-5 h-5" />
           {error}
         </p>
       )}

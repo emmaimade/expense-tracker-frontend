@@ -3,11 +3,7 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import LockIcon from '@mui/icons-material/Lock';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import ErrorIcon from '@mui/icons-material/Error';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { CircleAlert, CircleCheck, Eye, EyeOff, Lock } from 'lucide-react';
 import { API_BASE_URL } from '../../services/apiService';
 
 const schema = yup.object({
@@ -44,7 +40,7 @@ function ResetPassword() {
       <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
           <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 text-center">
-            <ErrorIcon className="text-red-500 mb-3" style={{ fontSize: 48 }} />
+            <CircleAlert className="text-red-500 mb-3 w-12 h-12" />
             <h2 className="text-lg font-semibold text-gray-900 mb-2">Invalid Reset Link</h2>
             <p className="text-sm text-gray-500 mb-6">
               This password reset link is missing or invalid. Please request a new one.
@@ -109,7 +105,7 @@ function ResetPassword() {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           {serverError && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-center gap-2 text-red-700 text-sm">
-              <ErrorIcon fontSize="small" />
+              <CircleAlert className="w-5 h-5" />
               {serverError}
             </div>
           )}
@@ -117,7 +113,7 @@ function ResetPassword() {
           {success ? (
             <div className="text-center">
               <div className="flex justify-center mb-4">
-                <CheckCircleIcon className="text-green-500" style={{ fontSize: 48 }} />
+                <CircleCheck className="text-green-500 w-12 h-12" />
               </div>
               <p className="text-gray-800 font-medium mb-2">Password Reset!</p>
               <p className="text-sm text-gray-500 mb-6">
@@ -139,7 +135,7 @@ function ResetPassword() {
                 </label>
                 <div className="mt-1 relative rounded-md shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <LockIcon className="h-5 w-5 text-gray-400" />
+                    <Lock className="h-5 w-5 text-gray-400" />
                   </div>
                   <input
                     id="password"
@@ -152,7 +148,7 @@ function ResetPassword() {
                   />
                   <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-gray-400 hover:text-gray-500" disabled={isLoading}>
-                      {showPassword ? <VisibilityOffIcon className="h-5 w-5" /> : <VisibilityIcon className="h-5 w-5" />}
+                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                     </button>
                   </div>
                 </div>
@@ -166,7 +162,7 @@ function ResetPassword() {
                 </label>
                 <div className="mt-1 relative rounded-md shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <LockIcon className="h-5 w-5 text-gray-400" />
+                    <Lock className="h-5 w-5 text-gray-400" />
                   </div>
                   <input
                     id="confirmPassword"
@@ -179,7 +175,7 @@ function ResetPassword() {
                   />
                   <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
                     <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="text-gray-400 hover:text-gray-500" disabled={isLoading}>
-                      {showConfirm ? <VisibilityOffIcon className="h-5 w-5" /> : <VisibilityIcon className="h-5 w-5" />}
+                      {showConfirm ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                     </button>
                   </div>
                 </div>
