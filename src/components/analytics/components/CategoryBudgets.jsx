@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import { usePreferencesContext } from '../../../context/PreferencesContext';
 import Card from '../../../components/common/Card';
 
@@ -184,18 +183,6 @@ const CategoryBudgets = ({ categoryData = [], categoryBudgets = [], isLoading = 
       )}
     </Card>
   );
-};
-
-CategoryBudgets.propTypes = {
-  categoryData: PropTypes.arrayOf(PropTypes.shape({ name: PropTypes.string, value: PropTypes.number })),
-  categoryBudgets: PropTypes.arrayOf(PropTypes.shape({
-    _id: PropTypes.string, id: PropTypes.string,
-    categoryId: PropTypes.shape({ name: PropTypes.string }),
-    category: PropTypes.shape({ name: PropTypes.string }),
-    amount: PropTypes.number, budget: PropTypes.number,
-  })),
-  isLoading: PropTypes.bool,
-  setActiveTab: PropTypes.func,
 };
 
 export default CategoryBudgets;

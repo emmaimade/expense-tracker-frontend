@@ -4,11 +4,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import EmailIcon from '@mui/icons-material/Email';
-import LockIcon from '@mui/icons-material/Lock';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import ErrorIcon from '@mui/icons-material/Error';
+import { CircleAlert, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import GoogleAuthButton from '../auth/GoogleAuthButton';
 import { API_BASE_URL } from '../../services/apiService';
 import SlowServerNotice from '../common/SlowServerNotice';
@@ -114,7 +110,7 @@ function Login() {
 
           {serverError && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-center gap-2 text-red-700 text-sm">
-              <ErrorIcon className="h-4 w-4" />
+              <CircleAlert className="h-4 w-4" />
               {serverError}
             </div>
           )}
@@ -131,7 +127,7 @@ function Login() {
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <EmailIcon className="h-5 w-5 text-gray-400" />
+                  <Mail className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
                   id="email"
@@ -161,7 +157,7 @@ function Login() {
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <LockIcon className="h-5 w-5 text-gray-400" />
+                  <Lock className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
                   id="password"
@@ -182,9 +178,9 @@ function Login() {
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? (
-                      <VisibilityOffIcon className="h-5 w-5" />
+                      <EyeOff className="h-5 w-5" />
                     ) : (
-                      <VisibilityIcon className="h-5 w-5" />
+                      <Eye className="h-5 w-5" />
                     )}
                   </button>
                 </div>

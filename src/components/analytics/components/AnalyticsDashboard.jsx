@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { useChartData } from '../hooks/useChartData';
 import { usePreferencesContext } from '../../../context/PreferencesContext';
@@ -43,12 +42,6 @@ const CategoryLegend = ({ categories, total, colors, formatCurrency }) => {
   );
 };
 
-CategoryLegend.propTypes = {
-  categories: PropTypes.arrayOf(PropTypes.shape({ name: PropTypes.string.isRequired, value: PropTypes.number.isRequired })).isRequired,
-  total: PropTypes.number.isRequired,
-  colors: PropTypes.arrayOf(PropTypes.string).isRequired,
-};
-
 // ────── Stats Grid Component ──────
 const StatsGrid = ({ avg, max, min, formatCurrency }) => (
   <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3 gap-3">
@@ -66,8 +59,6 @@ const StatsGrid = ({ avg, max, min, formatCurrency }) => (
     </div>
   </div>
 );
-
-StatsGrid.propTypes = { avg: PropTypes.number.isRequired, max: PropTypes.number.isRequired, min: PropTypes.number.isRequired };
 
 // ────── Main Component ──────
 const AnalyticsDashboard = ({ categoryData = [], monthlyData = [], timeRange = '6months' }) => {
@@ -169,12 +160,6 @@ const AnalyticsDashboard = ({ categoryData = [], monthlyData = [], timeRange = '
       </Card>
     </div>
   );
-};
-
-AnalyticsDashboard.propTypes = {
-  categoryData: PropTypes.arrayOf(PropTypes.shape({ name: PropTypes.string, value: PropTypes.number })),
-  monthlyData: PropTypes.arrayOf(PropTypes.shape({ month: PropTypes.string, amount: PropTypes.number })),
-  timeRange: PropTypes.oneOf(['3months', '6months', '1year']),
 };
 
 export default AnalyticsDashboard;

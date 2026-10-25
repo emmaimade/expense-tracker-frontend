@@ -3,10 +3,7 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useNavigate } from 'react-router-dom';
-import EmailIcon from '@mui/icons-material/Email';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ErrorIcon from '@mui/icons-material/Error';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { ArrowLeft, CircleAlert, CircleCheck, Mail } from 'lucide-react';
 import { API_BASE_URL } from '../../services/apiService';
 
 const schema = yup.object({
@@ -70,7 +67,7 @@ function ForgotPassword() {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           {serverError && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-center gap-2 text-red-700 text-sm">
-              <ErrorIcon fontSize="small" />
+              <CircleAlert className="w-5 h-5" />
               {serverError}
             </div>
           )}
@@ -78,7 +75,7 @@ function ForgotPassword() {
           {successMessage ? (
             <div className="text-center">
               <div className="flex justify-center mb-4">
-                <CheckCircleIcon className="text-green-500" style={{ fontSize: 48 }} />
+                <CircleCheck className="text-green-500 w-12 h-12" />
               </div>
               <p className="text-gray-800 font-medium mb-2">Check your inbox</p>
               <p className="text-sm text-gray-500 mb-6">{successMessage}</p>
@@ -97,7 +94,7 @@ function ForgotPassword() {
                 </label>
                 <div className="mt-1 relative rounded-md shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <EmailIcon className="h-5 w-5 text-gray-400" />
+                    <Mail className="h-5 w-5 text-gray-400" />
                   </div>
                   <input
                     id="email"
@@ -145,7 +142,7 @@ function ForgotPassword() {
                 disabled={isLoading}
                 className="inline-flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-500 font-medium"
               >
-                <ArrowBackIcon fontSize="small" />
+                <ArrowLeft className="w-5 h-5" />
                 Back to Sign In
               </button>
             </div>

@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import ErrorIcon from '@mui/icons-material/Error';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { CircleAlert, CircleCheck } from 'lucide-react';
 import { API_BASE_URL } from '../../services/apiService';
 import { useAuth } from '../../context/AuthContext';
 import SlowServerNotice from '../common/SlowServerNotice';
@@ -70,7 +69,7 @@ function VerifyEmail() {
 
           {status === 'success' && (
             <>
-              <CheckCircleIcon className="text-green-500" style={{ fontSize: 48 }} />
+              <CircleCheck className="text-green-500 w-12 h-12" />
               <p className="text-gray-800 font-medium mt-4 mb-2">Email confirmed!</p>
               <p className="text-sm text-gray-500 mb-6">
                 Thanks for confirming. You'll now receive security alerts and account emails from SpendWise.
@@ -86,7 +85,7 @@ function VerifyEmail() {
 
           {status === 'error' && (
             <>
-              <ErrorIcon className="text-red-500" style={{ fontSize: 48 }} />
+              <CircleAlert className="text-red-500 w-12 h-12" />
               <p className="text-gray-800 font-medium mt-4 mb-2">We couldn't confirm your email</p>
               <p className="text-sm text-gray-500 mb-6">
                 {message} {user
