@@ -2,7 +2,7 @@
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import AlertMessage from "../common/AlertMessage";
 import FormInput from "../common/FormInput";
@@ -419,6 +419,10 @@ function Signup() {
               )}
             </button>
             <SlowServerNotice active={isSubmitting} />
+            <p className="text-center text-xs text-gray-500">
+              By creating an account, you agree to our{' '}
+              <Link to="/privacy" className="text-indigo-600 hover:text-indigo-500 underline">Privacy Policy</Link>.
+            </p>
           </form>
 
           <div className="mt-6 text-center">
