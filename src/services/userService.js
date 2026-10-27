@@ -76,6 +76,21 @@ export const clearUser = () => {
 };
 
 /**
+ * Removes everything this app stored in the browser for a user: session,
+ * preferences and in-app notifications. Used after account deletion.
+ *
+ * @param {string} userId - The deleted user's id.
+ */
+export const clearAllUserData = (userId) => {
+  clearUser();
+  if (userId) {
+    localStorage.removeItem(`preferences_${userId}`);
+    localStorage.removeItem(`notifications_${userId}`);
+  }
+  localStorage.removeItem('spendwise_last_seen_month');
+};
+
+/**
  * Service module for managing the authenticated user's session state.
  * Provides methods for reading, writing, and clearing user data in localStorage.
  */
@@ -84,4 +99,5 @@ export const userService = {
   getUserName,
   setUser,
   clearUser,
+  clearAllUserData,
 };

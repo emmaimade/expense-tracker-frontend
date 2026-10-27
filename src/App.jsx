@@ -10,13 +10,14 @@ import { API_BASE_URL } from './services/apiService';
 import LandingPage from './components/pages/LandingPage';
 
 // Code-split everything except the landing page, so first-time visitors
-// don't download the dashboard, charts and MUI up front
+// don't download the dashboard and charts up front
 const Login = lazy(() => import('./components/pages/Login'));
 const Signup = lazy(() => import('./components/pages/Signup'));
 const Dashboard = lazy(() => import('./components/pages/Dashboard'));
 const ForgotPassword = lazy(() => import('./components/pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./components/pages/ResetPassword'));
 const VerifyEmail = lazy(() => import('./components/pages/VerifyEmail'));
+const PrivacyPolicy = lazy(() => import('./components/pages/PrivacyPolicy'));
 const AuthCallback = lazy(() => import('./components/auth/AuthCallback'));
 const SupportPage = lazy(() => import('./components/support/SupportPage'));
 
@@ -83,6 +84,7 @@ function AppContent() {
               <Route path="/verify-email" element={<VerifyEmail />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/support" element={<SupportPage />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route
                 path="/dashboard/*"
                 element={

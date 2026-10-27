@@ -441,7 +441,6 @@ const LandingPage = () => {
             <div className="sw-footer-col">
               <h4>Legal</h4>
               <Link to="/privacy">Privacy Policy</Link>
-              <Link to="/terms">Terms of Service</Link>
               <a href="/support" style={{ color: "#6b7280", textDecoration: "none", display: "block", marginBottom: 9, fontSize: 13, transition: "color 0.2s" }}>Support</a>
             </div>
           </div>

@@ -96,12 +96,16 @@ export const apiService = {
   /**
    * Performs a DELETE request to the API.
    * @param {string} endpoint - The API path, including /api/v1 prefix if necessary.
+   * @param {object} [data] - Optional JSON body (e.g. a password confirmation).
    * @returns {Promise<void>} A promise that resolves when the deletion is successful.
    */
-  async delete(endpoint) {
+  async delete(endpoint, data) {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` },
+      headers: data
+        ? getAuthHeaders()
+        : { Authorization: `Bearer ${localStorage.getItem("authToken")}` },
+      ...(data && { body: JSON.stringify(data) }),
     });
     await handleApiResponse(response);
     return response.json();

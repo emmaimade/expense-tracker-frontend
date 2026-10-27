@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { CircleAlert, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import GoogleAuthButton from '../auth/GoogleAuthButton';
@@ -23,6 +23,9 @@ const schema = yup.object({
 
 function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // Set by the Delete account flow in Settings
+  const accountDeleted = searchParams.get('deleted') === '1';
   const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -107,6 +110,12 @@ function Login() {
               <span className="px-3 bg-white text-gray-400">or continue with email</span>
             </div>
           </div>
+
+          {accountDeleted && !serverError && (
+            <div role="status" className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md text-green-800 text-sm">
+              Your account and all of its data have been permanently deleted.
+            </div>
+          )}
 
           {serverError && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-center gap-2 text-red-700 text-sm">

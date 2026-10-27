@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useProfile } from './hooks/useProfile';
 import { usePreferencesContext } from '../../context/PreferencesContext';
@@ -8,6 +8,7 @@ import CategoryManagementModal from './modals/CategoryManagementModal';
 import ProfileEditModal from './modals/ProfileEditModal';
 import ChangePasswordModal from './modals/ChangePasswordModal';
 import PreferencesModal from './modals/PreferencesModal';
+import DeleteAccountModal from './modals/DeleteAccountModal';
 import Card from '../common/Card';
 import {
   ProfileInfoSkeleton,
@@ -33,6 +34,7 @@ const SettingsContent = ({ onDataChange }) => {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isPreferencesModalOpen, setIsPreferencesModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   // Update active section when URL query parameter changes
   useEffect(() => {
@@ -206,6 +208,27 @@ const SettingsContent = ({ onDataChange }) => {
                   </div>
                 </div>
               </div>
+
+              {/* Danger Zone */}
+              <div className="rounded-xl border border-red-200 dark:border-red-900/60 p-4 sm:p-6">
+                <h4 className="text-sm font-semibold text-red-700 dark:text-red-400 mb-1">
+                  Delete account
+                </h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  Permanently delete your account and all of your expenses, budgets and categories.
+                  This can't be undone. See our{' '}
+                  <Link to="/privacy" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+                    Privacy Policy
+                  </Link>{' '}
+                  for what we store.
+                </p>
+                <button
+                  onClick={() => setIsDeleteModalOpen(true)}
+                  className="w-full sm:w-auto px-4 py-2 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-colors font-medium dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+                >
+                  Delete account
+                </button>
+              </div>
             </>
           )}
         </div>
@@ -269,6 +292,14 @@ const SettingsContent = ({ onDataChange }) => {
       <ChangePasswordModal
         isOpen={isPasswordModalOpen}
         onClose={() => setIsPasswordModalOpen(false)}
+      />
+      <DeleteAccountModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        // Ask for a password unless the API says this account has none (Google sign-up)
+        hasPassword={profile?.user?.hasPassword !== false}
+        email={profile?.user?.email || user?.email}
+        userId={userId}
       />
       <PreferencesModal
         isOpen={isPreferencesModalOpen}
