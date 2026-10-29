@@ -1,46 +1,38 @@
-﻿import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { API_BASE_URL } from '../../services/apiService';
+import { apiService } from '../../services/apiService';
 
+// Google sends the user back here after signing in. With BASE_URL pointing at
+// the /api proxy, the API has already set the session cookies. Until then the
+// API passes a token in the URL instead, kept as a temporary fallback.
 function AuthCallback() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { login } = useAuth();
+  const handled = useRef(false);
 
   useEffect(() => {
-    const token = searchParams.get('token');
+    if (handled.current) return;
+    handled.current = true;
 
-    if (!token) {
-      navigate('/login?error=google_failed');
-      return;
+    const legacyToken = searchParams.get('token');
+    if (legacyToken) {
+      localStorage.setItem('authToken', legacyToken);
     }
 
-    fetch(`${API_BASE_URL}/user/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-        .then((data) => {
-          if (data.success) {
-            const isFirstLogin =
-              !!data.user?.firstLoginAt &&
-              !!data.user?.lastLoginAt &&
-              data.user.firstLoginAt === data.user.lastLoginAt;
+    apiService.get('/user/me')
+      .then((data) => {
+        if (!data.success) throw new Error('Sign-in failed');
+        const isFirstLogin =
+          !!data.user?.firstLoginAt &&
+          !!data.user?.lastLoginAt &&
+          data.user.firstLoginAt === data.user.lastLoginAt;
 
-            const normalizedUser = {
-              ...data.user,
-              isFirstLogin,
-              token,
-            };
-
-          localStorage.setItem('authToken', token);
-          login(normalizedUser);
-          navigate('/dashboard');
-        } else {
-          navigate('/login?error=google_failed');
-        }
+        login({ ...data.user, isFirstLogin });
+        navigate('/dashboard', { replace: true });
       })
-      .catch(() => navigate('/login?error=google_failed'));
+      .catch(() => navigate('/login?error=google_failed', { replace: true }));
   }, [login, navigate, searchParams]);
 
   return (

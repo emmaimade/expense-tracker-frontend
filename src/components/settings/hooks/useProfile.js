@@ -54,22 +54,12 @@ export const useProfile = () => {
       // Update local profile state
       setProfile({ user: userData });
       
-      // Get current token
-      const currentUser = userService.getCurrentUser();
-      const token = currentUser?.token || localStorage.getItem('authToken');
-      
-      if (!token) {
-        console.error('❌ No token found! User might get logged out.');
-      }
-      
-      // Build complete user object with token
       const completeUserData = {
         id: userData.id || userData._id,
         fullName: userData.fullName || `${userData.firstName} ${userData.lastName}`.trim(),
         firstName: userData.firstName,
         lastName: userData.lastName,
         email: userData.email,
-        token: token,
       };
       
       

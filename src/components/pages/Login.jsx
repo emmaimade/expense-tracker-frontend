@@ -26,6 +26,8 @@ function Login() {
   const [searchParams] = useSearchParams();
   // Set by the Delete account flow in Settings
   const accountDeleted = searchParams.get('deleted') === '1';
+  // Set when a session can't be renewed (see apiService)
+  const sessionExpired = searchParams.get('expired') === '1';
   const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -69,15 +71,11 @@ function Login() {
         throw new Error(resData.message || 'Login failed');
       }
 
-      const userWithToken = {
+      // The API set the session cookies; we only keep the profile
+      login({
         ...resData.user,
         isFirstLogin: resData.isFirstLogin === true,
-        token: resData.token,
-      };
-
-      // Assuming API returns { user: {...}, token: '...' }
-      localStorage.setItem('authToken', resData.token);
-      login(userWithToken);
+      });
       navigate('/dashboard');
     } catch (error) {
       setServerError(error.message || 'An error occurred');
@@ -110,6 +108,12 @@ function Login() {
               <span className="px-3 bg-white text-gray-400">or continue with email</span>
             </div>
           </div>
+
+          {sessionExpired && !serverError && (
+            <div role="status" className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-sm">
+              Your session has ended. Please sign in again.
+            </div>
+          )}
 
           {accountDeleted && !serverError && (
             <div role="status" className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md text-green-800 text-sm">

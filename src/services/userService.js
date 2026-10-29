@@ -2,8 +2,7 @@ const USER_KEY = 'expense-tracker-user';
 
 /**
  * Retrieves the current authenticated user from localStorage.
- * If the parsed user object is missing a token but one exists under the
- * "authToken" key, it is re-attached before returning.
+ * (The session itself lives in httpOnly cookies; this is just the profile.)
  * Clears corrupted storage entries and returns null on parse failure.
  *
  * @returns {object | null} The stored user object, or null if absent or malformed.
@@ -12,13 +11,7 @@ export const getCurrentUser = () => {
   try {
     const raw = localStorage.getItem(USER_KEY);
     if (!raw) return null;
-    const user = JSON.parse(raw);
-
-    if (!user.token) {
-      const token = localStorage.getItem('authToken');
-      if (token) user.token = token;
-    }
-    return user;
+    return JSON.parse(raw);
   } catch (error) {
     console.warn('Invalid user data in localStorage:', error);
     localStorage.removeItem(USER_KEY);
@@ -39,12 +32,10 @@ export const getUserName = () => {
 };
 
 /**
- * Persists the authenticated user object to localStorage.
- * If a token is present on the user object, it is also written to the
- * "authToken" key to keep both storage entries in sync.
+ * Persists the authenticated user's profile to localStorage.
+ * Tokens are never stored here - the session lives in httpOnly cookies.
  *
  * @param {object} userData - The authenticated user object to persist.
- * @param {string} [userData.token] - The user's authentication token, if available.
  * @throws {Error} If `userData` is absent or not a plain object.
  * @throws {Error} Propagates any localStorage write failure to the caller.
  */
@@ -53,11 +44,9 @@ export const setUser = (userData) => {
     throw new Error('Invalid user data');
   }
   try {
-    localStorage.setItem(USER_KEY, JSON.stringify(userData));
-
-    if (userData.token) {
-      localStorage.setItem('authToken', userData.token);
-    }
+    // eslint-disable-next-line no-unused-vars -- drop any token before saving
+    const { token, ...profile } = userData;
+    localStorage.setItem(USER_KEY, JSON.stringify(profile));
   } catch (error) {
     console.error('Failed to save user to localStorage:', error);
     throw error;

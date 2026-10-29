@@ -1,5 +1,6 @@
 ﻿import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { userService } from '../services/userService';
+import { API_BASE_URL } from '../services/apiService';
 
 const AuthContext = createContext();
 
@@ -69,16 +70,15 @@ export const AuthProvider = ({ children }) => {
    * Logout user with cleanup
    */
   const logout = useCallback(() => {
-    try {
-      userService.clearUser();
-      setUser(null);
-      // Use navigate if available, fallback to window
-      if (typeof window !== 'undefined') {
+    // End the session on the server (clears the httpOnly cookies), then locally.
+    // Sign out locally even if the request fails.
+    fetch(`${API_BASE_URL}/user/logout`, { method: 'POST', credentials: 'same-origin' })
+      .catch((error) => console.error('Logout request failed:', error))
+      .finally(() => {
+        userService.clearUser();
+        setUser(null);
         window.location.href = '/login';
-      }
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
+      });
   }, []);
 
   const value = {

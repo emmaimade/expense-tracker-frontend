@@ -154,21 +154,15 @@ function Signup() {
       }
 
 
-      // Same shape as login and /user/me
+      // Same shape as login and /user/me; the API set the session cookies
       const userObject = {
         ...resData.user,
         isFirstLogin: true,
-        token: resData.token,
       };
 
-
-      // Validate that we have required fields
-      if (!userObject.id || !userObject.token) {
-        throw new Error('Invalid response from server - missing user ID or token');
+      if (!userObject.id) {
+        throw new Error('Invalid response from server - missing user ID');
       }
-
-      // Store token in localStorage (for apiService to use)
-      localStorage.setItem('authToken', userObject.token);
 
       // Login user (this updates AuthContext AND localStorage via userService)
       login(userObject);
