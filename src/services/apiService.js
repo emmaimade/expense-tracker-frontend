@@ -1,4 +1,7 @@
-﻿export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://expense-tracker-api-hvss.onrender.com';
+﻿// Requests go to /api on the app's own origin; Vercel (vercel.json) and the
+// Vite dev server (vite.config.js) forward them to the API. Keeping API calls
+// same-origin is what allows secure first-party cookies.
+export const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('authToken');
