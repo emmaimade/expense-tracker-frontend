@@ -1,13 +1,11 @@
 import { useEffect, useRef } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { apiService } from '../../services/apiService';
 
-// Google sends the user back here after signing in. With BASE_URL pointing at
-// the /api proxy, the API has already set the session cookies. Until then the
-// API passes a token in the URL instead, kept as a temporary fallback.
+// Google sends the user back here after signing in; the API has already set
+// the session cookies, so we only need to load the profile.
 function AuthCallback() {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { login } = useAuth();
   const handled = useRef(false);
@@ -15,11 +13,6 @@ function AuthCallback() {
   useEffect(() => {
     if (handled.current) return;
     handled.current = true;
-
-    const legacyToken = searchParams.get('token');
-    if (legacyToken) {
-      localStorage.setItem('authToken', legacyToken);
-    }
 
     apiService.get('/user/me')
       .then((data) => {
@@ -33,7 +26,7 @@ function AuthCallback() {
         navigate('/dashboard', { replace: true });
       })
       .catch(() => navigate('/login?error=google_failed', { replace: true }));
-  }, [login, navigate, searchParams]);
+  }, [login, navigate]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
