@@ -3,14 +3,16 @@
 // same-origin is what allows secure first-party cookies.
 export const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('authToken');
-  if (!token) {
-    throw new Error('Authentication token not found. Please log in again.');
-  }
+// Sessions live in httpOnly cookies the browser sends automatically. Sign-ins
+// from before the switch to cookies stored a token here instead; keep sending it
+// until it expires so those users aren't signed out abruptly.
+const LEGACY_TOKEN_KEY = 'authToken';
+
+const buildHeaders = (hasBody) => {
+  const legacyToken = localStorage.getItem(LEGACY_TOKEN_KEY);
   return {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
+    ...(hasBody && { 'Content-Type': 'application/json' }),
+    ...(legacyToken && { Authorization: `Bearer ${legacyToken}` }),
   };
 };
 
@@ -33,98 +35,117 @@ const handleApiResponse = async (response) => {
   return response;
 };
 
+// One refresh at a time: requests that fail together share the same refresh
+let refreshInFlight = null;
+
+/**
+ * Exchange the refresh cookie for new session cookies.
+ * @returns {Promise<boolean>} true if the session was renewed.
+ */
+export const refreshSession = () => {
+  if (!refreshInFlight) {
+    refreshInFlight = fetch(`${API_BASE_URL}/user/refresh`, { method: 'POST', credentials: 'same-origin' })
+      .then((response) => response.ok)
+      .catch(() => false)
+      .finally(() => {
+        refreshInFlight = null;
+      });
+  }
+  return refreshInFlight;
+};
+
+// The session can't be renewed: clear the local copy of the user and sign in again
+const endExpiredSession = () => {
+  localStorage.removeItem('expense-tracker-user');
+  localStorage.removeItem(LEGACY_TOKEN_KEY);
+  if (!window.location.pathname.startsWith('/login')) {
+    window.location.href = '/login?expired=1';
+  }
+};
+
+/**
+ * Send a request; on 401, renew the session once and retry.
+ * @param {string} endpoint - API path, e.g. "/expense".
+ * @param {{ method?: string, data?: object, blob?: boolean }} [options]
+ */
+const request = async (endpoint, { method = 'GET', data, blob = false } = {}, isRetry = false) => {
+  const hasBody = data !== undefined;
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    method,
+    credentials: 'same-origin',
+    headers: buildHeaders(hasBody),
+    ...(hasBody && { body: JSON.stringify(data) }),
+  });
+
+  if (response.status === 401 && !isRetry) {
+    // An old stored token has expired; the session cookies take over from here
+    localStorage.removeItem(LEGACY_TOKEN_KEY);
+    if (await refreshSession()) {
+      return request(endpoint, { method, data, blob }, true);
+    }
+    endExpiredSession();
+  }
+
+  await handleApiResponse(response);
+  return blob ? response.blob() : response.json();
+};
+
 export const apiService = {
   /**
    * Performs a GET request to the API.
-   * @param {string} endpoint - The API path, including /api/v1 prefix if necessary.
+   * @param {string} endpoint - The API path.
    * @returns {Promise<object>} A promise resolving to the JSON response body.
-   */ 
-  async get(endpoint) {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: "GET",
-      headers: getAuthHeaders(),
-    });
-    await handleApiResponse(response);
-    return response.json();
+   */
+  get(endpoint) {
+    return request(endpoint);
   },
 
   /**
    * Performs a POST request to the API.
-   * @param {string} endpoint - The API path, including /api/v1 prefix if necessary.
+   * @param {string} endpoint - The API path.
    * @param {object} data - The data to send in the request body.
    * @returns {Promise<object>} A promise resolving to the JSON response body.
-   */ 
-  async post(endpoint, data) {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: "POST",
-      headers: getAuthHeaders(),
-      body: JSON.stringify(data),
-    });
-    await handleApiResponse(response);
-    return response.json();
+   */
+  post(endpoint, data) {
+    return request(endpoint, { method: 'POST', data });
   },
 
   /**
    * Performs a PUT request to the API.
-   * @param {string} endpoint - The API path, including /api/v1 prefix if necessary.
+   * @param {string} endpoint - The API path.
    * @param {object} data - The data to send in the request body.
    * @returns {Promise<object>} A promise resolving to the JSON response body.
    */
-  async put(endpoint, data) {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: "PUT",
-      headers: getAuthHeaders(),
-      body: JSON.stringify(data),
-    });
-    await handleApiResponse(response);
-    return response.json();
+  put(endpoint, data) {
+    return request(endpoint, { method: 'PUT', data });
   },
 
   /**
    * Performs a PATCH request to the API.
-   * @param {string} endpoint - The API path, including /api/v1 prefix if necessary.
+   * @param {string} endpoint - The API path.
    * @param {object} data - The data to send in the request body.
    * @returns {Promise<object>} A promise resolving to the JSON response body.
    */
-  async patch(endpoint, data) {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: "PATCH",
-      headers: getAuthHeaders(),
-      body: JSON.stringify(data),
-    });
-    await handleApiResponse(response);
-    return response.json();
+  patch(endpoint, data) {
+    return request(endpoint, { method: 'PATCH', data });
   },
 
   /**
    * Performs a DELETE request to the API.
-   * @param {string} endpoint - The API path, including /api/v1 prefix if necessary.
+   * @param {string} endpoint - The API path.
    * @param {object} [data] - Optional JSON body (e.g. a password confirmation).
-   * @returns {Promise<void>} A promise that resolves when the deletion is successful.
+   * @returns {Promise<object>} A promise resolving to the JSON response body.
    */
-  async delete(endpoint, data) {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: "DELETE",
-      headers: data
-        ? getAuthHeaders()
-        : { Authorization: `Bearer ${localStorage.getItem("authToken")}` },
-      ...(data && { body: JSON.stringify(data) }),
-    });
-    await handleApiResponse(response);
-    return response.json();
+  delete(endpoint, data) {
+    return request(endpoint, { method: 'DELETE', data });
   },
-  
+
   /**
-   * Performs a GET request to the API that expects a Blob response (e.g., for file downloads).
-   * @param {string} endpoint - The API path, including /api/v1 prefix if necessary.
+   * Performs a GET request that expects a file (e.g. an export download).
+   * @param {string} endpoint - The API path.
    * @returns {Promise<Blob>} A promise resolving to the Blob response body.
    */
-  async getBlob(endpoint) {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: "GET",
-      headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` },
-    });
-    await handleApiResponse(response);
-    return response.blob();
+  getBlob(endpoint) {
+    return request(endpoint, { blob: true });
   },
 };
