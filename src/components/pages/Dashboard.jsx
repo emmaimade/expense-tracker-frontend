@@ -118,13 +118,14 @@ const DashboardInner = () => {
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="flex items-center gap-2 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                aria-label={`Account menu for ${user.name}`}
+                aria-haspopup="menu"
+                aria-expanded={isDropdownOpen}
+                title={user.name}
+                className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
               >
                 <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium text-sm">
                   {initials}
-                </div>
-                <div className="hidden sm:block text-left">
-                  <p className="text-sm font-medium leading-none">{user.name}</p>
                 </div>
               </button>
 
