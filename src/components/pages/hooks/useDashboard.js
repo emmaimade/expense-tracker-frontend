@@ -8,7 +8,6 @@ export const useDashboard = () => {
   const { user, logout } = useAuth();
   
   // UI States
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState('');
   
@@ -69,8 +68,6 @@ export const useDashboard = () => {
     user,
     userId,
     initials,
-    isSidebarOpen,
-    setIsSidebarOpen,
     isDropdownOpen,
     setIsDropdownOpen,
     dropdownRef,

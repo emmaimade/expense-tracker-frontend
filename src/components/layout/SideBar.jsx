@@ -2,7 +2,8 @@
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import SpendWiseLogo from '../common/SpendWiseLogo';
 
-const Sidebar = ({ isOpen, setIsOpen }) => {
+// Desktop-only navigation; BottomNav handles mobile
+const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -34,26 +35,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
   const handleNavigation = (item) => {
     navigate(item.path);
-    if (setIsOpen) setIsOpen(false); 
   };
 
   return (
-    <div
-      className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform lg:translate-x-0 lg:static lg:inset-0 ${
-        isOpen ? "translate-x-0" : "-translate-x-full"
-      }`}
-    >
-      <div className="p-6 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <SpendWiseLogo showText={true} className="h-8" />
-        </div>
-        {/* Mobile close button */}
-        <button
-          onClick={() => { if (setIsOpen) setIsOpen(false); }}
-          className="lg:hidden text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-        >
-          ×
-        </button>
+    <div className="hidden lg:block w-64 flex-shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
+      <div className="p-6 flex items-center space-x-2">
+        <SpendWiseLogo showText={true} className="h-8" />
       </div>
 
       <nav className="mt-8 flex flex-col h-[calc(100%-88px)]">

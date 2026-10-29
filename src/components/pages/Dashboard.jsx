@@ -1,11 +1,13 @@
 ﻿import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, Bell, User, LogOut } from 'lucide-react';
+import { Bell, User, LogOut, HelpCircle } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useDashboard } from './hooks/useDashboard';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { NotificationProvider, useNotifications } from '../../context/NotificationContext';
 import NotificationPanel from '../notification/NotificationPanel';
 import Sidebar from '../layout/SideBar';
+import BottomNav from '../layout/BottomNav';
+import QuickAddExpense from '../expenses/QuickAddExpense';
 import DashboardContent from '../dashboard/DashboardContent';
 import ExpensesContent from '../expenses/ExpensesContent';
 import AnalyticsContent from '../analytics/AnalyticsContent';
@@ -19,14 +21,13 @@ const DashboardInner = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false);
+  const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
   const notificationRef = useRef(null);
   const { unreadCount } = useNotifications();
 
   const {
     user,
     userId,
-    isSidebarOpen,
-    setIsSidebarOpen,
     isDropdownOpen,
     setIsDropdownOpen,
     currentDateTime,
@@ -56,16 +57,6 @@ const DashboardInner = () => {
 
   if (!user) return null;
 
-  const getActiveTab = () => {
-    const path = location.pathname;
-    if (path === '/dashboard') return 'dashboard';
-    if (path.startsWith('/dashboard/expenses')) return 'expenses';
-    if (path.startsWith('/dashboard/analytics')) return 'analytics';
-    if (path.startsWith('/dashboard/budgets')) return 'budgets';
-    if (path.startsWith('/dashboard/settings')) return 'settings';
-    return 'dashboard';
-  };
-
   const titles = {
     '/dashboard': 'Overview',
     '/dashboard/expenses': 'Transactions & Expenses',
@@ -80,32 +71,20 @@ const DashboardInner = () => {
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden text-gray-900 dark:text-gray-100">
       {/* Sidebar Navigation */}
-      <Sidebar
-        activeTab={getActiveTab()}
-        isOpen={isSidebarOpen}
-        setIsOpen={setIsSidebarOpen}
-      />
+      <Sidebar />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Header */}
         <header className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 md:px-8 z-20">
 
-          {/* Left — hamburger + title */}
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setIsSidebarOpen(true)}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg lg:hidden"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
-            <div className="hidden md:block">
-              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                {currentTitle}
-              </h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {currentDateTime}
-              </p>
-            </div>
+          {/* Left — title */}
+          <div className="min-w-0">
+            <h1 className="text-lg md:text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent truncate">
+              {currentTitle}
+            </h1>
+            <p className="hidden md:block text-xs text-gray-500 dark:text-gray-400">
+              {currentDateTime}
+            </p>
           </div>
 
           {/* Right — bell + profile */}
@@ -165,6 +144,15 @@ const DashboardInner = () => {
                     <User className="w-4 h-4" /> Account Settings
                   </button>
                   <button
+                    onClick={() => {
+                      navigate('/support');
+                      setIsDropdownOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+                  >
+                    <HelpCircle className="w-4 h-4" /> Help Center
+                  </button>
+                  <button
                     onClick={handleLogout}
                     className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
                   >
@@ -178,7 +166,8 @@ const DashboardInner = () => {
         </header>
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50 dark:bg-gray-900/50">
+        {/* Extra bottom padding below lg keeps content clear of the bottom nav */}
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 pb-[calc(6rem+env(safe-area-inset-bottom))] lg:pb-6 bg-gray-50 dark:bg-gray-900/50">
           <EmailVerificationBanner />
           {dataError && <ConnectionErrorBanner onRetry={refreshData} />}
           <Routes>
@@ -225,13 +214,14 @@ const DashboardInner = () => {
         </main>
       </div>
 
-      {/* Mobile Sidebar Overlay */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
+      <BottomNav onAddExpense={() => setIsQuickAddOpen(true)} />
+
+      <QuickAddExpense
+        isOpen={isQuickAddOpen}
+        onClose={() => setIsQuickAddOpen(false)}
+        userId={userId}
+        onDataChange={refreshData}
+      />
     </div>
   );
 };
