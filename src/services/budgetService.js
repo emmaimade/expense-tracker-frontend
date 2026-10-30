@@ -112,7 +112,7 @@ export const budgetService = {
    * @returns {Promise<object>} Resolved newly created or updated budget object.
    */
   async setMonthlyBudget(budgetData) {
-    return apiService.post(`/budget/`, budgetData);
+    return apiService.post(`/budget`, budgetData);
   },
 
   /**

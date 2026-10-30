@@ -17,7 +17,7 @@ export const expenseService = {
    * @returns {Promise<object>} Resolved newly created expense object.
    */
   async addExpense(expenseData) {
-    return apiService.post('/expense/', {
+    return apiService.post('/expense', {
       description: expenseData.name,
       category: expenseData.category,
       amount: parseFloat(expenseData.amount),

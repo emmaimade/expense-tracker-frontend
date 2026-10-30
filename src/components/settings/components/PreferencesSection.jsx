@@ -28,7 +28,7 @@ const OptionGroup = ({ name, label, value, options, onChange, disabled }) => (
       return (
         <label
           key={option.value}
-          className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium cursor-pointer transition-colors whitespace-nowrap has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-500 ${
+          className={`relative flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium cursor-pointer transition-colors whitespace-nowrap has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-500 ${
             selected
               ? 'bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 shadow-sm'
               : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'

@@ -45,11 +45,14 @@ export const useCategories = () => {
   const updateCategory = async (id, updateData) => {
     try {
       const response = await categoryService.updateCategory(id, updateData);
-      const updatedCategory = normalizeCategory(response.data || response);
+      const changes = response.data || response;
+      // The API returns only { id, name }, so merge onto the existing category to keep userId
       setCategories((prev) =>
-        (prev || []).map((cat) => (cat._id === id ? updatedCategory : cat))
+        (prev || []).map((cat) =>
+          cat._id === id ? normalizeCategory({ ...cat, ...changes }, cat.userId) : cat
+        )
       );
-      return updatedCategory;
+      return changes;
     } catch (err) {
       throw new Error(err.message || "Failed to update category.");
     }
