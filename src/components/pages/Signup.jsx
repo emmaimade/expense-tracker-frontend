@@ -188,21 +188,21 @@ function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8 dark:bg-gray-800">
       <div className="sm:mx-auto sm:w-full sm:max-w-md px-6">
           <div className="flex flex-col items-center mb-8">
             <img src="/logo.svg" alt="SpendWise" className="h-10 mb-5" />
-            <h2 className="text-2xl font-bold text-center text-gray-900">Create your account</h2>
+            <h2 className="text-2xl font-bold text-center text-gray-900 dark:text-white">Create your account</h2>
           </div>
 
           <GoogleAuthButton onClick={handleGoogleSignup} disabled={isSubmitting} />
 
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200" />
+              <div className="w-full border-t border-gray-200 dark:border-gray-700" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-3 bg-white text-gray-400">or continue with email</span>
+              <span className="px-3 bg-white text-gray-400 dark:bg-gray-800">or continue with email</span>
             </div>
           </div>
 
@@ -294,7 +294,7 @@ function Signup() {
             <div>
               <label
                 htmlFor="currency"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300"
               >
                 Preferred Currency <span className="text-red-500">*</span>
               </label>
@@ -312,9 +312,9 @@ function Signup() {
               )}
 
               {isDetecting ? (
-                <div className="flex items-center gap-2 p-3 border border-gray-300 rounded-lg bg-gray-50">
+                <div className="flex items-center gap-2 p-3 border border-gray-300 rounded-lg bg-gray-50 dark:border-gray-600 dark:bg-gray-900">
                   <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
                     Detecting your currency...
                   </span>
                 </div>
@@ -332,7 +332,7 @@ function Signup() {
                     errors.currency ? "border-red-500" : "border-gray-300"
                   } ${
                     isSubmitting ? "bg-gray-100 cursor-not-allowed" : "bg-white"
-                  }`}
+                  } dark:bg-gray-700 dark:text-white`}
                 >
                   <option value="">-- Select Currency --</option>
 
@@ -362,7 +362,7 @@ function Signup() {
               {errors.currency && (
                 <p
                   id="currency-error"
-                  className="mt-1 text-sm text-red-600"
+                  className="mt-1 text-sm text-red-600 dark:text-red-400"
                   role="alert"
                   aria-live="assertive"
                 >
@@ -413,16 +413,16 @@ function Signup() {
               )}
             </button>
             <SlowServerNotice active={isSubmitting} />
-            <p className="text-center text-xs text-gray-500">
+            <p className="text-center text-xs text-gray-500 dark:text-gray-400">
               By creating an account, you agree to our{' '}
-              <Link to="/privacy" className="text-indigo-600 hover:text-indigo-500 underline">Privacy Policy</Link>.
+              <Link to="/privacy" className="text-indigo-600 hover:text-indigo-500 underline dark:text-indigo-400">Privacy Policy</Link>.
             </p>
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Already have an account?{" "}
-              <button type="button" className="font-medium text-indigo-600 hover:text-indigo-500" onClick={() => navigate("/login")} disabled={isSubmitting}>
+              <button type="button" className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400" onClick={() => navigate("/login")} disabled={isSubmitting}>
                 Sign in
               </button>
             </p>

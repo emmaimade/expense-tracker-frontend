@@ -18,7 +18,7 @@ const SlowServerNotice = ({ active, delay = 3000 }) => {
   }, [active, delay]);
 
   return (
-    <p role="status" aria-live="polite" className="mt-3 text-center text-sm text-gray-500">
+    <p role="status" aria-live="polite" className="mt-3 text-center text-sm text-gray-500 dark:text-gray-400">
       {isSlow && 'Waking up the server — the first request can take up to a minute.'}
     </p>
   );

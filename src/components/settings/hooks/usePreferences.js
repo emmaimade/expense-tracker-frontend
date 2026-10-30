@@ -11,7 +11,6 @@ const DEFAULT_PREFERENCES = {
   theme: 'light',
   currency: 'USD',
   currencyFormat: 'symbol',
-  notifications: true,
   language: 'en',
   fontSize: 'md',
 };

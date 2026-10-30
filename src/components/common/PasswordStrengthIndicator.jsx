@@ -23,7 +23,7 @@ export const PasswordStrengthIndicator = ({ password }) => {
           />
         ))}
       </div>
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-gray-500 dark:text-gray-400">
         Strength: {score <= 2 ? "Weak" : score <= 3 ? "Medium" : "Strong"}
       </p>
     </div>

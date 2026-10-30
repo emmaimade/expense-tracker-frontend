@@ -37,12 +37,12 @@ function ResetPassword() {
   // Guard: no token in URL
   if (!token) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 dark:bg-gray-900">
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 text-center">
+          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 text-center dark:bg-gray-800">
             <CircleAlert className="text-red-500 mb-3 w-12 h-12" />
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Invalid Reset Link</h2>
-            <p className="text-sm text-gray-500 mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2 dark:text-white">Invalid Reset Link</h2>
+            <p className="text-sm text-gray-500 mb-6 dark:text-gray-400">
               This password reset link is missing or invalid. Please request a new one.
             </p>
             <button
@@ -92,19 +92,19 @@ function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 dark:bg-gray-900">
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center mx-auto mb-2">
           <img src="/logo.svg" alt="SpendWise" className="h-9" />
         </div>
         <h1 className="text-2xl font-bold text-center mb-1">Reset Password</h1>
-        <p className="text-center text-sm text-gray-500 mb-4">
+        <p className="text-center text-sm text-gray-500 mb-4 dark:text-gray-400">
           Enter your new password below
         </p>
 
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 dark:bg-gray-800">
           {serverError && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-center gap-2 text-red-700 text-sm">
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-center gap-2 text-red-700 text-sm dark:bg-red-900/30 dark:border-red-800 dark:text-red-300">
               <CircleAlert className="w-5 h-5" />
               {serverError}
             </div>
@@ -115,8 +115,8 @@ function ResetPassword() {
               <div className="flex justify-center mb-4">
                 <CircleCheck className="text-green-500 w-12 h-12" />
               </div>
-              <p className="text-gray-800 font-medium mb-2">Password Reset!</p>
-              <p className="text-sm text-gray-500 mb-6">
+              <p className="text-gray-800 font-medium mb-2 dark:text-gray-100">Password Reset!</p>
+              <p className="text-sm text-gray-500 mb-6 dark:text-gray-400">
                 Your password has been successfully reset. You can now sign in with your new password.
               </p>
               <button
@@ -130,7 +130,7 @@ function ResetPassword() {
             <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
               {/* New Password */}
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   New Password
                 </label>
                 <div className="mt-1 relative rounded-md shadow-sm">
@@ -142,7 +142,7 @@ function ResetPassword() {
                     type={showPassword ? 'text' : 'password'}
                     className={`block w-full pl-10 pr-10 py-2 border ${
                       errors.password ? 'border-red-300' : 'border-gray-300'
-                    } rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                    } rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-white`}
                     {...register('password')}
                     disabled={isLoading}
                   />
@@ -152,12 +152,12 @@ function ResetPassword() {
                     </button>
                   </div>
                 </div>
-                {errors.password && <p className="mt-2 text-sm text-red-600">{errors.password.message}</p>}
+                {errors.password && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{errors.password.message}</p>}
               </div>
 
               {/* Confirm Password */}
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Confirm New Password
                 </label>
                 <div className="mt-1 relative rounded-md shadow-sm">
@@ -169,7 +169,7 @@ function ResetPassword() {
                     type={showConfirm ? 'text' : 'password'}
                     className={`block w-full pl-10 pr-10 py-2 border ${
                       errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
-                    } rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                    } rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-white`}
                     {...register('confirmPassword')}
                     disabled={isLoading}
                   />
@@ -179,7 +179,7 @@ function ResetPassword() {
                     </button>
                   </div>
                 </div>
-                {errors.confirmPassword && <p className="mt-2 text-sm text-red-600">{errors.confirmPassword.message}</p>}
+                {errors.confirmPassword && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{errors.confirmPassword.message}</p>}
               </div>
 
               <button

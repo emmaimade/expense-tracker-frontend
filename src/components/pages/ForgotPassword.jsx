@@ -54,19 +54,19 @@ function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 dark:bg-gray-900">
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center mx-auto mb-2">
           <img src="/logo.svg" alt="SpendWise" className="h-9" />
         </div>
         <h1 className="text-2xl font-bold text-center mb-1">Forgot Password?</h1>
-        <p className="text-center text-sm text-gray-500 mb-4">
+        <p className="text-center text-sm text-gray-500 mb-4 dark:text-gray-400">
           Enter your email and we'll send you a reset link
         </p>
 
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 dark:bg-gray-800">
           {serverError && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-center gap-2 text-red-700 text-sm">
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-center gap-2 text-red-700 text-sm dark:bg-red-900/30 dark:border-red-800 dark:text-red-300">
               <CircleAlert className="w-5 h-5" />
               {serverError}
             </div>
@@ -77,8 +77,8 @@ function ForgotPassword() {
               <div className="flex justify-center mb-4">
                 <CircleCheck className="text-green-500 w-12 h-12" />
               </div>
-              <p className="text-gray-800 font-medium mb-2">Check your inbox</p>
-              <p className="text-sm text-gray-500 mb-6">{successMessage}</p>
+              <p className="text-gray-800 font-medium mb-2 dark:text-gray-100">Check your inbox</p>
+              <p className="text-sm text-gray-500 mb-6 dark:text-gray-400">{successMessage}</p>
               <button
                 onClick={() => navigate('/login')}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -89,7 +89,7 @@ function ForgotPassword() {
           ) : (
             <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Email address
                 </label>
                 <div className="mt-1 relative rounded-md shadow-sm">
@@ -102,13 +102,13 @@ function ForgotPassword() {
                     autoComplete="email"
                     className={`block w-full pl-10 pr-3 py-2 border ${
                       errors.email ? 'border-red-300' : 'border-gray-300'
-                    } rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                    } rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-white`}
                     {...register('email')}
                     disabled={isLoading}
                   />
                 </div>
                 {errors.email && (
-                  <p className="mt-2 text-sm text-red-600">{errors.email.message}</p>
+                  <p className="mt-2 text-sm text-red-600 dark:text-red-400">{errors.email.message}</p>
                 )}
               </div>
 
@@ -140,7 +140,7 @@ function ForgotPassword() {
                 type="button"
                 onClick={() => navigate('/login')}
                 disabled={isLoading}
-                className="inline-flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-500 font-medium"
+                className="inline-flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-500 font-medium dark:text-indigo-400"
               >
                 <ArrowLeft className="w-5 h-5" />
                 Back to Sign In
