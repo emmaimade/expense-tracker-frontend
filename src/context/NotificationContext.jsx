@@ -1,6 +1,12 @@
-﻿import { createContext, useContext, useState, useEffect } from 'react';
+﻿import { createContext, useCallback, useContext, useEffect, useMemo, useRef } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiService } from '../services/apiService';
 
 const NotificationContext = createContext();
+
+// Also invalidated by expense and budget changes (useExpenseMutations, useBudget)
+const NOTIFICATIONS_KEY = ['notifications'];
+const CLEAR_UNDO_MS = 5000;
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const useNotifications = () => {
@@ -11,176 +17,114 @@ export const useNotifications = () => {
   return context;
 };
 
+/**
+ * Notifications come from the API (budget alerts are created server-side when
+ * spending crosses 80/100/120% of a budget), so they're the same on every
+ * device. Updates are applied to the cache immediately, then sent.
+ */
 export const NotificationProvider = ({ children, userId }) => {
-  const [notifications, setNotifications] = useState([]);
+  const queryClient = useQueryClient();
 
-  // Load notifications from localStorage on mount
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: NOTIFICATIONS_KEY,
+    queryFn: () => apiService.get('/notifications?limit=50'),
+    select: (res) => res.data,
+    enabled: !!userId,
+    refetchInterval: 60 * 1000,
+    refetchOnWindowFocus: true,
+    staleTime: 30 * 1000,
+  });
+
+  // Notifications used to be kept in this browser; remove that old copy
   useEffect(() => {
-    if (userId) {
-      const savedNotifications = localStorage.getItem(`notifications_${userId}`);
-      
-      if (savedNotifications) {
-        try {
-          const parsed = JSON.parse(savedNotifications);
-          // Convert timestamp strings back to Date objects
-          const restored = parsed.map(notif => ({
-            ...notif,
-            timestamp: new Date(notif.timestamp)
-          }));
-          setNotifications(restored);
-        } catch (error) {
-          console.error('Error loading notifications:', error);
-          // If there's an error, initialize with sample notifications
-          initializeSampleNotifications();
-        }
-      } else {
-        // First time user - show sample notifications
-        initializeSampleNotifications();
-      }
-    }
+    if (userId) localStorage.removeItem(`notifications_${userId}`);
   }, [userId]);
 
-  // Save notifications to localStorage whenever they change
-  useEffect(() => {
-    if (userId && notifications.length >= 0) {
-      localStorage.setItem(`notifications_${userId}`, JSON.stringify(notifications));
-    }
-  }, [notifications, userId]);
-
-  const initializeSampleNotifications = () => {
-    const sampleNotifications = [
-      {
-        id: '1',
-        type: 'budget_alert',
-        priority: 'high',
-        title: 'Budget Alert',
-        message: "You've used 90% of your Groceries budget for January",
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-        read: false,
-        actionUrl: '/dashboard/budgets'
-      },
-      {
-        id: '2',
-        type: 'bill_reminder',
-        priority: 'high',
-        title: 'Bill Due Soon',
-        message: 'Netflix subscription payment due in 2 days',
-        timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
-        read: false,
-        actionUrl: '/dashboard/expenses'
-      },
-      {
-        id: '3',
-        type: 'unusual_spending',
-        priority: 'medium',
-        title: 'Unusual Transaction',
-        message: '$450 transaction at Electronics Store - 3x your average',
-        timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-        read: false,
-        actionUrl: '/dashboard/analytics'
-      },
-      {
-        id: '4',
-        type: 'summary',
-        priority: 'low',
-        title: 'Monthly Summary Ready',
-        message: 'Your January spending report is now available',
-        timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-        read: true,
-        actionUrl: '/dashboard/analytics'
-      },
-      {
-        id: '5',
-        type: 'achievement',
-        priority: 'low',
-        title: 'Savings Milestone',
-        message: 'Congratulations! You stayed under budget for 3 months straight',
-        timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-        read: true,
-        actionUrl: '/dashboard'
-      }
-    ];
-    
-    setNotifications(sampleNotifications);
-  };
-
-  const markAsRead = (notificationId) => {
-    setNotifications(prev =>
-      prev.map(notif =>
-        notif.id === notificationId ? { ...notif, read: true } : notif
-      )
-    );
-  };
-
-  const markAllAsRead = () => {
-    setNotifications(prev =>
-      prev.map(notif => ({ ...notif, read: true }))
-    );
-  };
-
-  const deleteNotification = (notificationId) => {
-    setNotifications(prev =>
-      prev.filter(notif => notif.id !== notificationId)
-    );
-  };
-
-  const clearAll = () => {
-    setNotifications([]);
-  };
-
-  const addNotification = (notification) => {
-    const newNotification = {
-      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      timestamp: new Date(),
-      read: false,
-      priority: 'medium',
-      ...notification
-    };
-    
-    setNotifications(prev => [newNotification, ...prev]);
-    
-    // Optional: Limit to 50 most recent notifications to prevent storage bloat
-    setNotifications(prev => prev.slice(0, 50));
-  };
-
-  const unreadCount = notifications.filter(n => !n.read).length;
-
-  // ── Notification helpers ───────────────────────────────────
-  const notifyMonthlyReset = () => {
-    addNotification({
-      type: 'summary',
-      priority: 'low',
-      title: 'Budgets Reset',
-      message: "A new month has started. Your budgets have been reset and are ready to track.",
-      actionUrl: '/dashboard/budgets',
-    });
-  };
-
-  const notifyProfileUpdated = () => {
-    addNotification({
-      type: 'achievement',
-      priority: 'low',
-      title: 'Profile Updated',
-      message: 'Your profile information has been updated successfully.',
-      actionUrl: '/dashboard/settings',
-    });
-  };
-
-  return (
-    <NotificationContext.Provider
-      value={{
-        notifications,
-        unreadCount,
-        markAsRead,
-        markAllAsRead,
-        deleteNotification,
-        clearAll,
-        addNotification,
-        notifyMonthlyReset,
-        notifyProfileUpdated,
-      }}
-    >
-      {children}
-    </NotificationContext.Provider>
+  // Apply a change to the cached list right away (rolled back on error)
+  const optimistic = useCallback(
+    async (change) => {
+      await queryClient.cancelQueries({ queryKey: NOTIFICATIONS_KEY });
+      const previous = queryClient.getQueryData(NOTIFICATIONS_KEY);
+      queryClient.setQueryData(NOTIFICATIONS_KEY, (old) => {
+        if (!old?.data) return old;
+        const notifications = change(old.data.notifications);
+        return {
+          ...old,
+          data: { notifications, unreadCount: notifications.filter((n) => !n.read).length },
+        };
+      });
+      return { previous };
+    },
+    [queryClient]
   );
+
+  const rollback = (_error, _vars, context) => {
+    if (context?.previous) queryClient.setQueryData(NOTIFICATIONS_KEY, context.previous);
+  };
+  const settle = () => queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_KEY });
+
+  const markAsReadMutation = useMutation({
+    mutationFn: (id) => apiService.patch(`/notifications/${id}/read`),
+    onMutate: (id) => optimistic((list) => list.map((n) => (n.id === id ? { ...n, read: true } : n))),
+    onError: rollback,
+    onSettled: settle,
+  });
+
+  const markAllAsReadMutation = useMutation({
+    mutationFn: () => apiService.patch('/notifications/read-all'),
+    onMutate: () => optimistic((list) => list.map((n) => ({ ...n, read: true }))),
+    onError: rollback,
+    onSettled: settle,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => apiService.delete(`/notifications/${id}`),
+    onMutate: (id) => optimistic((list) => list.filter((n) => n.id !== id)),
+    onError: rollback,
+    onSettled: settle,
+  });
+
+  // "Clear all" hides everything now and only tells the server after a short
+  // delay, so Undo can simply restore the cached list
+  const pendingClear = useRef(null);
+
+  const clearAll = useCallback(async () => {
+    const { previous } = await optimistic(() => []);
+    const timer = setTimeout(async () => {
+      pendingClear.current = null;
+      try {
+        await apiService.delete('/notifications');
+      } catch {
+        if (previous) queryClient.setQueryData(NOTIFICATIONS_KEY, previous);
+      }
+      settle();
+    }, CLEAR_UNDO_MS);
+    pendingClear.current = { timer, previous };
+
+    return () => {
+      // undo
+      if (!pendingClear.current) return;
+      clearTimeout(pendingClear.current.timer);
+      if (pendingClear.current.previous) queryClient.setQueryData(NOTIFICATIONS_KEY, pendingClear.current.previous);
+      pendingClear.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- settle only invalidates the query
+  }, [optimistic, queryClient]);
+
+  const value = useMemo(
+    () => ({
+      notifications: data?.notifications ?? [],
+      unreadCount: data?.unreadCount ?? 0,
+      isLoading,
+      isError,
+      refresh: refetch,
+      markAsRead: markAsReadMutation.mutate,
+      markAllAsRead: markAllAsReadMutation.mutate,
+      deleteNotification: deleteMutation.mutate,
+      clearAll,
+    }),
+    [data, isLoading, isError, refetch, markAsReadMutation.mutate, markAllAsReadMutation.mutate, deleteMutation.mutate, clearAll]
+  );
+
+  return <NotificationContext.Provider value={value}>{children}</NotificationContext.Provider>;
 };

@@ -79,6 +79,7 @@ export const useExpenseMutations = (categories = []) => {
       queryClient.invalidateQueries({ queryKey: ['currentMonthTransactions'] });
       queryClient.invalidateQueries({ queryKey: ['recentTransactions'] });
       queryClient.invalidateQueries({ queryKey: ['budgetOverview'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
       queryClient.invalidateQueries({ queryKey: ['dashboardData'] });
     },
   });
@@ -148,6 +149,7 @@ export const useExpenseMutations = (categories = []) => {
       queryClient.invalidateQueries({ queryKey: ['currentMonthTransactions'] });
       queryClient.invalidateQueries({ queryKey: ['recentTransactions'] });
       queryClient.invalidateQueries({ queryKey: ['budgetOverview'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
       queryClient.invalidateQueries({ queryKey: ['dashboardData'] });
     },
   });
@@ -189,6 +191,7 @@ export const useExpenseMutations = (categories = []) => {
       queryClient.invalidateQueries({ queryKey: ['currentMonthTransactions'] });
       queryClient.invalidateQueries({ queryKey: ['recentTransactions'] });
       queryClient.invalidateQueries({ queryKey: ['budgetOverview'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
       queryClient.invalidateQueries({ queryKey: ['dashboardData'] });
     },
   });

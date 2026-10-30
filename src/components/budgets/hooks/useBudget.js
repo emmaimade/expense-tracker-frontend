@@ -1,9 +1,11 @@
 ﻿import { useState, useEffect, useMemo, useCallback } from 'react';
 import { toast } from 'react-toastify';
+import { useQueryClient } from '@tanstack/react-query';
 import { budgetService } from '../../../services/budgetService';
 import { useCategories } from '../../expenses/hooks/useCategories';
 
 export const useBudget = (recentTransactions = []) => {
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(true);
   const [budget, setBudget] = useState({});
   const [categoryBudgets, setCategoryBudgets] = useState([]);
@@ -82,6 +84,8 @@ export const useBudget = (recentTransactions = []) => {
 
       
       await budgetService.setMonthlyBudget(budgetData);
+      // Setting a budget can trigger a budget alert on the server
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
 
       toast.success(`Budget for ${newCategory.name} added successfully!`);
       setNewCategory({ categoryId: "", name: "", amount: "" });
@@ -114,6 +118,8 @@ export const useBudget = (recentTransactions = []) => {
 
       
       await budgetService.setMonthlyBudget(budgetData);
+      // Setting a budget can trigger a budget alert on the server
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
 
       setIsEditingCategory(false);
       setEditingCategoryId(null);
