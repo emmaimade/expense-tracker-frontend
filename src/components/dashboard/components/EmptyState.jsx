@@ -26,10 +26,10 @@ const EmptyState = ({
       case 'recent-activity':
         return {
           icon: TrendingUp,
-          title: 'No recent activity',
-          description: 'Start tracking your expenses to see insights here.',
+          title: 'No expenses this month',
+          description: 'Your latest expenses will show up here.',
           primaryAction: {
-            label: 'Add First Expense',
+            label: 'Add expense',
             onClick: onAddExpense,
             icon: Plus
           }
@@ -53,7 +53,7 @@ const EmptyState = ({
 
   return (
     <div className="text-center py-8 px-4">
-      <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+      <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">
         <IconComponent className="w-8 h-8 text-gray-400 dark:text-gray-500" />
       </div>
       

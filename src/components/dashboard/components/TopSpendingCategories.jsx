@@ -1,7 +1,9 @@
-﻿import { TrendingUp, ShoppingBag, Coffee, Home, Car, MoreHorizontal } from 'lucide-react';
+﻿import { ShoppingBag } from 'lucide-react';
 import { startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { usePreferencesContext } from '../../../context/PreferencesContext';
 import Card from '../../../components/common/Card';
+import SectionLink from './SectionLink';
+import { getCategoryIcon } from '../../../utils/categoryIcons';
 
 const TopSpendingCategories = ({ transactions = [], onViewAnalytics }) => {
   // Helper: Check if a date is in the current month
@@ -44,25 +46,14 @@ const TopSpendingCategories = ({ transactions = [], onViewAnalytics }) => {
   const categories = getCategoryBreakdown();
   const { formatCurrency } = usePreferencesContext();
 
-  // Icon & Color helpers (unchanged)
-  const getCategoryIcon = (categoryName) => {
-    const iconMap = {
-      'Food': Coffee,
-      'Shopping': ShoppingBag,
-      'Transport': Car,
-      'Housing': Home,
-      'Entertainment': TrendingUp,
-    };
-    return iconMap[categoryName] || MoreHorizontal;
-  };
-
+  // Color helper
   const getCategoryColor = (index) => {
     const colors = [
-      { bg: 'bg-blue-100', text: 'text-blue-600', bar: 'bg-blue-600' },
-      { bg: 'bg-purple-100', text: 'text-purple-600', bar: 'bg-purple-600' },
-      { bg: 'bg-orange-100', text: 'text-orange-600', bar: 'bg-orange-600' },
-      { bg: 'bg-green-100', text: 'text-green-600', bar: 'bg-green-600' },
-      { bg: 'bg-pink-100', text: 'text-pink-600', bar: 'bg-pink-600' },
+      { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-600 dark:text-blue-400', bar: 'bg-blue-600 dark:bg-blue-500' },
+      { bg: 'bg-purple-100 dark:bg-purple-900/30', text: 'text-purple-600 dark:text-purple-400', bar: 'bg-purple-600 dark:bg-purple-500' },
+      { bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-600 dark:text-orange-400', bar: 'bg-orange-600 dark:bg-orange-500' },
+      { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-600 dark:text-green-400', bar: 'bg-green-600 dark:bg-green-500' },
+      { bg: 'bg-pink-100 dark:bg-pink-900/30', text: 'text-pink-600 dark:text-pink-400', bar: 'bg-pink-600 dark:bg-pink-500' },
     ];
     return colors[index] || colors[0];
   };
@@ -83,9 +74,12 @@ const TopSpendingCategories = ({ transactions = [], onViewAnalytics }) => {
 
   return (
     <Card>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-gray-900 dark:text-gray-100">Top Spending Categories</h3>
-        <span className="text-xs text-gray-500 dark:text-gray-400">This Month</span>
+      <div className="flex items-center justify-between gap-2 mb-4">
+        <div>
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100">Top Spending Categories</h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400">This month</p>
+        </div>
+        <SectionLink onClick={onViewAnalytics}>Full breakdown</SectionLink>
       </div>
       
       <div className="space-y-3">
@@ -113,7 +107,7 @@ const TopSpendingCategories = ({ transactions = [], onViewAnalytics }) => {
                   </p>
                 </div>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-1.5">
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
                 <div
                   className={`h-1.5 rounded-full ${colors.bar} transition-all duration-500`}
                   style={{ width: `${category.percentage}%` }}
@@ -123,13 +117,6 @@ const TopSpendingCategories = ({ transactions = [], onViewAnalytics }) => {
           );
         })}
       </div>
-
-      <button 
-        onClick={onViewAnalytics} 
-        className="w-full mt-4 text-indigo-600 hover:text-indigo-700 text-sm font-medium text-left dark:text-indigo-500 dark:hover:text-indigo-600"
-      >
-        View Full Breakdown →
-      </button>
     </Card>
   );
 };
