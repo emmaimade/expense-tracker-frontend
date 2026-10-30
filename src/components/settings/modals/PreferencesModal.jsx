@@ -33,7 +33,6 @@ const PreferencesModal = ({
 
   const [formData, setFormData] = useState({
     theme: preferences?.theme || 'light',
-    notifications: preferences?.notifications ?? true,
     language: preferences?.language || 'en',
     currency: preferences?.currency || user?.currency || 'USD',
     currencyFormat: preferences?.currencyFormat || 'symbol',
@@ -46,7 +45,6 @@ const PreferencesModal = ({
     if (preferences) {
       const newFormData = {
         theme: preferences.theme || 'light',
-        notifications: preferences.notifications ?? true,
         language: preferences.language || 'en',
         currency: preferences.currency || user?.currency || 'USD',
         currencyFormat: preferences.currencyFormat || 'symbol',
@@ -486,26 +484,6 @@ const PreferencesModal = ({
             </div>
           </div>
 
-          {/* Email Notifications */}
-          <div className="flex items-center justify-between p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-            <div>
-              <p className="font-medium text-gray-900 dark:text-gray-100">Email Notifications</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Receive budget alerts and summaries
-              </p>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                name="notifications"
-                checked={formData.notifications}
-                onChange={handleChange}
-                className="sr-only peer"
-                disabled={isSaving}
-              />
-              <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-            </label>
-          </div>
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4">

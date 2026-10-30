@@ -51,18 +51,18 @@ function VerifyEmail() {
     : { label: 'Sign In', onClick: () => navigate('/login') };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 dark:bg-gray-900">
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center mx-auto mb-2">
           <img src="/logo.svg" alt="SpendWise" className="h-9" />
         </div>
         <h1 className="text-2xl font-bold text-center mb-4">Confirm Email</h1>
 
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 text-center" aria-live="polite">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 text-center dark:bg-gray-800" aria-live="polite">
           {status === 'verifying' && (
             <>
               <div className="animate-spin h-10 w-10 border-2 border-indigo-600 border-t-transparent rounded-full mx-auto mb-4" />
-              <p className="text-gray-700">Confirming your email…</p>
+              <p className="text-gray-700 dark:text-gray-300">Confirming your email…</p>
               <SlowServerNotice active />
             </>
           )}
@@ -70,8 +70,8 @@ function VerifyEmail() {
           {status === 'success' && (
             <>
               <CircleCheck className="text-green-500 w-12 h-12" />
-              <p className="text-gray-800 font-medium mt-4 mb-2">Email confirmed!</p>
-              <p className="text-sm text-gray-500 mb-6">
+              <p className="text-gray-800 font-medium mt-4 mb-2 dark:text-gray-100">Email confirmed!</p>
+              <p className="text-sm text-gray-500 mb-6 dark:text-gray-400">
                 Thanks for confirming. You'll now receive security alerts and account emails from SpendWise.
               </p>
               <button
@@ -86,8 +86,8 @@ function VerifyEmail() {
           {status === 'error' && (
             <>
               <CircleAlert className="text-red-500 w-12 h-12" />
-              <p className="text-gray-800 font-medium mt-4 mb-2">We couldn't confirm your email</p>
-              <p className="text-sm text-gray-500 mb-6">
+              <p className="text-gray-800 font-medium mt-4 mb-2 dark:text-gray-100">We couldn't confirm your email</p>
+              <p className="text-sm text-gray-500 mb-6 dark:text-gray-400">
                 {message} {user
                   ? 'You can send a new link from the banner on your dashboard.'
                   : 'Sign in to send yourself a new link.'}

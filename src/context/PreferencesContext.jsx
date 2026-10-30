@@ -9,7 +9,6 @@ const DEFAULT_PREFERENCES = {
   theme: "light",
   currency: "USD",
   currencyFormat: "symbol",
-  notifications: true,
   language: "en",
   fontSize: "md",
 };
@@ -229,7 +228,6 @@ export const PreferencesProvider = ({ children, userId }) => {
     getCurrencySymbol,
     theme: preferences.theme,
     currency: preferences.currency,
-    notifications: preferences.notifications,
     currencyFormat: preferences.currencyFormat,
     fontSize: preferences.fontSize,
     language: preferences.language,

@@ -24,7 +24,7 @@ export const PasswordInput = ({
 
   return (
     <div className={className}>
-      <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">
+      <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
         {label}
       </label>
       <div className="relative mt-1 rounded-md shadow-md">
@@ -41,7 +41,7 @@ export const PasswordInput = ({
             error
               ? "border-red-500 focus:border-red-500 focus:ring-red-500"
               : "border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-          } ${disabled ? "bg-gray-50 cursor-not-allowed" : ""}`}
+          } ${disabled ? "bg-gray-50 cursor-not-allowed" : ""} dark:bg-gray-700 dark:text-white`}
           placeholder={placeholder}
           {...props}
         />
@@ -64,7 +64,7 @@ export const PasswordInput = ({
         </button>
       </div>
       {error && (
-        <p id={`${name}-error`} className="mt-1 text-sm text-red-600 flex items-center" role="alert" aria-live="assertive">
+        <p id={`${name}-error`} className="mt-1 text-sm text-red-600 flex items-center dark:text-red-400" role="alert" aria-live="assertive">
           <CircleAlert className="mr-1 w-5 h-5" />
           {error}
         </p>

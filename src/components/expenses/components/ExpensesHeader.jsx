@@ -1,4 +1,4 @@
-import { Plus, Upload, Download } from 'lucide-react';
+import { Plus, Download } from 'lucide-react';
 
 import Card from '../../common/Card';
 
@@ -18,10 +18,6 @@ const ExpensesHeader = ({ onAddExpense, onExport, loading }) => {
           >
             <Plus className="w-4 h-4" />
             Add Expense
-          </button>
-          <button className="flex w-full sm:w-auto items-center justify-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 dark:bg-gray-500 dark:border-gray-700 dark:hover:bg-gray-800 transition-colors">
-            <Upload className="w-4 h-4" />
-            Import
           </button>
           <button
             onClick={onExport}

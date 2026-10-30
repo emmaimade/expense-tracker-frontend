@@ -2,9 +2,9 @@ import { CircleAlert, CircleCheck } from 'lucide-react';
 
 export const AlertMessage = ({ type, message }) => {
   const isError = type === 'error';
-  const bgColor = isError ? 'bg-red-50' : 'bg-green-50';
-  const borderColor = isError ? 'border-red-200' : 'border-green-200';
-  const textColor = isError ? 'text-red-700' : 'text-green-700';
+  const bgColor = isError ? 'bg-red-50 dark:bg-red-900/30' : 'bg-green-50 dark:bg-green-900/30';
+  const borderColor = isError ? 'border-red-200 dark:border-red-800' : 'border-green-200 dark:border-green-800';
+  const textColor = isError ? 'text-red-700 dark:text-red-300' : 'text-green-700 dark:text-green-300';
   const iconColor = isError ? 'text-red-500' : 'text-green-500';
   const Icon = isError ? CircleAlert : CircleCheck;
 

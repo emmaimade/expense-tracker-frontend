@@ -6,7 +6,7 @@ export const GoogleAuthButton = ({ onClick, disabled = false, className = "" }) 
         disabled
           ? "opacity-50 cursor-not-allowed"
           : "hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-      } ${className}`}
+      } ${className} dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300`}
       onClick={onClick}
       disabled={disabled}
     >

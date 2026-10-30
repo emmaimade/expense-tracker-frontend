@@ -91,38 +91,38 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8 dark:bg-gray-800">
       <div className="sm:mx-auto sm:w-full sm:max-w-md px-6">
           <div className="flex flex-col items-center mb-8">
             <img src="/logo.svg" alt="SpendWise" className="h-10 mb-5" />
-            <h1 className="text-2xl font-bold text-center text-gray-900">Welcome Back!</h1>
+            <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-white">Welcome Back!</h1>
           </div>
 
           <GoogleAuthButton onClick={handleGoogleLogin} disabled={isLoading} />
 
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200" />
+              <div className="w-full border-t border-gray-200 dark:border-gray-700" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-3 bg-white text-gray-400">or continue with email</span>
+              <span className="px-3 bg-white text-gray-400 dark:bg-gray-800">or continue with email</span>
             </div>
           </div>
 
           {sessionExpired && !serverError && (
-            <div role="status" className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-sm">
+            <div role="status" className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-sm dark:bg-amber-900/30 dark:border-amber-800 dark:text-amber-200">
               Your session has ended. Please sign in again.
             </div>
           )}
 
           {accountDeleted && !serverError && (
-            <div role="status" className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md text-green-800 text-sm">
+            <div role="status" className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md text-green-800 text-sm dark:bg-green-900/30 dark:border-green-800 dark:text-green-200">
               Your account and all of its data have been permanently deleted.
             </div>
           )}
 
           {serverError && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-center gap-2 text-red-700 text-sm">
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-center gap-2 text-red-700 text-sm dark:bg-red-900/30 dark:border-red-800 dark:text-red-300">
               <CircleAlert className="h-4 w-4" />
               {serverError}
             </div>
@@ -134,7 +134,7 @@ function Login() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
               >
                 Email address
               </label>
@@ -148,13 +148,13 @@ function Login() {
                   autoComplete="email"
                   className={`block w-full pl-10 pr-3 py-2 border ${
                     errors.email ? "border-red-300" : "border-gray-300"
-                  } rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                  } rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-white`}
                   {...register("email")}
                   disabled={isLoading}
                 />
               </div>
               {errors.email && (
-                <p className="mt-2 text-sm text-red-600">
+                <p className="mt-2 text-sm text-red-600 dark:text-red-400">
                   {errors.email.message}
                 </p>
               )}
@@ -164,7 +164,7 @@ function Login() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
               >
                 Password
               </label>
@@ -178,7 +178,7 @@ function Login() {
                   autoComplete="current-password"
                   className={`block w-full pl-10 pr-10 py-2 border ${
                     errors.password ? "border-red-300" : "border-gray-300"
-                  } rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                  } rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-white`}
                   {...register("password")}
                   disabled={isLoading}
                 />
@@ -199,7 +199,7 @@ function Login() {
                 </div>
               </div>
               {errors.password && (
-                <p className="mt-2 text-sm text-red-600">
+                <p className="mt-2 text-sm text-red-600 dark:text-red-400">
                   {errors.password.message}
                 </p>
               )}
@@ -209,7 +209,7 @@ function Login() {
             <div className="flex justify-end">
               <button
                 type="button"
-                className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                className="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400"
                 onClick={() => navigate("/forgot-password")}
                 disabled={isLoading}
               >
@@ -257,9 +257,9 @@ function Login() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Don't have an account?{" "}
-              <button type="button" className="font-medium text-indigo-600 hover:text-indigo-500" onClick={() => navigate("/register")} disabled={isLoading}>
+              <button type="button" className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400" onClick={() => navigate("/register")} disabled={isLoading}>
                 Sign up
               </button>
             </p>
