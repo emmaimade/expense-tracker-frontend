@@ -15,7 +15,7 @@ export const categoryService = {
    * @returns {Promise<object>} Resolved newly created category object.
    */
   async createCategory(categoryData) {
-    return apiService.post('/category/', categoryData);
+    return apiService.post('/category', categoryData);
   },
 
   /**
@@ -25,7 +25,7 @@ export const categoryService = {
    * @returns {Promise<object>} Resolved object containing an array of category records.
    */
   async getAllCategories() {
-    return apiService.get('/category/');
+    return apiService.get('/category');
   },
 
   /**
