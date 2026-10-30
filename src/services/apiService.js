@@ -3,18 +3,8 @@
 // same-origin is what allows secure first-party cookies.
 export const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
-// Sessions live in httpOnly cookies the browser sends automatically. Sign-ins
-// from before the switch to cookies stored a token here instead; keep sending it
-// until it expires so those users aren't signed out abruptly.
-const LEGACY_TOKEN_KEY = 'authToken';
-
-const buildHeaders = (hasBody) => {
-  const legacyToken = localStorage.getItem(LEGACY_TOKEN_KEY);
-  return {
-    ...(hasBody && { 'Content-Type': 'application/json' }),
-    ...(legacyToken && { Authorization: `Bearer ${legacyToken}` }),
-  };
-};
+// Sessions live in httpOnly cookies that the browser sends automatically with
+// these same-origin requests; no tokens are handled in JavaScript.
 
 const handleApiResponse = async (response) => {
   if (!response.ok) {
@@ -57,7 +47,6 @@ export const refreshSession = () => {
 // The session can't be renewed: clear the local copy of the user and sign in again
 const endExpiredSession = () => {
   localStorage.removeItem('expense-tracker-user');
-  localStorage.removeItem(LEGACY_TOKEN_KEY);
   if (!window.location.pathname.startsWith('/login')) {
     window.location.href = '/login?expired=1';
   }
@@ -73,13 +62,13 @@ const request = async (endpoint, { method = 'GET', data, blob = false } = {}, is
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     method,
     credentials: 'same-origin',
-    headers: buildHeaders(hasBody),
-    ...(hasBody && { body: JSON.stringify(data) }),
+    ...(hasBody && {
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }),
   });
 
   if (response.status === 401 && !isRetry) {
-    // An old stored token has expired; the session cookies take over from here
-    localStorage.removeItem(LEGACY_TOKEN_KEY);
     if (await refreshSession()) {
       return request(endpoint, { method, data, blob }, true);
     }
