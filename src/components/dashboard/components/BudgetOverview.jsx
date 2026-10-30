@@ -1,5 +1,4 @@
-﻿import { TrendingUp, TrendingDown } from 'lucide-react';
-import { usePreferencesContext } from '../../../context/PreferencesContext';
+﻿import { usePreferencesContext } from '../../../context/PreferencesContext';
 import Card from '../../../components/common/Card';
 
 const BudgetOverview = ({ budgetData }) => {
@@ -24,87 +23,72 @@ const BudgetOverview = ({ budgetData }) => {
   const limit = Number(budgetLimit) || 0;
   const remaining = Number(totalRemaining) || 0;
   const percentage = Number(percentageUsed) || 0;
-  
+  const hasBudget = limit > 0;
+  const isNearLimit = !isOverBudget && percentage > 80;
+
   // Handle case where budgetLimit might be 0
-  const progressWidth = limit === 0 ? 0 : Math.min(percentage, 100);
+  const progressWidth = hasBudget ? Math.min(percentage, 100) : 0;
+
+  const statusColor = isOverBudget
+    ? "text-red-600 dark:text-red-400"
+    : isNearLimit
+    ? "text-orange-600 dark:text-orange-400"
+    : "text-indigo-600 dark:text-indigo-400";
+
+  const barColor = isOverBudget
+    ? "bg-gradient-to-r from-red-500 to-red-600"
+    : isNearLimit
+    ? "bg-gradient-to-r from-yellow-500 to-orange-500"
+    : "bg-gradient-to-r from-indigo-500 to-indigo-600";
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {/* Monthly Spending Summary */}
-      <Card>
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">This Month</h2>
-          <div
-            className={`p-2 rounded-lg ${
-              isOverBudget ? "bg-red-100" : "bg-green-100"
-            }`}
-          >
-            {isOverBudget ? (
-              <TrendingUp className="w-5 h-5 text-red-600" />
-            ) : (
-              <TrendingDown className="w-5 h-5 text-green-600" />
-            )}
-          </div>
-        </div>
-        <p
-          className={`text-2xl font-bold ${
-            isOverBudget ? "text-red-600 dark:text-red-400" : "text-gray-900 dark:text-gray-100"
-          }`}
-        >
-          {formatCurrency(totalSpent)}
-        </p>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Total spent •{" "}
-          {isOverBudget
-            ? "Over budget"
-            : `${formatCurrency(remaining)} remaining`}
-        </p>
-      </Card>
-
-      {/* Budget Progress */}
-      <Card className="md:col-span-2">
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between mb-4 min-w-0">
-          <h3 className="font-semibold text-gray-900 dark:text-gray-100">
-            Monthly Budget Progress
-          </h3>
-          <span className="text-sm text-gray-600 dark:text-gray-400 break-words sm:text-right">
-            {formatCurrency(totalSpent)} / {formatCurrency(limit)}
-          </span>
-        </div>
-        <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
-          <div
-            className={`h-4 rounded-full transition-all duration-500 ${
-              isOverBudget
-                ? "bg-gradient-to-r from-red-500 to-red-600"
-                : percentage > 80
-                ? "bg-gradient-to-r from-yellow-500 to-orange-500"
-                : "bg-gradient-to-r from-indigo-500 to-indigo-600"
-            }`}
-            style={{
-              width: `${progressWidth}%`,
-            }}
-          ></div>
-        </div>
-        <div className="flex justify-between items-center">
+    <Card>
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between mb-4 min-w-0">
+        <div className="min-w-0">
+          <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+            Spent this month
+          </h2>
           <p
-            className={`text-sm font-medium ${
-              isOverBudget
-                ? "text-red-600 dark:text-red-400"
-                : percentage > 80
-                ? "text-orange-600 dark:text-orange-400"
-                : "text-indigo-600 dark:text-indigo-400"
+            className={`text-3xl sm:text-4xl font-bold mt-1 break-words ${
+              isOverBudget ? "text-red-600 dark:text-red-400" : "text-gray-900 dark:text-gray-100"
             }`}
           >
-            {percentage.toFixed(1)}% of budget used
+            {formatCurrency(totalSpent)}
           </p>
-          {isOverBudget && (
-            <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full font-medium">
-              Over Budget!
-            </span>
-          )}
         </div>
-      </Card>
-    </div>
+        <p className="text-sm text-gray-500 dark:text-gray-400 sm:text-right">
+          {hasBudget ? `of ${formatCurrency(limit)} budget` : "No monthly budget set"}
+        </p>
+      </div>
+
+      {hasBudget && (
+        <>
+          <div
+            className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 mb-2"
+            role="progressbar"
+            aria-valuenow={Math.round(percentage)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label="Budget used"
+          >
+            <div
+              className={`h-3 rounded-full transition-all duration-500 ${barColor}`}
+              style={{ width: `${progressWidth}%` }}
+            ></div>
+          </div>
+          <div className="flex justify-between items-center gap-2 text-sm">
+            <p className={`font-medium ${statusColor}`}>
+              {percentage.toFixed(1)}% used
+            </p>
+            <p className={`font-medium ${isOverBudget ? statusColor : "text-gray-700 dark:text-gray-300"}`}>
+              {isOverBudget
+                ? `${formatCurrency(totalSpent - limit)} over budget`
+                : `${formatCurrency(remaining)} left`}
+            </p>
+          </div>
+        </>
+      )}
+    </Card>
   );
 };
 

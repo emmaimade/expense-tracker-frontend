@@ -5,27 +5,29 @@ const WelcomeSection = ({ userName, onQuickAdd, onViewAllExpenses, isFirstLogin 
   const welcomeText = isFirstLogin ? 'Welcome' : 'Welcome back';
 
   return (
-    <div className="bg-gradient-to-r from-indigo-600 to-blue-600 p-5 sm:p-8 rounded-xl text-white">
-      <h1 className="text-2xl font-bold mb-2">
-        {welcomeText}{firstName ? ` ${firstName}` : ''}!
-      </h1>
-      <p className="text-indigo-100">
-        Here's your financial overview for today
-      </p>
-      <div className="mt-6 flex flex-col sm:flex-row gap-3 sm:gap-4">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="min-w-0">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 break-words">
+          {welcomeText}{firstName ? `, ${firstName}` : ''}
+        </h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+          Here's where your money stands this month
+        </p>
+      </div>
+      <div className="flex gap-2 shrink-0">
+        <button
+          onClick={onViewAllExpenses}
+          className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+        >
+          View expenses
+          <ArrowRight className="w-4 h-4 ml-2" />
+        </button>
         <button
           onClick={onQuickAdd}
-          className="w-full sm:w-auto bg-white text-indigo-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+          className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 transition-colors"
         >
-          <Plus className="w-4 h-4 inline mr-2" />
-          Quick Add Expense
-        </button>
-        <button 
-          onClick={onViewAllExpenses}
-          className="w-full sm:w-auto bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-400 transition-colors font-medium"
-        >
-          View All Expenses
-          <ArrowRight className="w-4 h-4 inline ml-2" />
+          <Plus className="w-4 h-4 mr-2" />
+          Add expense
         </button>
       </div>
     </div>
