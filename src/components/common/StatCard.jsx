@@ -4,6 +4,14 @@ import Card from './Card';
 const StatCard = ({ stat, isFeatured = false }) => {
   const TrendIcon = stat.trend === 'up' ? ArrowUpRight : ArrowDownRight;
 
+  // Color follows whether the stat is good or bad, not its direction (spending going up is bad)
+  const changeColors = {
+    success: 'text-green-600 dark:text-green-400',
+    warning: 'text-amber-600 dark:text-amber-400',
+    danger: 'text-red-600 dark:text-red-400',
+  };
+  const changeColor = changeColors[stat.style] || 'text-gray-500 dark:text-gray-400';
+
   const mainValue = stat.value;
   const cardTitle = stat.name;
   const secondaryDetail = stat.secondaryValue;
@@ -34,14 +42,10 @@ const StatCard = ({ stat, isFeatured = false }) => {
             {stat.icon}
           </span>
         </div>
-        {/* Only show trend if the stat has a change value */}
+        {/* Arrow only for stats with a direction */}
         {stat.change && (
-          <div className={`flex items-center text-sm ${
-            stat.trend === 'up' 
-              ? 'text-green-600 dark:text-green-400' 
-              : 'text-red-600 dark:text-red-400'
-          }`}>
-            <TrendIcon className="w-4 h-4 mr-1" />
+          <div className={`flex items-center text-sm text-right ${changeColor}`}>
+            {stat.trend && <TrendIcon className="w-4 h-4 mr-1 shrink-0" />}
             {stat.change}
           </div>
         )}

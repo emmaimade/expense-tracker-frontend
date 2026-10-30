@@ -29,32 +29,20 @@ export const StatsCardSkeleton = () => (
   </div>
 );
 
-// Budget Overview Skeleton
+// Budget Overview Skeleton (dashboard hero card)
 export const BudgetOverviewSkeleton = () => (
-  <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
-    <div className="flex items-center justify-between mb-4">
-      <Skeleton variant="light" className="h-6 w-32 bg-white/20" />
-      <Skeleton variant="light" className="h-8 w-8 rounded-full bg-white/20" />
-    </div>
-    
-    <div className="space-y-3 mb-4">
-      <Skeleton variant="light" className="h-10 w-48 bg-white/30" />
-      <Skeleton variant="light" className="h-4 w-64 bg-white/20" />
-    </div>
-
-    <div className="w-full bg-white/20 rounded-full h-3 mb-4">
-      <Skeleton variant="light" className="h-3 w-2/3 bg-white/40 rounded-full" />
-    </div>
-
-    <div className="grid grid-cols-2 gap-4">
+  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+    <div className="flex items-end justify-between mb-4">
       <div>
-        <Skeleton variant="light" className="h-3 w-20 mb-2 bg-white/20" />
-        <Skeleton variant="light" className="h-5 w-24 bg-white/30" />
+        <Skeleton className="h-4 w-28 mb-2" />
+        <Skeleton className="h-10 w-48" />
       </div>
-      <div>
-        <Skeleton variant="light" className="h-3 w-20 mb-2 bg-white/20" />
-        <Skeleton variant="light" className="h-5 w-24 bg-white/30" />
-      </div>
+      <Skeleton className="h-4 w-32" />
+    </div>
+    <Skeleton className="h-3 w-full rounded-full mb-2" />
+    <div className="flex justify-between">
+      <Skeleton className="h-4 w-20" />
+      <Skeleton className="h-4 w-24" />
     </div>
   </div>
 );
@@ -164,17 +152,20 @@ export const TableSkeleton = ({ rows = 5, columns = 5 }) => (
 export const DashboardSkeleton = () => (
   <div className="space-y-6">
     {/* Welcome Section */}
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
-      <Skeleton className="h-8 w-64 mb-2" />
-      <Skeleton className="h-4 w-96" />
+    <div className="flex items-center justify-between">
+      <div>
+        <Skeleton className="h-7 w-56 mb-2" />
+        <Skeleton className="h-4 w-64 max-w-full" />
+      </div>
+      <Skeleton className="hidden sm:block h-10 w-64 rounded-lg" />
     </div>
 
     {/* Budget Overview */}
     <BudgetOverviewSkeleton />
 
     {/* Stats Grid */}
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {[...Array(6)].map((_, i) => (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {[...Array(3)].map((_, i) => (
         <StatsCardSkeleton key={i} />
       ))}
     </div>

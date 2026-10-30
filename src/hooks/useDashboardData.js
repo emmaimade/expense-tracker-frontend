@@ -167,9 +167,6 @@ const calculateFinancialStats = (
     0
   );
 
-  // Budget Utilization
-  const budgetUtilization = budgetLimit > 0 ? currentMonthSpending / budgetLimit : 0;
-
   // Top Category
   const topCategory = getTopCategory(currentMonthTransactions);
   const topCategoryPercentage = currentMonthSpending > 0 
@@ -185,53 +182,54 @@ const calculateFinancialStats = (
     momChangeDirection = momChange > 0 ? 'up' : momChange < 0 ? 'down' : 'flat';
   }
 
-  // Daily Burn Rate
-  const currentDay = new Date().getDate();
+  // Daily Burn Rate, projected to month end
+  const now = new Date();
+  const currentDay = now.getDate();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   const dailyBurnRate = currentDay > 0 ? currentMonthSpending / currentDay : 0;
+  const projectedSpending = dailyBurnRate * daysInMonth;
+  const projectedOverBudget = budgetLimit > 0 && projectedSpending > budgetLimit;
 
   // Financial Health Score
   const healthScore = calculateHealthScore(currentMonthSpending, prevMonthSpending, budgetLimit);
 
+  // Total spent and budget usage live in the BudgetOverview hero card, so they aren't repeated here
   return [
     {
-      name: 'Total Monthly Expenses',
-      value: formatCurrency(currentMonthSpending),
-      change: `Utilized ${(budgetUtilization * 100).toFixed(1)}% of budget`,
-      icon: '💸',
-      style: budgetUtilization > 1 ? 'danger' : 'success',
-      secondaryValue: `${formatCurrency(budgetLimit)} Budget Limit`
-    },
-    {
-      name: 'Top Spending Category',
+      name: 'Top category',
       value: topCategoryDisplay,
-      change: `${(topCategoryPercentage * 100).toFixed(0)}% of Total`,
+      change: `${(topCategoryPercentage * 100).toFixed(0)}% of spending`,
       icon: '🏷️',
       style: 'info',
       secondaryValue: formatCurrency(topCategory.amount)
     },
     {
-      name: 'Spending Month-over-Month Change',
+      name: 'vs. last month',
       value: `${Math.abs(momChange).toFixed(1)}%`,
+      trend: momChangeDirection === 'flat' ? undefined : momChangeDirection,
       change: momChangeDirection === 'up'
-        ? `Increase vs. last month`
+        ? 'More spent'
         : momChangeDirection === 'down'
-        ? `Decrease vs. last month`
-        : `No significant change`,
+        ? 'Less spent'
+        : 'No change',
       icon: momChangeDirection === 'up' ? '📈' : momChangeDirection === 'down' ? '📉' : '↔️',
-      style: momChangeDirection === 'up' ? 'danger' : 'success',
-      secondaryValue: momChangeDirection === 'up' ? `Spent ${formatCurrency(currentMonthSpending - prevMonthSpending)} more` : ''
+      style: momChangeDirection === 'up' ? 'danger' : momChangeDirection === 'down' ? 'success' : 'info',
+      secondaryValue: momChangeDirection === 'flat'
+        ? ''
+        : `${formatCurrency(Math.abs(currentMonthSpending - prevMonthSpending))} ${momChangeDirection === 'up' ? 'more' : 'less'} than last month`
     },
     {
-      name: 'Daily Burn Rate',
+      name: 'Daily average',
       value: formatCurrency(dailyBurnRate),
-      change: `Avg daily spend (Day ${currentDay})`,
+      change: projectedOverBudget ? 'Over budget pace' : `Day ${currentDay} of ${daysInMonth}`,
       icon: '⏳',
-      style: 'warning',
-      secondaryValue: `${formatCurrency(currentMonthSpending)} Total Spent`
+      style: projectedOverBudget ? 'danger' : 'info',
+      secondaryValue: `On pace for ${formatCurrency(projectedSpending)} this month`
     },
     {
       name: 'Financial Health Score',
       value: `${healthScore.overall}`,
+      featured: true,
       change: `Compliance: ${healthScore.compliance.toFixed(0)}%, Stability: ${healthScore.stability.toFixed(0)}%`,
       icon: '❤️',
       style: healthScore.overall > 75 ? 'success' : healthScore.overall > 50 ? 'warning' : 'danger',

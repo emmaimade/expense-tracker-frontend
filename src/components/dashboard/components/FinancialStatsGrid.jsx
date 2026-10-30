@@ -1,10 +1,9 @@
 import StatCard from '../../common/StatCard';
 
 const FinancialStatsGrid = ({ stats = [], onViewAnalytics }) => {
-  // Separate the first 4 core stats from the 5th (Financial Health Score)
-  // for a better visual layout without changing the data source.
-  const coreStats = stats.slice(0, 4);
-  const featuredStat = stats.length > 4 ? stats[4] : null;
+  // The featured stat (Financial Health Score) gets its own full-width row
+  const coreStats = stats.filter((stat) => !stat.featured);
+  const featuredStat = stats.find((stat) => stat.featured) || null;
 
   return (
     <div>
@@ -20,8 +19,8 @@ const FinancialStatsGrid = ({ stats = [], onViewAnalytics }) => {
         </button>
       </div>
       
-      {/* 1. Main Grid for the first 4 Core Stats (4 columns on large screens) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* 1. Main Grid for the core stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {Array.isArray(coreStats) && coreStats.map((stat, index) => (
           <StatCard key={index} stat={stat} />
         ))}
