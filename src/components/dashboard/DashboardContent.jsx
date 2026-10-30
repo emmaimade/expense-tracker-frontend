@@ -5,7 +5,6 @@ import FinancialStatsGrid from './components/FinancialStatsGrid';
 import RecentActivity from './components/RecentActivity';
 import TopSpendingCategories from './components/TopSpendingCategories';
 import useUserData from './hooks/useUserData';
-import useMonthlyResetNotification from '../../hooks/useMonthlyResetNotification';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { 
   DashboardSkeleton,
@@ -47,9 +46,6 @@ const DashboardContent = ({ setActiveTab }) => {
     if (setActiveTab) setActiveTab("analytics");
     else navigate('/dashboard/analytics');
   };
-
-  // Monthly reset notification
-  useMonthlyResetNotification();
 
   // Show full skeleton only when loading AND data has never been fetched
   const isInitialLoad = isLoading && budget === null && stats === null && transactions.current === null;

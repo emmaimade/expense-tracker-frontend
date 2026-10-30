@@ -94,16 +94,19 @@ const DashboardInner = () => {
             <div ref={notificationRef} className="relative">
               <button
                 onClick={() => setIsNotificationPanelOpen(!isNotificationPanelOpen)}
+                aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
+                aria-haspopup="dialog"
+                aria-expanded={isNotificationPanelOpen}
                 className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full relative transition-colors dark:text-gray-400 dark:hover:text-gray-300"
               >
-                <Bell className="w-5 h-5" />
+                <Bell className="w-5 h-5" aria-hidden="true" />
                 {unreadCount > 0 && (
-                  <>
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-gray-800 animate-pulse"></span>
-                    <span className="absolute -top-1 -right-1 min-w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1.5 border-2 border-white dark:border-gray-800">
-                      {unreadCount > 9 ? '9+' : unreadCount}
-                    </span>
-                  </>
+                  <span
+                    aria-hidden="true"
+                    className="absolute -top-1 -right-1 min-w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1.5 border-2 border-white dark:border-gray-800"
+                  >
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
                 )}
               </button>
 
