@@ -1,14 +1,11 @@
 ﻿import { useBudget } from './hooks/useBudget';
 import BudgetOverview from './components/BudgetOverview';
-import BudgetStats from './components/BudgetStats';
 import CategoryBudgetsSection from './components/CategoryBudgetsSection';
 import BudgetAlertsSection from './components/BudgetAlertsSection';
-import SmartInsights from './components/SmartInsights';
 import BudgetTips from './components/BudgetTips';
 import {
   BudgetPageSkeleton,
   BudgetOverviewSkeleton,
-  BudgetStatsSkeleton,
   CategoryBudgetsSkeleton
 } from '../common/AnalyticsSkeletons';
 
@@ -40,8 +37,6 @@ const BudgetsContent = ({ recentTransactions = [] }) => {
     remaining,
     percentageUsed,
     isOverBudget,
-    currentDay,
-    daysInMonth,
     dailyAverage,
     projectedSpending,
     daysRemaining,
@@ -69,25 +64,13 @@ const BudgetsContent = ({ recentTransactions = [] }) => {
           spent={spent}
           percentageUsed={percentageUsed}
           categoryCount={categoryBudgets?.length || 0}
+          dailyAverage={dailyAverage}
+          projectedSpending={projectedSpending}
         />
       )}
 
       {/* Alerts sit right under the total: they're the most urgent thing here */}
       {!loading && <BudgetAlertsSection budgetAlerts={budgetAlerts} />}
-
-      {/* Quick Stats with granular skeleton */}
-      {loading && !dailyAverage ? (
-        <BudgetStatsSkeleton />
-      ) : (
-        <BudgetStats
-          dailyAverage={dailyAverage}
-          currentDay={currentDay}
-          projectedSpending={projectedSpending}
-          totalBudget={totalBudget}
-          percentageUsed={percentageUsed}
-          isOverBudget={isOverBudget}
-        />
-      )}
 
       {/* Category Budgets with granular skeleton */}
       {loading && !categoryBudgets ? (
@@ -121,21 +104,8 @@ const BudgetsContent = ({ recentTransactions = [] }) => {
       )}
 
 
-      {/* Smart Insights - Show only when data is loaded and budgets exist */}
-      {!loading && categoryBudgets && categoryBudgets.length > 0 && (
-        <SmartInsights
-          projectedSpending={projectedSpending}
-          totalBudget={totalBudget}
-          dailyAverage={dailyAverage}
-          daysInMonth={daysInMonth}
-          percentageUsed={percentageUsed}
-          isOverBudget={isOverBudget}
-          remaining={remaining}
-        />
-      )}
-
-      {/* Budget Tips - Always show (static content) */}
-      <BudgetTips />
+      {/* Tips only for users who haven't set any budgets yet */}
+      {!loading && categoryBudgets?.length === 0 && <BudgetTips />}
     </div>
   );
 };

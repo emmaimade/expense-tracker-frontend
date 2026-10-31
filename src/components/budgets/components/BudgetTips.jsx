@@ -1,4 +1,7 @@
+import { Lightbulb } from 'lucide-react';
 import Card from '../../../components/common/Card';
+
+// Shown only to users who haven't set any category budgets yet
 
 const BudgetTips = () => {
   const tips = [
@@ -12,8 +15,9 @@ const BudgetTips = () => {
 
   return (
     <Card className="bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 border-indigo-100 dark:border-indigo-800">
-      <h3 className="text-lg font-semibold text-indigo-900 dark:text-indigo-200 mb-4">
-        💡 Budget Management Tips
+      <h3 className="text-lg font-semibold text-indigo-900 dark:text-indigo-200 mb-4 flex items-center gap-2">
+        <Lightbulb className="w-5 h-5" />
+        Getting started with budgets
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {tips.map((tip, index) => (
