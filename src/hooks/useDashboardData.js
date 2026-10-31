@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useQueries } from '@tanstack/react-query';
+import { Tag, TrendingUp, TrendingDown, Minus, CalendarClock, HeartPulse } from 'lucide-react';
 import { expenseService } from '../services/expenseService';
 import { budgetService } from '../services/budgetService';
 import { usePreferencesContext } from '../context/PreferencesContext';
@@ -199,7 +200,7 @@ const calculateFinancialStats = (
       name: 'Top category',
       value: topCategoryDisplay,
       change: `${(topCategoryPercentage * 100).toFixed(0)}% of spending`,
-      icon: '🏷️',
+      icon: Tag,
       style: 'info',
       secondaryValue: formatCurrency(topCategory.amount)
     },
@@ -212,7 +213,7 @@ const calculateFinancialStats = (
         : momChangeDirection === 'down'
         ? 'Less spent'
         : 'No change',
-      icon: momChangeDirection === 'up' ? '📈' : momChangeDirection === 'down' ? '📉' : '↔️',
+      icon: momChangeDirection === 'up' ? TrendingUp : momChangeDirection === 'down' ? TrendingDown : Minus,
       style: momChangeDirection === 'up' ? 'danger' : momChangeDirection === 'down' ? 'success' : 'info',
       secondaryValue: momChangeDirection === 'flat'
         ? ''
@@ -222,20 +223,37 @@ const calculateFinancialStats = (
       name: 'Daily average',
       value: formatCurrency(dailyBurnRate),
       change: projectedOverBudget ? 'Over budget pace' : `Day ${currentDay} of ${daysInMonth}`,
-      icon: '⏳',
+      icon: CalendarClock,
       style: projectedOverBudget ? 'danger' : 'info',
       secondaryValue: `On pace for ${formatCurrency(projectedSpending)} this month`
     },
     {
-      name: 'Financial Health Score',
-      value: `${healthScore.overall}`,
+      name: 'Financial health',
+      value: healthScore.hasData ? `${healthScore.overall}` : '—',
+      valueSuffix: healthScore.hasData ? '/100' : '',
+      score: healthScore.hasData ? healthScore.overall : null,
       featured: true,
-      change: `Compliance: ${healthScore.compliance.toFixed(0)}%, Stability: ${healthScore.stability.toFixed(0)}%`,
-      icon: '❤️',
-      style: healthScore.overall > 75 ? 'success' : healthScore.overall > 50 ? 'warning' : 'danger',
-      secondaryValue: `Based on spending relative to Budget & Previous Month`
+      change: !healthScore.hasData
+        ? 'Not enough data'
+        : healthScore.overall > 75 ? 'Healthy' : healthScore.overall > 50 ? 'Fair' : 'Needs attention',
+      icon: HeartPulse,
+      style: !healthScore.hasData
+        ? 'info'
+        : healthScore.overall > 75 ? 'success' : healthScore.overall > 50 ? 'warning' : 'danger',
+      secondaryValue: describeHealth({ budgetLimit, currentMonthSpending, momChange, hasData: healthScore.hasData })
     },
   ];
+};
+
+/**
+ * Plain-language explanation of the health score
+ */
+const describeHealth = ({ budgetLimit, currentMonthSpending, momChange, hasData }) => {
+  if (!hasData) return 'Add expenses and a monthly budget to see your score.';
+  if (budgetLimit === 0) return 'Set a monthly budget to get a full score.';
+  if (currentMonthSpending > budgetLimit) return "You're over budget this month, which pulls your score down.";
+  if (momChange > 10) return "You're under budget, but spending more than last month.";
+  return "You're under budget and spending is steady. Keep it up!";
 };
 
 /**
@@ -243,7 +261,7 @@ const calculateFinancialStats = (
  */
 const calculateHealthScore = (currentMonthSpending, prevMonthSpending, budgetLimit) => {
   if (currentMonthSpending === 0 && prevMonthSpending === 0 && budgetLimit === 0) {
-    return { overall: 0, compliance: 0, stability: 0 };
+    return { overall: 0, compliance: 0, stability: 0, hasData: false };
   }
 
   // Budget Compliance (50% weight)
@@ -277,5 +295,6 @@ const calculateHealthScore = (currentMonthSpending, prevMonthSpending, budgetLim
     overall: overallScore,
     compliance: complianceScore,
     stability: stabilityScore,
+    hasData: true,
   };
 };

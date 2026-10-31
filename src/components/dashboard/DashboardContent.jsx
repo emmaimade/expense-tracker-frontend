@@ -88,7 +88,7 @@ const DashboardContent = ({ setActiveTab }) => {
           <RecentActivitySkeleton />
         ) : (
           <RecentActivity
-            weeklyTransactions={transactions.current || []}
+            transactions={transactions.current || []}
             onViewAllExpenses={handleViewAllExpenses}
             onAddExpense={handleQuickAdd}
           />

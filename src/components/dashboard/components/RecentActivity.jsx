@@ -1,110 +1,66 @@
 ﻿import { useMemo } from 'react';
+import { isToday, isYesterday } from 'date-fns';
 import EmptyState from './EmptyState';
+import SectionLink from './SectionLink';
 import { usePreferencesContext } from '../../../context/PreferencesContext';
+import { getCategoryIcon } from '../../../utils/categoryIcons';
 import Card from '../../../components/common/Card';
 
-const RecentActivity = ({ weeklyTransactions = [], onViewAllExpenses, onAddExpense, fallbackUsed = false }) => {
-  // Move usePreferencesContext to the top, before any returns
+const RECENT_COUNT = 5;
+
+const formatDay = (value) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  if (isToday(date)) return 'Today';
+  if (isYesterday(date)) return 'Yesterday';
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+};
+
+const RecentActivity = ({ transactions = [], onViewAllExpenses, onAddExpense }) => {
   const { formatCurrency } = usePreferencesContext();
 
-  const activityData = useMemo(() => {
-    // Ensure weeklyTransactions is always an array
-    const safeTransactions = Array.isArray(weeklyTransactions) ? weeklyTransactions : [];
-
-    // Calculate last expense
-    const lastExpense = safeTransactions
-      .filter(tx => tx && tx.type === 'expense')
-      .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))[0] || { name: 'N/A', amount: 0 };
-
-    // Calculate largest expense
-    const largestExpense = safeTransactions
-      .filter(tx => tx && tx.type === 'expense')
-      .reduce((max, tx) => {
-        const maxAmount = Math.abs(max.amount || 0);
-        const txAmount = Math.abs(tx.amount || 0);
-        return txAmount > maxAmount ? tx : max;
-      }, { name: 'N/A', amount: 0 });
-
-    // Calculate most frequent category
-    const mostFrequentCategory = (() => {
-      try {
-        const categoryCount = safeTransactions
-          .filter(tx => tx && tx.type === 'expense' && tx.category)
-          .reduce((acc, tx) => {
-            acc[tx.category.name] = (acc[tx.category.name] || 0) + 1;
-            return acc;
-          }, {});
-
-        const sortedCategories = Object.entries(categoryCount)
-          .sort(([, a], [, b]) => b - a);
-
-        return sortedCategories.length > 0 ? sortedCategories[0][0] : 'N/A';
-      } catch (error) {
-        console.error('Error calculating most frequent category:', error);
-        return 'N/A';
-      }
-    })();
-
-    return {
-      lastExpense,
-      largestExpense,
-      mostFrequentCategory,
-      hasData: safeTransactions.length > 0
-    };
-  }, [weeklyTransactions]);
-
-  // Show empty state if no data
-  if (!activityData.hasData) {
-    return (
-      <Card>
-        <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Recent Activity</h3>
-        <EmptyState 
-          type="recent-activity"
-          onAddExpense={onAddExpense}
-          onViewAllTime={onViewAllExpenses}
-        />
-      </Card>
-    );
-  }
+  const recent = useMemo(
+    () =>
+      (Array.isArray(transactions) ? transactions : [])
+        .filter((tx) => tx && tx.type === 'expense')
+        .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+        .slice(0, RECENT_COUNT),
+    [transactions]
+  );
 
   return (
     <Card>
-      <div className="flex items-start sm:items-center justify-between gap-2 mb-4">
+      <div className="flex items-center justify-between gap-2 mb-4">
         <h3 className="font-semibold text-gray-900 dark:text-gray-100">Recent Activity</h3>
-        {fallbackUsed && (
-          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full dark:bg-blue-900/20 dark:text-blue-400">
-            Recent data
-          </span>
-        )}
+        {recent.length > 0 && <SectionLink onClick={onViewAllExpenses}>View all</SectionLink>}
       </div>
-      
-      <div className="space-y-3">
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between min-w-0">
-          <span className="text-gray-600 dark:text-gray-400">Last expense</span>
-          <span className="font-medium text-gray-900 dark:text-gray-100 break-words sm:text-right">
-            {activityData.lastExpense.name} - {formatCurrency(Math.abs(activityData.lastExpense.amount || 0))}
-          </span>
-        </div>
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between min-w-0">
-          <span className="text-gray-600 dark:text-gray-400">Largest expense</span>
-          <span className="font-medium text-gray-900 dark:text-gray-100 break-words sm:text-right">
-            {activityData.largestExpense.name} - {formatCurrency(Math.abs(activityData.largestExpense.amount || 0))}
-          </span>
-        </div>
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between min-w-0">
-          <span className="text-gray-600 dark:text-gray-400">Most frequent category</span>
-          <span className="font-medium text-gray-900 dark:text-gray-100 break-words sm:text-right">
-            {activityData.mostFrequentCategory}
-          </span>
-        </div>
-      </div>
-      
-      <button 
-        onClick={onViewAllExpenses}
-        className="w-full mt-4 text-indigo-600 hover:text-indigo-700 text-sm font-medium dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors"
-      >
-        View All Transactions →
-      </button>
+
+      {recent.length === 0 ? (
+        <EmptyState type="recent-activity" onAddExpense={onAddExpense} />
+      ) : (
+        <ul className="-my-2 divide-y divide-gray-100 dark:divide-gray-700">
+          {recent.map((tx) => {
+            const categoryName = tx.category?.name || 'Uncategorized';
+            const Icon = getCategoryIcon(categoryName);
+            return (
+              <li key={tx.id || tx._id} className="flex items-center gap-3 py-2.5 min-w-0">
+                <div className="p-2 rounded-lg bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 shrink-0">
+                  <Icon className="w-4 h-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{tx.name}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                    {categoryName} · {formatDay(tx.date)}
+                  </p>
+                </div>
+                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 shrink-0">
+                  -{formatCurrency(Math.abs(tx.amount || 0))}
+                </p>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </Card>
   );
 };
