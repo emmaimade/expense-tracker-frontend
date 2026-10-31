@@ -103,7 +103,7 @@ const AnalyticsContent = ({ onAddExpense }) => {
         monthlyBudget={analytics?.monthlyBudget || 0}
       />
 
-      {/* ── Insights ── */}
+      {/* ── Insights: a slim row under the charts ── */}
       {!isLoading && hasData && (
         <AnalyticsInsights analytics={analytics} trendInsight={trendInsight} />
       )}

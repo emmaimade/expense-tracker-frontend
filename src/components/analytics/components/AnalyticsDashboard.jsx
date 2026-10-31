@@ -1,13 +1,11 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList, ReferenceLine } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from 'recharts';
 import { useChartData } from '../hooks/useChartData';
 import { usePreferencesContext } from '../../../context/PreferencesContext';
 import Card from '../../../components/common/Card';
 
-// One color for categories: the bars are already labelled, so extra hues add noise
 const BAR_COLOR = '#4f46e5';
 const OVER_BUDGET_COLOR = '#ef4444';
 const CHART_HEIGHT = 320;
-const CATEGORY_CHART_HEIGHT = 280;
 
 // ────── Reusable Empty State Component ──────
 const EmptyState = () => (
@@ -20,25 +18,19 @@ const EmptyState = () => (
   </div>
 );
 
-// ────── Stats Grid Component ──────
-const StatsGrid = ({ avg, max, min, formatCurrency }) => (
-  <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3 gap-3">
-    <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-      <p className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">Average</p>
-      <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{formatCurrency(Math.round(avg))}</p>
+// ────── One "label ... value" row in the period summary ──────
+const SummaryRow = ({ label, value, detail, valueClass = 'text-gray-900 dark:text-gray-100' }) => (
+  <div className="flex items-baseline justify-between gap-3 py-2.5 first:pt-0 last:pb-0">
+    <div className="min-w-0">
+      <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
+      {detail && <p className="text-xs text-gray-400 dark:text-gray-500">{detail}</p>}
     </div>
-    <div className="text-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-      <p className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">Highest</p>
-      <p className="text-lg font-bold text-red-600 dark:text-red-400">{formatCurrency(max)}</p>
-    </div>
-    <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-      <p className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">Lowest</p>
-      <p className="text-lg font-bold text-green-600 dark:text-green-400">{formatCurrency(min)}</p>
-    </div>
+    <p className={`text-base font-semibold shrink-0 ${valueClass}`}>{value}</p>
   </div>
 );
 
 // ────── Main Component ──────
+// Monthly trends take two thirds of the row; the period summary and top categories stack beside it
 const AnalyticsDashboard = ({ categoryData = [], monthlyData = [], timeRange = '6months', monthlyBudget = 0 }) => {
   const chartData = useChartData(categoryData, monthlyData, timeRange);
   const { formatCurrency, getCurrencySymbol, theme, currencyFormat } = usePreferencesContext();
@@ -70,20 +62,24 @@ const AnalyticsDashboard = ({ categoryData = [], monthlyData = [], timeRange = '
       : `${getCurrencySymbol()}${joiner}${num}`;
   };
 
-  const { top5, catTotal, hasCategoryData, monthlyDataFiltered, monthlyAvg, monthMax, monthMin, hasMonthlyData, monthsCount } = chartData;
+  const { top5, hasCategoryData, monthlyDataFiltered, monthlyAvg, monthMax, monthMin, hasMonthlyData, monthsCount } = chartData;
+
+  // Share of all spending in the period (not just the top 5)
+  const allCategoriesTotal = categoryData.reduce((sum, c) => sum + (Number(c.value) || 0), 0);
+  const monthLabelFor = (amount) => monthlyDataFiltered.find((m) => m.amount === amount)?.month;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* ────── Monthly Trends Chart ────── */}
-      <Card>
+      <Card className="lg:col-span-2 flex flex-col">
         <div className="mb-4">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Monthly Trends</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Last {monthsCount} months • {formatCurrency(Math.round(monthlyAvg))} avg
+            Last {monthsCount} months
             {monthlyBudget > 0 && <> • dashed line is your {formatCurrency(monthlyBudget)} monthly budget</>}
           </p>
         </div>
-        <div style={{ height: CHART_HEIGHT }} role="img" aria-label="Monthly spending trends chart">
+        <div className="flex-1" style={{ minHeight: CHART_HEIGHT }} role="img" aria-label="Monthly spending trends chart">
           {hasMonthlyData ? (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={monthlyDataFiltered} margin={{ top: 10, right: 20, left: 20, bottom: 10 }}>
@@ -117,47 +113,61 @@ const AnalyticsDashboard = ({ categoryData = [], monthlyData = [], timeRange = '
             </ResponsiveContainer>
           ) : <EmptyState />}
         </div>
-        {hasMonthlyData && <StatsGrid avg={monthlyAvg} max={monthMax} min={monthMin} formatCurrency={formatCurrency} />}
-      </Card>
-      {/* ────── Top Spending Categories Chart ────── */}
-      <Card>
-        <div className="mb-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Top Spending Categories</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Last {monthsCount} months • Top {top5.length} categories • {formatCurrency(catTotal)} total
-          </p>
-        </div>
-        <div style={{ height: CATEGORY_CHART_HEIGHT }} role="img" aria-label={`Top ${top5.length} spending categories chart`}>
-          {hasCategoryData ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={top5} layout="vertical" margin={{ top: 10, right: 70, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} horizontal={false} />
-                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 13, fill: axisTickColor, fontWeight: 'medium' }} width={90} />
-                <XAxis type="number" axisLine={{ stroke: axisLineColor }} tickLine={false} tickFormatter={axisFormatter} tick={{ fontSize: 12, fill: axisTickColor }} />
-                <Tooltip
-                  cursor={{ fill: CURSOR_FILL }}
-                  formatter={(v) => [
-                    `${formatCurrency(v)} (${catTotal > 0 ? ((v / catTotal) * 100).toFixed(0) : 0}% of top ${top5.length})`,
-                    'Spending',
-                  ]}
-                  contentStyle={TOOLTIP_STYLE}
-                  labelStyle={tooltipLabelStyle}
-                  itemStyle={tooltipItemStyle}
-                />
-                <Bar dataKey="value" fill={BAR_COLOR} radius={[0, 4, 4, 0]} barSize={20} minPointSize={2}>
-                  <LabelList
-                    dataKey="value"
-                    position="right"
-                    formatter={(v) => formatCurrency(v)}
-                    style={{ fontSize: 12, fill: axisTickColor, fontWeight: 600 }}
-                  />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          ) : <EmptyState />}
-        </div>
       </Card>
 
+      <div className="flex flex-col gap-6">
+        {/* ────── Period summary ────── */}
+        <Card>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">This period</h2>
+          {hasMonthlyData ? (
+            <div className="divide-y divide-gray-100 dark:divide-gray-700">
+              <SummaryRow label="Average per month" value={formatCurrency(Math.round(monthlyAvg))} />
+              <SummaryRow
+                label="Highest month"
+                detail={monthLabelFor(monthMax)}
+                value={formatCurrency(monthMax)}
+                valueClass="text-red-600 dark:text-red-400"
+              />
+              <SummaryRow
+                label="Lowest month"
+                detail={monthLabelFor(monthMin)}
+                value={formatCurrency(monthMin)}
+                valueClass="text-green-600 dark:text-green-400"
+              />
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500 dark:text-gray-400">No spending in this period yet.</p>
+          )}
+        </Card>
+
+        {/* ────── Top categories as a simple list ────── */}
+        <Card className="flex-1">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Top categories</h2>
+          {hasCategoryData ? (
+            <ul className="space-y-3">
+              {top5.map((cat) => {
+                const pct = allCategoriesTotal > 0 ? (cat.value / allCategoriesTotal) * 100 : 0;
+                return (
+                  <li key={cat.name}>
+                    <div className="flex items-baseline justify-between gap-2 text-sm">
+                      <span className="font-medium text-gray-700 dark:text-gray-300 truncate">{cat.name}</span>
+                      <span className="shrink-0 text-gray-900 dark:text-gray-100 font-semibold">
+                        {formatCurrency(cat.value)}
+                        <span className="ml-1.5 text-xs font-normal text-gray-500 dark:text-gray-400">{pct.toFixed(0)}%</span>
+                      </span>
+                    </div>
+                    <div className="mt-1.5 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                      <div className="h-1.5 rounded-full bg-indigo-600 dark:bg-indigo-500" style={{ width: `${pct}%` }} />
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="text-sm text-gray-500 dark:text-gray-400">No spending in this period yet.</p>
+          )}
+        </Card>
+      </div>
     </div>
   );
 };
