@@ -9,7 +9,6 @@ export const useDashboard = () => {
   
   // UI States
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [currentDateTime, setCurrentDateTime] = useState('');
   
   const dropdownRef = useRef(null);
   const userId = user?.id;
@@ -25,26 +24,6 @@ export const useDashboard = () => {
   };
 
   const initials = getInitials(user?.name || '');
-
-  // Effect: Update date and time for the header
-  useEffect(() => {
-    const updateDateTime = () => {
-      const now = new Date();
-      const options = {
-        weekday: 'short',
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      };
-      setCurrentDateTime(now.toLocaleDateString('en-US', options));
-    };
-
-    updateDateTime();
-    const interval = setInterval(updateDateTime, 60000); // Update every minute
-    return () => clearInterval(interval);
-  }, []);
 
   // Effect: Handle clicks outside the profile dropdown
   useEffect(() => {
@@ -71,7 +50,6 @@ export const useDashboard = () => {
     isDropdownOpen,
     setIsDropdownOpen,
     dropdownRef,
-    currentDateTime,
     handleLogout
   };
 };

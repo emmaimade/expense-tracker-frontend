@@ -9,6 +9,12 @@ import AnalyticsInsights from './components/AnalyticsInsights';
 import Card from '../common/Card';
 import { AnalyticsPageSkeleton } from '../common/AnalyticsSkeletons';
 
+const TIME_RANGES = [
+  { value: '3months', label: '3 months' },
+  { value: '6months', label: '6 months' },
+  { value: '1year', label: '12 months' },
+];
+
 const AnalyticsContent = ({ recentTransactions }) => {
   const navigate = useNavigate();
   const [timeRange, setTimeRange] = useState('6months');
@@ -53,39 +59,39 @@ const AnalyticsContent = ({ recentTransactions }) => {
   return (
     <div className="space-y-6">
 
-      {/* ── Header ── */}
-      <Card>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Analytics</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Analyze your spending patterns and trends
-            </p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
-            <select
-              value={timeRange}
-              onChange={(e) => setTimeRange(e.target.value)}
-              disabled={isLoading}
-              aria-label="Select time range for analytics"
-              className="w-full sm:w-auto px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-            >
-              <option value="3months">Last 3 Months</option>
-              <option value="6months">Last 6 Months</option>
-              <option value="1year">Last Year</option>
-            </select>
-            <button
-              onClick={exportToCSV}
-              disabled={isLoading || !hasData}
-              aria-label="Export analytics data as CSV"
-              className="flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Download className="w-4 h-4" />
-              Export
-            </button>
-          </div>
+      {/* ── Toolbar ── */}
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div role="radiogroup" aria-label="Time range" className="inline-flex bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
+          {TIME_RANGES.map((option) => {
+            const selected = timeRange === option.value;
+            return (
+              <button
+                key={option.value}
+                role="radio"
+                aria-checked={selected}
+                onClick={() => setTimeRange(option.value)}
+                disabled={isLoading}
+                className={`flex-1 sm:flex-none px-3 py-1.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap disabled:opacity-60 ${
+                  selected
+                    ? 'bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                {option.label}
+              </button>
+            );
+          })}
         </div>
-      </Card>
+        <button
+          onClick={exportToCSV}
+          disabled={isLoading || !hasData}
+          aria-label="Export analytics data as CSV"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <Download className="w-4 h-4" />
+          Export
+        </button>
+      </div>
 
       {/* ── Subtle refetch banner ── */}
       {isRefetching && (

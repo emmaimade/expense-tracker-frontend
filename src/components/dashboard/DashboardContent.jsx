@@ -14,7 +14,7 @@ import {
   CategoryChartSkeleton 
 } from '../common/Skeletons';
 
-const DashboardContent = ({ setActiveTab }) => {
+const DashboardContent = ({ setActiveTab, onAddExpense }) => {
   const navigate = useNavigate();
   const { userName, user } = useUserData();
   const isFirstLogin =
@@ -32,7 +32,9 @@ const DashboardContent = ({ setActiveTab }) => {
   } = useDashboardData();
 
   // Helper Navigation Handlers
+  // Opens the shared quick-add dialog; the Expenses page has no add button of its own
   const handleQuickAdd = () => {
+    if (onAddExpense) return onAddExpense();
     if (setActiveTab) setActiveTab("expenses");
     else navigate('/dashboard/expenses');
   };

@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from 'react';
-import { Search, Filter, Calendar, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Filter, Calendar, Edit, Trash2, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
 import LoadingOverlay from '../../common/LoadingOverlay';
 import { usePreferencesContext } from '../../../context/PreferencesContext';
 import Card from '../../common/Card';
@@ -12,10 +12,8 @@ const TransactionTable = ({
   setFilterBy,
   onEdit,
   onDelete,
-  onDateRangeClick,
   loading = false,
-  onClearDateRange,
-  isUsingCustomRange,
+  periodFilter = null,
   categories = [],
   itemsPerPage = 10,
   onItemsPerPageChange,
@@ -106,26 +104,27 @@ const TransactionTable = ({
 
   const SortIcon = ({ field }) => {
     if (sortBy !== field) return <div className="w-4 h-4" />;
-    return (
-      <div className="w-4 h-4 flex items-center justify-center">
-        <div className={`text-xs ${sortOrder === 'asc' ? 'text-indigo-600' : 'text-gray-400'}`}>
-          ▲
-        </div>
-      </div>
-    );
+    const Icon = sortOrder === 'asc' ? ChevronUp : ChevronDown;
+    return <Icon className="w-4 h-4 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />;
   };
 
   const categoryOptions = ['all', ...categories.map(cat => cat.name)];
 
   const { formatCurrency } = usePreferencesContext();
 
+  // Sum of everything matching the current period, search and category
+  const filteredTotal = sortedTransactions.reduce((sum, tx) => sum + Math.abs(tx.amount || 0), 0);
+
   return (
     <Card>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">All Transactions</h2>
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Transactions</h2>
 
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
+          {/* Period */}
+          {periodFilter}
+
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
@@ -154,25 +153,25 @@ const TransactionTable = ({
             </select>
           </div>
 
-          {/* Date Range Button */}
-          <button
-            onClick={onDateRangeClick}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-800"
-            disabled={loading}
-          >
-            <Calendar className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-            Filter by Date
-          </button>
         </div>
       </div>
 
       {/* Results Summary */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-4 text-sm text-gray-600 dark:text-gray-400">
         <div className="flex flex-wrap items-center gap-2">
-          <span>
-            Showing {startIndex + 1} to{" "}
-            {Math.min(startIndex + effectiveItemsPerPage, sortedTransactions.length)} of{" "}
-            {sortedTransactions.length} transactions
+          <span className={loading ? 'opacity-60' : ''}>
+            <span className="font-medium text-gray-900 dark:text-gray-100">
+              {sortedTransactions.length} {sortedTransactions.length === 1 ? 'transaction' : 'transactions'}
+            </span>
+            {sortedTransactions.length > 0 && (
+              <>
+                {' · '}
+                <span className="font-medium text-gray-900 dark:text-gray-100">{formatCurrency(filteredTotal)}</span>
+                {totalPages > 1 && (
+                  <> · showing {startIndex + 1}–{Math.min(startIndex + effectiveItemsPerPage, sortedTransactions.length)}</>
+                )}
+              </>
+            )}
           </span>
           {searchTerm && (
             <span className="px-2 py-1 bg-gray-100 rounded text-xs dark:bg-gray-700 dark:text-gray-300">
@@ -186,12 +185,11 @@ const TransactionTable = ({
           )}
         </div>
 
-        {(searchTerm || filterBy !== "all" || isUsingCustomRange) && (
+        {(searchTerm || filterBy !== "all") && (
           <button
             onClick={() => {
               setSearchTerm("");
               setFilterBy("all");
-              if (onClearDateRange) onClearDateRange();
               if (isControlled) {
                 onItemsPerPageChange(10);
               } else {
@@ -199,7 +197,7 @@ const TransactionTable = ({
               }
               setCurrentPage(1);
             }}
-            className="text-sm text-blue-600 hover:text-blue-800 font-medium dark:text-blue-400 dark:hover:text-blue-600 transition-colors"
+            className="text-sm text-indigo-600 hover:text-indigo-700 font-medium dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors"
           >
             Clear filters
           </button>

@@ -1,5 +1,4 @@
 ﻿import { useBudget } from './hooks/useBudget';
-import BudgetHeader from './components/BudgetHeader';
 import BudgetOverview from './components/BudgetOverview';
 import BudgetStats from './components/BudgetStats';
 import CategoryBudgetsSection from './components/CategoryBudgetsSection';
@@ -58,9 +57,6 @@ const BudgetsContent = ({ recentTransactions = [] }) => {
 
   return (
     <div className="space-y-6">
-      {/* Header - No skeleton needed (static content) */}
-      <BudgetHeader />
-
       {/* Budget Overview with granular skeleton */}
       {loading && !totalBudget ? (
         <BudgetOverviewSkeleton />
@@ -72,8 +68,12 @@ const BudgetsContent = ({ recentTransactions = [] }) => {
           daysRemaining={daysRemaining}
           spent={spent}
           percentageUsed={percentageUsed}
+          categoryCount={categoryBudgets?.length || 0}
         />
       )}
+
+      {/* Alerts sit right under the total: they're the most urgent thing here */}
+      {!loading && <BudgetAlertsSection budgetAlerts={budgetAlerts} />}
 
       {/* Quick Stats with granular skeleton */}
       {loading && !dailyAverage ? (
@@ -120,10 +120,6 @@ const BudgetsContent = ({ recentTransactions = [] }) => {
         />
       )}
 
-      {/* Budget Alerts - Show only when data is loaded and alerts exist */}
-      {!loading && budgetAlerts && budgetAlerts.length > 0 && (
-        <BudgetAlertsSection budgetAlerts={budgetAlerts} />
-      )}
 
       {/* Smart Insights - Show only when data is loaded and budgets exist */}
       {!loading && categoryBudgets && categoryBudgets.length > 0 && (

@@ -10,7 +10,7 @@ const AnalyticsMetricsCards = ({ analytics, isLoading, timeRange }) => {
     const labels = {
       '3months': '3 months',
       '6months': '6 months',
-      '1year': '1 year',
+      '1year': '12 months',
     };
     return labels[timeRange] || '6 months';
   };
@@ -29,7 +29,7 @@ const AnalyticsMetricsCards = ({ analytics, isLoading, timeRange }) => {
 
   const status = getBudgetStatus();
   const timeRangeLabel = getTimeRangeLabel();
-  const timeLabel = timeRange === '1year' ? 'Last Year' : `Last ${timeRangeLabel}`;
+  const timeLabel = `Last ${timeRangeLabel}`;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

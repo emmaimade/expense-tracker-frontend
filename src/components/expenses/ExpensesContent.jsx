@@ -1,58 +1,53 @@
 ﻿import { useState } from "react";
-import ExpensesHeader from "./components/ExpensesHeader";
+import { Download } from "lucide-react";
 import TransactionTable from "./components/TransactionTable";
-import AddExpenseModal from "./modals/AddExpenseModal";
+import PeriodFilter from "./components/PeriodFilter";
 import EditExpenseModal from "./modals/EditExpenseModal";
-import DateRangeModal from "./modals/DateRangeModal";
 import ExportModal from "./modals/ExportModal";
 
 import { useExpenseMutations } from "./hooks/useExpenseMutations";
 import { useFilterAndSearch } from "./hooks/useFilterAndSearch";
-import { useExpenseData } from "./hooks/useExpenseData";
+import { useExpensePeriod } from "./hooks/useExpensePeriod";
 import { useCategories } from "./hooks/useCategories";
 import { TableSkeleton, TransactionListSkeleton } from "../common/Skeletons";
 import { useConfirm } from "../../context/ConfirmContext";
 
-const ExpensesContent = ({ recentTransactions, onDataChange, userId }) => {
+// Adding an expense lives in the top bar (desktop) and the bottom nav (mobile)
+const ExpensesContent = ({ onDataChange, userId }) => {
   const confirm = useConfirm();
 
   // Modal states
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isDateRangeModalOpen, setIsDateRangeModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   // UI states
-  const [error, setError] = useState(null);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // 1. Fetch Categories
-  const { 
-    categories, 
-    isLoading: isCategoriesLoading, 
-    error: categoryError 
+  const {
+    categories,
+    isLoading: isCategoriesLoading,
+    error: categoryError
   } = useCategories();
 
-  // 2. Mutations (Add/Edit/Delete) - Pass categories for optimistic updates
+  // 2. Mutations (Edit/Delete) - success and failure are shown as toasts by the hook
   const {
-    addExpense,
     updateExpense,
     deleteExpense,
-    isAdding,
     isUpdating,
-    isDeleting,
   } = useExpenseMutations(categories);
 
-  // 3. Date Filtering
+  // 3. Expenses for the selected period, fetched from the API
   const {
-    filteredTransactions: dateFilteredTransactions,
-    customDateRange,
-    setCustomDateRange,
-    applyCustomDateRange,
-    resetToDefault,
-    isUsingCustomRange,
-  } = useExpenseData(recentTransactions);
+    period,
+    setPeriod,
+    customRange,
+    setCustomRange,
+    transactions,
+    isSwitching,
+    error: transactionsError,
+  } = useExpensePeriod();
 
   // 4. Search and Category Filtering
   const {
@@ -61,30 +56,19 @@ const ExpensesContent = ({ recentTransactions, onDataChange, userId }) => {
     setSearchTerm,
     filterBy,
     setFilterBy,
-  } = useFilterAndSearch(dateFilteredTransactions);
-
-  // Handlers
-  const handleAddSubmit = async (data) => {
-    try {
-      await addExpense(data);
-      setIsAddModalOpen(false);
-      if (onDataChange) onDataChange();
-    } catch (err) {
-      setError(err.message);
-    }
-  };
+  } = useFilterAndSearch(transactions);
 
   const handleUpdateSubmit = async (data) => {
     try {
-      await updateExpense({ 
-        id: selectedTransaction._id || selectedTransaction.id, 
-        data 
+      await updateExpense({
+        id: selectedTransaction._id || selectedTransaction.id,
+        data
       });
       setIsEditModalOpen(false);
       setSelectedTransaction(null);
       if (onDataChange) onDataChange();
-    } catch (err) {
-      setError(err.message);
+    } catch {
+      // Failure is already surfaced by the mutation's error toast
     }
   };
 
@@ -96,76 +80,43 @@ const ExpensesContent = ({ recentTransactions, onDataChange, userId }) => {
       destructive: true,
     });
     if (!confirmed) return;
-    
+
     try {
       await deleteExpense(transactionId);
       if (onDataChange) onDataChange();
-    } catch (err) {
-      setError(err.message);
+    } catch {
+      // Failure is already surfaced by the mutation's error toast
     }
   };
 
-  // LOADING STATE DETECTION
-  const isMutating = isAdding || isUpdating || isDeleting;
-  
-  // Check if we're in initial loading state
-  // Categories: loading AND (null or undefined)
-  const categoriesNotReady = isCategoriesLoading && (categories === null || categories === undefined);
-  
-  // Transactions: recentTransactions is null/undefined OR empty during load
-  const transactionsNotReady = !recentTransactions || 
-                                recentTransactions === null || 
-                                recentTransactions === undefined;
-  
-  // Show skeleton if EITHER categories or transactions aren't ready
-  const shouldShowSkeleton = categoriesNotReady || transactionsNotReady;
-  
-  // Background loading (data exists but refreshing)
-  const isRefetching = isCategoriesLoading && categories && categories.length > 0;
+  // Skeleton only until categories and the first page of expenses have loaded
+  const categoriesNotReady = isCategoriesLoading && !categories;
+  const shouldShowSkeleton = categoriesNotReady || transactions === null;
+
+  const loadError = transactionsError
+    ? 'Could not load your expenses. Please try again in a moment.'
+    : categoryError;
 
   return (
-    <div className="space-y-6">
-      <ExpensesHeader
-        onAddExpense={() => setIsAddModalOpen(true)}
-        onExport={() => setIsExportModalOpen(true)}
-        onDateRangeClick={() => setIsDateRangeModalOpen(true)}
-        isUsingCustomRange={isUsingCustomRange}
-        onClearDateRange={resetToDefault}
-      />
+    <div className="space-y-4 sm:space-y-6">
+      {/* Toolbar */}
+      <div className="flex justify-end">
+        <button
+          onClick={() => setIsExportModalOpen(true)}
+          className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+        >
+          <Download className="w-4 h-4" />
+          Export
+        </button>
+      </div>
 
-      {/* Custom Date Range Indicator */}
-      {isUsingCustomRange && customDateRange.startDate && customDateRange.endDate && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                Filtered by Date Range
-              </p>
-              <p className="text-sm text-blue-700 dark:text-blue-300">
-                {new Date(customDateRange.startDate).toLocaleDateString()} -{" "}
-                {new Date(customDateRange.endDate).toLocaleDateString()}
-              </p>
-              <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                Showing {dateFilteredTransactions?.length || 0} of{" "}
-                {recentTransactions?.length || 0} transactions
-              </p>
-            </div>
-            <button
-              onClick={() => {
-                resetToDefault();
-                if (onDataChange) onDataChange();
-              }}
-              className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200 font-medium"
-            >
-              Clear Filter
-            </button>
-          </div>
+      {loadError && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <p className="text-red-800 dark:text-red-200 text-sm">{loadError}</p>
         </div>
       )}
 
-      {/* Loading States */}
-      {shouldShowSkeleton ? (
-        // Initial Load - Show responsive skeletons
+      {shouldShowSkeleton && !loadError ? (
         <>
           <div className="sm:hidden">
             <TransactionListSkeleton items={8} />
@@ -175,67 +126,33 @@ const ExpensesContent = ({ recentTransactions, onDataChange, userId }) => {
           </div>
         </>
       ) : (
-        <>
-          {/* Background Refetch Indicator */}
-          {isRefetching && (
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-              <div className="flex items-center gap-3">
-                <div className="animate-spin h-5 w-5 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-                <p className="text-sm text-blue-700 dark:text-blue-300">
-                  Refreshing categories...
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Mutation Indicator */}
-          {isMutating && (
-            <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-3">
-              <div className="flex items-center gap-3">
-                <div className="animate-spin h-5 w-5 border-2 border-indigo-600 border-t-transparent rounded-full"></div>
-                <p className="text-sm text-indigo-700 dark:text-indigo-300">
-                  {isAdding && 'Adding expense...'}
-                  {isUpdating && 'Updating expense...'}
-                  {isDeleting && 'Deleting expense...'}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Table */}
-          <TransactionTable
-            transactions={finalTransactions || []} 
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            filterBy={filterBy}
-            setFilterBy={setFilterBy}
-            onEdit={(tx) => {
-              setSelectedTransaction(tx);
-              setIsEditModalOpen(true);
-            }}
-            onDelete={handleDeleteTransaction}
-            onDateRangeClick={() => setIsDateRangeModalOpen(true)}
-            loading={false}
-            onClearDateRange={resetToDefault}
-            isUsingCustomRange={isUsingCustomRange}
-            categories={categories || []}
-            itemsPerPage={itemsPerPage}
-            onItemsPerPageChange={setItemsPerPage}
-          />
-        </>
-      )}
-
-      {/* Modals */}
-      {isAddModalOpen && (
-        <AddExpenseModal
-          isOpen={isAddModalOpen}
-          onClose={() => setIsAddModalOpen(false)}
-          onSubmit={handleAddSubmit}
-          loading={isAdding}
-          userId={userId}
+        <TransactionTable
+          transactions={finalTransactions || []}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          filterBy={filterBy}
+          setFilterBy={setFilterBy}
+          onEdit={(tx) => {
+            setSelectedTransaction(tx);
+            setIsEditModalOpen(true);
+          }}
+          onDelete={handleDeleteTransaction}
+          loading={isSwitching}
+          categories={categories || []}
+          itemsPerPage={itemsPerPage}
+          onItemsPerPageChange={setItemsPerPage}
+          periodFilter={
+            <PeriodFilter
+              period={period}
+              onPeriodChange={setPeriod}
+              customRange={customRange}
+              onCustomRangeChange={setCustomRange}
+            />
+          }
         />
       )}
 
+      {/* Modals */}
       {isEditModalOpen && (
         <EditExpenseModal
           isOpen={isEditModalOpen}
@@ -250,38 +167,14 @@ const ExpensesContent = ({ recentTransactions, onDataChange, userId }) => {
         />
       )}
 
-      {isDateRangeModalOpen && (
-        <DateRangeModal
-          isOpen={isDateRangeModalOpen}
-          onClose={() => setIsDateRangeModalOpen(false)}
-          customDateRange={customDateRange}
-          onFetch={(dateRange) => {
-            applyCustomDateRange(dateRange);
-            setIsDateRangeModalOpen(false);
-          }}
-          setCustomDateRange={setCustomDateRange}
-        />
-      )}
-
       {isExportModalOpen && (
         <ExportModal
           isOpen={isExportModalOpen}
           onClose={() => setIsExportModalOpen(false)}
-          customDateRange={customDateRange}
         />
-      )}
-
-      {/* Error Display */}
-      {(error || categoryError) && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-          <p className="text-red-800 dark:text-red-200 text-sm">
-            {error || categoryError}
-          </p>
-        </div>
       )}
     </div>
   );
 };
 
 export default ExpensesContent;
-

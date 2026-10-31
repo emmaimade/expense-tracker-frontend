@@ -99,10 +99,6 @@ const SettingsContent = ({ onDataChange }) => {
 
   return (
     <div className="p-0 sm:p-6 max-w-3xl mx-auto space-y-8">
-      <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white">
-        Settings
-      </h2>
-
       {/* Profile */}
       <section id="settings-profile" className="scroll-mt-20">
         <SectionHeading title="Profile" />
@@ -113,7 +109,7 @@ const SettingsContent = ({ onDataChange }) => {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4 min-w-0">
                 <div
-                  className="w-14 h-14 shrink-0 rounded-full bg-blue-600 flex items-center justify-center text-white text-lg font-semibold"
+                  className="w-14 h-14 shrink-0 rounded-full bg-indigo-600 flex items-center justify-center text-white text-lg font-semibold"
                   aria-hidden="true"
                 >
                   {initials}

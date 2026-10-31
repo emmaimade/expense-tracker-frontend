@@ -64,7 +64,7 @@ export const expenseService = {
    * Supports predefined range types (e.g., "weekly", "monthly") and custom date ranges.
    *
    * @async
-   * @param {string} rangeType - The range preset identifier (e.g., "weekly", "monthly", "yearly"), or "custom" to use explicit dates.
+   * @param {string} rangeType - The range preset identifier (e.g., "weekly", "monthly"), "all" for every expense, or "custom" to use explicit dates.
    * @param {{ startDate: string, endDate: string } | null} customDateRange - Required when `rangeType` is "custom". Start and end dates in ISO 8601 format.
    * @returns {Promise<Array<object>>} Resolved array of normalized transaction objects (empty if there are none).
    * @throws {Error} If the request fails, so callers can show an error instead of an empty state.
@@ -75,6 +75,8 @@ export const expenseService = {
 
       if (rangeType === 'custom') {
         endpoint = `/expense/custom?startDate=${customDateRange.startDate}&endDate=${customDateRange.endDate}`;
+      } else if (rangeType === 'all') {
+        endpoint = '/expense';
       } else {
         endpoint = `/expense/${rangeType}`;
       }
