@@ -191,7 +191,10 @@ function Signup() {
     <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8 dark:bg-gray-800">
       <div className="sm:mx-auto sm:w-full sm:max-w-md px-6">
           <div className="flex flex-col items-center mb-8">
-            <img src="/logo.svg" alt="SpendWise" className="h-10 mb-5" />
+            {/* Logo goes back to the landing page */}
+            <Link to="/" className="inline-block mb-5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+              <img src="/logo.svg" alt="SpendWise home" className="h-10" />
+            </Link>
             <h2 className="text-2xl font-bold text-center text-gray-900 dark:text-white">Create your account</h2>
           </div>
 
