@@ -1,9 +1,11 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList, ReferenceLine } from 'recharts';
 import { useChartData } from '../hooks/useChartData';
 import { usePreferencesContext } from '../../../context/PreferencesContext';
 import Card from '../../../components/common/Card';
 
-const COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+// One color for categories: the bars are already labelled, so extra hues add noise
+const BAR_COLOR = '#4f46e5';
+const OVER_BUDGET_COLOR = '#ef4444';
 const CHART_HEIGHT = 320;
 const CATEGORY_CHART_HEIGHT = 280;
 
@@ -17,30 +19,6 @@ const EmptyState = () => (
     <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Add expenses to see insights</p>
   </div>
 );
-
-// ────── Category Legend Component ──────
-const CategoryLegend = ({ categories, total, colors, formatCurrency }) => {
-  if (!categories || categories.length === 0) return null;
-  return (
-    <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 space-y-2">
-      {categories.map((cat, i) => {
-        const pct = total > 0 ? ((cat.value / total) * 100).toFixed(1) : '0.0';
-        return (
-          <div key={`${cat.name}-${i}`} className="flex items-center justify-between">
-            <div className="flex items-center gap-2 min-w-0 flex-1">
-              <div className="w-3 h-3 rounded-sm flex-shrink-0" style={{ backgroundColor: colors[i % colors.length] }} aria-hidden="true" />
-              <span className="text-sm text-gray-700 dark:text-gray-300 font-medium truncate">{cat.name}</span>
-            </div>
-            <div className="flex items-center gap-3 flex-shrink-0">
-              <span className="text-sm text-gray-900 dark:text-gray-100 font-semibold">{formatCurrency(cat.value)}</span>
-              <span className="text-xs text-gray-500 dark:text-gray-400 min-w-[45px] text-right">{pct}%</span>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-};
 
 // ────── Stats Grid Component ──────
 const StatsGrid = ({ avg, max, min, formatCurrency }) => (
@@ -61,7 +39,7 @@ const StatsGrid = ({ avg, max, min, formatCurrency }) => (
 );
 
 // ────── Main Component ──────
-const AnalyticsDashboard = ({ categoryData = [], monthlyData = [], timeRange = '6months' }) => {
+const AnalyticsDashboard = ({ categoryData = [], monthlyData = [], timeRange = '6months', monthlyBudget = 0 }) => {
   const chartData = useChartData(categoryData, monthlyData, timeRange);
   const { formatCurrency, getCurrencySymbol, theme, currencyFormat } = usePreferencesContext();
 
@@ -96,44 +74,13 @@ const AnalyticsDashboard = ({ categoryData = [], monthlyData = [], timeRange = '
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-      {/* ────── Top Spending Categories Chart ────── */}
-      <Card>
-        <div className="mb-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Top Spending Categories</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Last {monthsCount} months • Top {top5.length} categories • {formatCurrency(catTotal)} total
-          </p>
-        </div>
-        <div style={{ height: CATEGORY_CHART_HEIGHT }} role="img" aria-label={`Top ${top5.length} spending categories chart`}>
-          {hasCategoryData ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={top5} layout="vertical" margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
-                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 13, fill: axisTickColor, fontWeight: 'medium' }} width={90} />
-                <XAxis type="number" axisLine={{ stroke: axisLineColor }} tickLine={false} tickFormatter={axisFormatter} tick={{ fontSize: 12, fill: axisTickColor }} />
-                <Tooltip
-                  cursor={{ fill: CURSOR_FILL }}
-                  formatter={(v) => [formatCurrency(v), 'Spending']}
-                  contentStyle={TOOLTIP_STYLE}
-                  labelStyle={tooltipLabelStyle}
-                  itemStyle={tooltipItemStyle}
-                />
-                <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20} minPointSize={2}>
-                  {top5.map((_, i) => <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          ) : <EmptyState />}
-        </div>
-        <CategoryLegend categories={top5} total={catTotal} colors={COLORS} formatCurrency={formatCurrency} />
-      </Card>
-
       {/* ────── Monthly Trends Chart ────── */}
       <Card>
         <div className="mb-4">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Monthly Trends</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Last {monthsCount} months • {formatCurrency(Math.round(monthlyAvg))} avg
+            {monthlyBudget > 0 && <> • dashed line is your {formatCurrency(monthlyBudget)} monthly budget</>}
           </p>
         </div>
         <div style={{ height: CHART_HEIGHT }} role="img" aria-label="Monthly spending trends chart">
@@ -151,13 +98,66 @@ const AnalyticsDashboard = ({ categoryData = [], monthlyData = [], timeRange = '
                   itemStyle={tooltipItemStyle}
                   cursor={{ fill: CURSOR_FILL }}
                 />
-                <Bar dataKey="amount" fill="#4f46e5" radius={[8, 8, 0, 0]} minPointSize={5} />
+                {monthlyBudget > 0 && (
+                  <ReferenceLine
+                    y={monthlyBudget}
+                    stroke={axisTickColor}
+                    strokeDasharray="6 4"
+                    ifOverflow="extendDomain"
+                    label={{ value: 'Budget', position: 'insideTopRight', fill: axisTickColor, fontSize: 12 }}
+                  />
+                )}
+                <Bar dataKey="amount" radius={[8, 8, 0, 0]} minPointSize={5}>
+                  {/* Months over budget stand out in red */}
+                  {monthlyDataFiltered.map((m) => (
+                    <Cell key={m.key} fill={monthlyBudget > 0 && m.amount > monthlyBudget ? OVER_BUDGET_COLOR : BAR_COLOR} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           ) : <EmptyState />}
         </div>
         {hasMonthlyData && <StatsGrid avg={monthlyAvg} max={monthMax} min={monthMin} formatCurrency={formatCurrency} />}
       </Card>
+      {/* ────── Top Spending Categories Chart ────── */}
+      <Card>
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Top Spending Categories</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            Last {monthsCount} months • Top {top5.length} categories • {formatCurrency(catTotal)} total
+          </p>
+        </div>
+        <div style={{ height: CATEGORY_CHART_HEIGHT }} role="img" aria-label={`Top ${top5.length} spending categories chart`}>
+          {hasCategoryData ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={top5} layout="vertical" margin={{ top: 10, right: 70, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} horizontal={false} />
+                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 13, fill: axisTickColor, fontWeight: 'medium' }} width={90} />
+                <XAxis type="number" axisLine={{ stroke: axisLineColor }} tickLine={false} tickFormatter={axisFormatter} tick={{ fontSize: 12, fill: axisTickColor }} />
+                <Tooltip
+                  cursor={{ fill: CURSOR_FILL }}
+                  formatter={(v) => [
+                    `${formatCurrency(v)} (${catTotal > 0 ? ((v / catTotal) * 100).toFixed(0) : 0}% of top ${top5.length})`,
+                    'Spending',
+                  ]}
+                  contentStyle={TOOLTIP_STYLE}
+                  labelStyle={tooltipLabelStyle}
+                  itemStyle={tooltipItemStyle}
+                />
+                <Bar dataKey="value" fill={BAR_COLOR} radius={[0, 4, 4, 0]} barSize={20} minPointSize={2}>
+                  <LabelList
+                    dataKey="value"
+                    position="right"
+                    formatter={(v) => formatCurrency(v)}
+                    style={{ fontSize: 12, fill: axisTickColor, fontWeight: 600 }}
+                  />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : <EmptyState />}
+        </div>
+      </Card>
+
     </div>
   );
 };

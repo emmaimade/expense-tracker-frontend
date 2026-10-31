@@ -196,9 +196,7 @@ const DashboardInner = () => {
             <Route
               path="analytics"
               element={
-                <AnalyticsContent
-                  recentTransactions={currentTransactions}
-                />
+                <AnalyticsContent onAddExpense={() => setIsQuickAddOpen(true)} />
               }
             />
 
