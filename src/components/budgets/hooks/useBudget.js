@@ -6,6 +6,14 @@ import { useCategories } from '../../expenses/hooks/useCategories';
 
 export const useBudget = (recentTransactions = []) => {
   const queryClient = useQueryClient();
+
+  // Budget changes affect the dashboard's cached budget numbers and can trigger
+  // (or clear) budget alerts on the server, so mark all of those as outdated
+  const refreshBudgetQueries = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['totalMonthlyBudget'] });
+    queryClient.invalidateQueries({ queryKey: ['budgetOverview'] });
+    queryClient.invalidateQueries({ queryKey: ['notifications'] });
+  }, [queryClient]);
   const [loading, setLoading] = useState(true);
   const [budget, setBudget] = useState({});
   const [categoryBudgets, setCategoryBudgets] = useState([]);
@@ -84,8 +92,7 @@ export const useBudget = (recentTransactions = []) => {
 
       
       await budgetService.setMonthlyBudget(budgetData);
-      // Setting a budget can trigger a budget alert on the server
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      refreshBudgetQueries();
 
       toast.success(`Budget for ${newCategory.name} added successfully!`);
       setNewCategory({ categoryId: "", name: "", amount: "" });
@@ -118,8 +125,7 @@ export const useBudget = (recentTransactions = []) => {
 
       
       await budgetService.setMonthlyBudget(budgetData);
-      // Setting a budget can trigger a budget alert on the server
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      refreshBudgetQueries();
 
       setIsEditingCategory(false);
       setEditingCategoryId(null);
@@ -136,6 +142,7 @@ export const useBudget = (recentTransactions = []) => {
   const handleDeleteBudget = async (id) => {
     try {
       await budgetService.deleteBudget(id);
+      refreshBudgetQueries();
       toast.success("Budget deleted successfully!");
       await fetchBudgetData(); // Re-fetch data to update the list
     } catch (error) {
