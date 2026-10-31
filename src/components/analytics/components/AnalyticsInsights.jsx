@@ -69,13 +69,13 @@ const AnalyticsInsights = ({ analytics, trendInsight }) => {
 
   return (
     <Card>
-      <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Key Insights</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Insights</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {insights.map((insight, index) => {
           const tone = TONES[insight.type] || TONES.info;
           const Icon = insight.icon;
           return (
-            <div key={index} className={`p-4 rounded-lg border ${tone.box}`}>
+            <div key={index} className={`p-3 rounded-lg border ${tone.box}`}>
               <h3 className={`font-medium ${tone.title} flex items-center gap-2`}>
                 {Icon && <Icon className="w-4 h-4 shrink-0" />}
                 {insight.title}
