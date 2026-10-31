@@ -39,12 +39,6 @@ export const useDashboardData = () => {
         select: (response) => response?.data?.totalBudget ?? response?.totalBudget ?? 0,
         placeholderData: 0,
       },
-      {
-        queryKey: ['budgetOverview'],
-        queryFn: () => budgetService.getBudgetOverview(),
-        select: (response) => response?.data ?? response ?? {},
-        placeholderData: {},
-      },
     ],
   });
 
@@ -52,22 +46,23 @@ export const useDashboardData = () => {
     { data: currentTransactions, isLoading: loading1, error: error1 },
     { data: prevTransactions, isLoading: loading2, error: error2 },
     { data: totalBudget, isLoading: loading3, error: error3 },
-    { data: budgetOverview, isLoading: loading4, error: error4 },
   ] = queries;
 
-  const isLoading = loading1 || loading2 || loading3 || loading4;
-  const error = error1 || error2 || error3 || error4;
+  const isLoading = loading1 || loading2 || loading3;
+  const error = error1 || error2 || error3;
 
   const memoizedData = useMemo(() => {
     const current = currentTransactions || [];
     const previous = prevTransactions || [];
 
-    // Extract budget information
+    // Budget card: everything spent this month against the total budget.
+    // (The API's budget overview only counts categories that have a budget, so
+    // spending in other categories showed up as 0 here.)
     const budgetLimit = parseFloat(totalBudget) || 0;
-    const totalSpent = parseFloat(budgetOverview?.totalSpent) || 0;
-    const totalRemaining = parseFloat(budgetOverview?.totalRemaining) || 0;
-    const percentageUsed = parseFloat(budgetOverview?.summary?.percentageUsed) || 0;
-    const isOverBudget = budgetOverview?.summary?.isOverBudget || false;
+    const totalSpent = current.reduce((sum, t) => sum + Math.abs(t.amount || 0), 0);
+    const totalRemaining = budgetLimit - totalSpent;
+    const percentageUsed = budgetLimit > 0 ? (totalSpent / budgetLimit) * 100 : 0;
+    const isOverBudget = budgetLimit > 0 && totalSpent > budgetLimit;
 
     // Calculate stats
     const stats = calculateFinancialStats(
@@ -96,7 +91,7 @@ export const useDashboardData = () => {
         previous,
       },
     };
-  }, [currentTransactions, prevTransactions, totalBudget, budgetOverview, formatCurrency]);
+  }, [currentTransactions, prevTransactions, totalBudget, formatCurrency]);
 
   // Refetch everything (used after currency changes and by the Retry button)
   const refreshData = () => Promise.all(queries.map((query) => query.refetch()));
@@ -178,7 +173,8 @@ const calculateFinancialStats = (
   // Month-over-Month Change
   let momChange = 0;
   let momChangeDirection = 'flat';
-  if (prevMonthSpending > 0) {
+  const hasPreviousMonth = prevMonthSpending > 0;
+  if (hasPreviousMonth) {
     momChange = ((currentMonthSpending - prevMonthSpending) / prevMonthSpending) * 100;
     momChangeDirection = momChange > 0 ? 'up' : momChange < 0 ? 'down' : 'flat';
   }
@@ -206,13 +202,14 @@ const calculateFinancialStats = (
     },
     {
       name: 'vs. last month',
-      value: `${Math.abs(momChange).toFixed(1)}%`,
+      // Without last month's spending there's nothing to compare, so say so instead of "0.0%"
+      value: hasPreviousMonth ? `${Math.abs(momChange).toFixed(1)}%` : '—',
       trend: momChangeDirection === 'flat' ? undefined : momChangeDirection,
       change: momChangeDirection === 'up'
         ? 'More spent'
         : momChangeDirection === 'down'
         ? 'Less spent'
-        : 'No change',
+        : hasPreviousMonth ? 'No change' : 'No spending last month',
       icon: momChangeDirection === 'up' ? TrendingUp : momChangeDirection === 'down' ? TrendingDown : Minus,
       style: momChangeDirection === 'up' ? 'danger' : momChangeDirection === 'down' ? 'success' : 'info',
       secondaryValue: momChangeDirection === 'flat'

@@ -22,9 +22,10 @@ const WelcomeSection = ({ userName, onQuickAdd, onViewAllExpenses, isFirstLogin 
           View expenses
           <ArrowRight className="w-4 h-4 ml-2" />
         </button>
+        {/* Desktop has Add expense in the top bar, so this one is for smaller screens only */}
         <button
           onClick={onQuickAdd}
-          className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 transition-colors"
+          className="lg:hidden flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 transition-colors"
         >
           <Plus className="w-4 h-4 mr-2" />
           Add expense
