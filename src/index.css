@@ -23,6 +23,17 @@ html {
   transition: none !important;
 }
 
+/* iOS Safari zooms in when a field with text under 16px is focused, and doesn't zoom back out.
+   Keep form fields at 16px or more on phone-width screens; larger screens keep the compact size.
+   (!important because the fields use Tailwind text-sm utility classes.) */
+@media (max-width: 639px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    font-size: max(16px, 1rem) !important;
+  }
+}
+
 /* Body styling for light/dark mode */
 body {
   @apply bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100;
