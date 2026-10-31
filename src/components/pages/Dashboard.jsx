@@ -181,7 +181,7 @@ const DashboardInner = () => {
           <EmailVerificationBanner />
           {dataError && <ConnectionErrorBanner onRetry={refreshData} />}
           <Routes>
-            <Route index element={<DashboardContent onDataChange={refreshData} />} />
+            <Route index element={<DashboardContent onDataChange={refreshData} onAddExpense={() => setIsQuickAddOpen(true)} />} />
 
             <Route
               path="expenses"
