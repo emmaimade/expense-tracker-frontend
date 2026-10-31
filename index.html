@@ -23,6 +23,18 @@
     <meta name="apple-mobile-web-app-title" content="SpendWise" />
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // iOS Safari zooms into form fields on focus and doesn't zoom back out. On iOS,
+      // maximum-scale=1 stops that auto-zoom while pinch-zoom still works (iOS ignores
+      // it for gestures). Android would block pinch-zoom with it, so it's iOS-only.
+      (function() {
+        var ua = navigator.userAgent;
+        var isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        if (isIOS) {
+          document.querySelector('meta[name="viewport"]').setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0');
+        }
+      })();
+    </script>
     <title>SpendWise - Smart Expense Tracking</title>
   </head>
   <body>
