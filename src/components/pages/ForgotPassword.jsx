@@ -2,7 +2,7 @@
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CircleAlert, CircleCheck, Mail } from 'lucide-react';
 import { API_BASE_URL } from '../../services/apiService';
 
@@ -57,7 +57,10 @@ function ForgotPassword() {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 dark:bg-gray-900">
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center mx-auto mb-2">
-          <img src="/logo.svg" alt="SpendWise" className="h-9" />
+          {/* Logo goes back to the landing page */}
+          <Link to="/" className="inline-block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+            <img src="/logo.svg" alt="SpendWise home" className="h-9" />
+          </Link>
         </div>
         <h1 className="text-2xl font-bold text-center mb-1">Forgot Password?</h1>
         <p className="text-center text-sm text-gray-500 mb-4 dark:text-gray-400">

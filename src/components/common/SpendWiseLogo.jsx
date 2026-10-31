@@ -15,7 +15,9 @@ const SpendWiseLogo = ({ className = "h-8", showText = true, onClick }) => {
         viewBox={showText ? "0 0 200 44" : "0 0 44 44"} 
         fill="none" 
         xmlns="http://www.w3.org/2000/svg"
-        className={className}
+        // w-auto: the width attribute is only the aspect ratio; without this the scaled-down
+        // logo sits centred in a 200px box, which looks like padding on the left
+        className={`w-auto ${className}`}
       >
         <defs>
           <linearGradient id={`g-${isDark ? 'd' : 'l'}`} x1="0%" y1="0%" x2="100%" y2="100%">
