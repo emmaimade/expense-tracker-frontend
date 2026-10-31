@@ -10,10 +10,17 @@ const BudgetOverview = ({
   spent,
   percentageUsed,
   categoryCount = 0,
+  dailyAverage = 0,
+  projectedSpending = 0,
   }) => {
   const { formatCurrency } = usePreferencesContext();
   const isNearLimit = !isOverBudget && percentageUsed > 80;
   const month = new Date().toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+
+  // What's left to spend per day for the rest of the month (budget-specific; the dashboard doesn't show it)
+  const daysLeft = Math.max(daysRemaining || 0, 1);
+  const safeDaily = remaining > 0 ? remaining / daysLeft : 0;
+  const onPaceToOverspend = totalBudget > 0 && !isOverBudget && projectedSpending > totalBudget;
 
   const statusColor = isOverBudget
     ? "text-red-600 dark:text-red-400"
@@ -70,6 +77,23 @@ const BudgetOverview = ({
         <p className={`font-medium ${statusColor}`}>{percentageUsed.toFixed(1)}% used</p>
         <p className="text-gray-700 dark:text-gray-300">{formatCurrency(spent)} spent</p>
       </div>
+
+      {totalBudget > 0 && (
+        <p
+          className={`mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 text-sm ${
+            isOverBudget || onPaceToOverspend ? "text-red-600 dark:text-red-400" : "text-gray-600 dark:text-gray-400"
+          }`}
+        >
+          {isOverBudget
+            ? "You've used your whole budget for this month."
+            : <>
+                To stay on budget, keep to{' '}
+                <span className="font-semibold">{formatCurrency(safeDaily)}/day</span> for the next{' '}
+                {daysLeft} {daysLeft === 1 ? 'day' : 'days'}
+                {dailyAverage > 0 && <> (you're averaging {formatCurrency(dailyAverage)}/day{onPaceToOverspend && <>, on pace for {formatCurrency(projectedSpending)}</>})</>}.
+              </>}
+        </p>
+      )}
     </Card>
   );
 };
