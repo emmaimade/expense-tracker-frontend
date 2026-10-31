@@ -1,86 +1,54 @@
 ﻿import { Home, CreditCard, BarChart3, Target, Settings, HelpCircle } from 'lucide-react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import SpendWiseLogo from '../common/SpendWiseLogo';
+
+const sidebarItems = [
+  { label: "Dashboard", icon: Home, path: "/dashboard", end: true },
+  { label: "Expenses", icon: CreditCard, path: "/dashboard/expenses" },
+  { label: "Analytics", icon: BarChart3, path: "/dashboard/analytics" },
+  { label: "Budgets", icon: Target, path: "/dashboard/budgets" },
+  { label: "Settings", icon: Settings, path: "/dashboard/settings" },
+];
+
+// Real links: middle-click / open in new tab work, and NavLink sets aria-current
+const SidebarLink = ({ item }) => {
+  const Icon = item.icon;
+  return (
+    <NavLink
+      to={item.path}
+      end={item.end}
+      className={({ isActive }) =>
+        `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+          isActive
+            ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400"
+            : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+        }`
+      }
+    >
+      <Icon className="w-5 h-5 shrink-0" />
+      {item.label}
+    </NavLink>
+  );
+};
 
 // Desktop-only navigation; BottomNav handles mobile
 const Sidebar = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const sidebarItems = [
-    { id: "dashboard", label: "Dashboard", icon: Home, path: "/dashboard" },
-    { id: "expenses", label: "Expenses", icon: CreditCard, path: "/dashboard/expenses" },
-    { id: "analytics", label: "Analytics", icon: BarChart3, path: "/dashboard/analytics" },
-    { id: "budgets", label: "Budgets", icon: Target, path: "/dashboard/budgets" },
-    { id: "settings", label: "Settings", icon: Settings, path: "/dashboard/settings" },
-  ];
-
-  // Determine active tab based on current path
-  const getActiveTab = () => {
-    const path = location.pathname;
-    
-    // Exact match for dashboard home
-    if (path === '/dashboard') return 'dashboard';
-    
-    // Check for nested routes
-    if (path.startsWith('/dashboard/expenses')) return 'expenses';
-    if (path.startsWith('/dashboard/analytics')) return 'analytics';
-    if (path.startsWith('/dashboard/budgets')) return 'budgets';
-    if (path.startsWith('/dashboard/settings')) return 'settings';
-    
-    return 'dashboard'; // Default
-  };
-
-  const activeTab = getActiveTab();
-
-  const handleNavigation = (item) => {
-    navigate(item.path);
-  };
-
   return (
-    <div className="hidden lg:block w-64 flex-shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
-      <div className="p-6 flex items-center space-x-2">
+    <div className="hidden lg:flex lg:flex-col w-64 flex-shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
+      <div className="h-16 px-6 flex items-center">
         <SpendWiseLogo showText={true} className="h-8" />
       </div>
 
-      <nav className="mt-8 flex flex-col h-[calc(100%-88px)]">
-        <div className="flex-1">
-        {sidebarItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeTab === item.id;
-
-          return (
-            <button
-              key={item.id}
-              onClick={() => handleNavigation(item)}
-              className={`w-full flex items-center px-6 py-3 text-left transition-colors ${
-                isActive
-                  ? "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-r-2 border-indigo-600 dark:border-indigo-400"
-                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
-              }`}
-            >
-              <Icon className="w-5 h-5 mr-3" />
-              {item.label}
-            </button>
-          );
-        })}
+      <nav aria-label="Primary" className="flex-1 flex flex-col px-3 py-4">
+        <div className="space-y-1">
+          {sidebarItems.map((item) => (
+            <SidebarLink key={item.path} item={item} />
+          ))}
         </div>
 
-        {/* Help Center — bottom of sidebar */}
-        <div className="px-4 pb-6 mt-auto">
-          <Link
-            to="/support"
-            className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors group"
-          >
-            <HelpCircle className="w-4 h-4 flex-shrink-0" />
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold">Help Center</p>
-              <p className="text-xs text-indigo-400 dark:text-indigo-500 truncate">FAQs & support</p>
-            </div>
-            <svg className="w-3.5 h-3.5 text-indigo-400 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
+        {/* Help sits at the bottom as a plain item, so it doesn't compete with the main nav */}
+        <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-700">
+          <SidebarLink item={{ label: "Help & support", icon: HelpCircle, path: "/support" }} />
         </div>
       </nav>
     </div>

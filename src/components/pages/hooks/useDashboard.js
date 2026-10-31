@@ -33,8 +33,17 @@ export const useDashboard = () => {
       }
     };
 
+    // Esc closes the menu too
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setIsDropdownOpen(false);
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   // Action: Handle logout
