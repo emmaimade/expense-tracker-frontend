@@ -1,14 +1,38 @@
 ﻿import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 import { budgetService } from '../../../services/budgetService';
+import { expenseService } from '../../../services/expenseService';
+import { dateUtils } from '../../../utils/dateUtils';
+
+const MONTHS_BY_RANGE = { '3months': 3, '6months': 6, '1year': 12 };
+
+// First day of the oldest month in the range through today, as YYYY-MM-DD
+const getRangeDates = (timeRange) => {
+  const months = MONTHS_BY_RANGE[timeRange] || 6;
+  const now = new Date();
+  return {
+    startDate: dateUtils.toLocalDateString(new Date(now.getFullYear(), now.getMonth() - months + 1, 1)),
+    endDate: dateUtils.toLocalDateString(now),
+  };
+};
 
 /**
- * Custom hook for analytics data processing and budget management
- * @param {Array} recentTransactions - Array of transaction objects
+ * Custom hook for analytics data processing and budget management.
+ * Fetches the expenses for the whole time range itself; the query key starts
+ * with 'recentTransactions', which the expense mutations invalidate.
  * @param {string} timeRange - Time range: '3months', '6months', or '1year'
  * @returns {Object} Analytics data, loading state, and utility functions
  */
-// Remove default parameters so we can detect when data hasn't loaded
-export const useAnalytics = (recentTransactions, timeRange = '6months') => {
+export const useAnalytics = (timeRange = '6months') => {
+  const rangeDates = useMemo(() => getRangeDates(timeRange), [timeRange]);
+  const transactionsQuery = useQuery({
+    queryKey: ['recentTransactions', 'analytics', rangeDates.startDate, rangeDates.endDate],
+    queryFn: () => expenseService.getTransactionsByDateRange('custom', rangeDates),
+    placeholderData: keepPreviousData,
+  });
+  const recentTransactions = transactionsQuery.data ?? null;
+
   const [budgetData, setBudgetData] = useState(null);
   const [categoryBudgets, setCategoryBudgets] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -147,6 +171,23 @@ export const useAnalytics = (recentTransactions, timeRange = '6months') => {
       amount: Math.round(item.amount),
     }));
 
+    // Category with the biggest change from last month to this month
+    const monthKey = (d) => `${d.getFullYear()}-${d.getMonth()}`;
+    const thisMonth = monthKey(now);
+    const lastMonth = monthKey(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+    const byCategory = {};
+    recentExpenses.forEach(tx => {
+      const key = monthKey(new Date(tx.date));
+      if (key !== thisMonth && key !== lastMonth) return;
+      const name = tx.category?.name || tx.category || 'Uncategorized';
+      byCategory[name] = byCategory[name] || { current: 0, previous: 0 };
+      byCategory[name][key === thisMonth ? 'current' : 'previous'] += Math.abs(tx.amount || 0);
+    });
+    const categoryChange = Object.entries(byCategory)
+      .map(([name, { current, previous }]) => ({ name, current, previous, delta: current - previous }))
+      .filter((c) => c.previous > 0 && Math.abs(c.delta) > 0)
+      .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))[0] || null;
+
     // Budget adherence: compare time-range spending to prorated budget
     const monthlyBudget = budgetData?.totalBudget || 0;
     const totalBudgetForRange = monthlyBudget * monthsToAnalyze;
@@ -163,13 +204,15 @@ export const useAnalytics = (recentTransactions, timeRange = '6months') => {
           day: 'numeric',
           year: 'numeric',
         }),
-        description: largestExpense.description || 'N/A',
+        description: largestExpense.name || largestExpense.description || 'N/A',
       },
       categoryData,
       monthlyData,
       totalBudget: Math.round(totalBudgetForRange),
+      monthlyBudget: Math.round(monthlyBudget),
       totalSpent: Math.round(totalSpent),
       budgetAdherence,
+      categoryChange,
     };
   }, [
     recentTransactions,
@@ -196,14 +239,14 @@ export const useAnalytics = (recentTransactions, timeRange = '6months') => {
         type: 'warning',
         title: 'Spending Spike',
         message: `This month is ${Math.round(change)}% higher than last month.`,
-        icon: '⚡',
+        icon: TrendingUp,
       };
     } else if (change < -20) {
       return {
         type: 'success',
         title: 'Great Progress!',
         message: `This month is ${Math.round(Math.abs(change))}% lower than last month.`,
-        icon: '✅',
+        icon: TrendingDown,
       };
     }
 
@@ -250,8 +293,10 @@ export const useAnalytics = (recentTransactions, timeRange = '6months') => {
   return {
     analytics, // Now returns null initially, then data
     categoryBudgets, // Now returns null initially, then [] or [...data]
-    isLoading,
-    error,
+    isLoading: isLoading || transactionsQuery.isLoading,
+    // True only while a newly chosen time range loads
+    isSwitching: transactionsQuery.isFetching && transactionsQuery.isPlaceholderData,
+    error: error || (transactionsQuery.error ? 'Failed to load your expenses' : null),
     trendInsight,
     exportToCSV,
     refetch: fetchBudgetData,
