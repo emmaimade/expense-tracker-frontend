@@ -1,67 +1,76 @@
 import { usePreferencesContext } from '../../../context/PreferencesContext';
+import Card from '../../common/Card';
 
-const BudgetOverview = ({ 
-  totalBudget, 
-  remaining, 
-  isOverBudget, 
-  daysRemaining, 
-  spent, 
-  percentageUsed 
+// Same look as the dashboard's budget card, so both pages read as one product
+const BudgetOverview = ({
+  totalBudget,
+  remaining,
+  isOverBudget,
+  daysRemaining,
+  spent,
+  percentageUsed,
+  categoryCount = 0,
   }) => {
   const { formatCurrency } = usePreferencesContext();
+  const isNearLimit = !isOverBudget && percentageUsed > 80;
+  const month = new Date().toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+
+  const statusColor = isOverBudget
+    ? "text-red-600 dark:text-red-400"
+    : isNearLimit
+    ? "text-orange-600 dark:text-orange-400"
+    : "text-indigo-600 dark:text-indigo-400";
+
+  const barColor = isOverBudget
+    ? "bg-gradient-to-r from-red-500 to-red-600"
+    : isNearLimit
+    ? "bg-gradient-to-r from-yellow-500 to-orange-500"
+    : "bg-gradient-to-r from-indigo-500 to-indigo-600";
+
   return (
-    <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-5 sm:p-8 rounded-xl text-white">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+    <Card>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-4 min-w-0">
         <div className="min-w-0">
-          <p className="text-indigo-100 text-sm font-medium">
-            TOTAL MONTHLY BUDGET
+          <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+            {month} budget
+          </h2>
+          <p className="text-3xl sm:text-4xl font-bold mt-1 break-words text-gray-900 dark:text-gray-100">
+            {formatCurrency(totalBudget)}
           </p>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mt-2">
-            <h2 className="text-3xl sm:text-4xl font-bold break-words">
-              {formatCurrency(totalBudget)}
-            </h2>
-            <span className="text-sm text-indigo-200">
-              (Sum of all categories)
-            </span>
-          </div>
+          {categoryCount > 0 && (
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Total of your {categoryCount} category {categoryCount === 1 ? 'budget' : 'budgets'}
+            </p>
+          )}
         </div>
-        <div className="text-left sm:text-right">
-          <p className="text-indigo-100 text-sm font-medium">REMAINING</p>
-          <h3
-            className={`text-2xl sm:text-3xl font-bold mt-2 break-words ${
-              isOverBudget ? "text-red-200" : "text-white"
-            }`}
-          >
+        <div className="sm:text-right">
+          <p className={`text-2xl font-bold break-words ${isOverBudget ? statusColor : "text-gray-900 dark:text-gray-100"}`}>
             {formatCurrency(Math.abs(remaining))}
-          </h3>
-          <p className="text-indigo-100 text-sm mt-1">
-            {isOverBudget ? "Over budget" : `${daysRemaining} days left`}
+          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            {isOverBudget ? "over budget" : `left · ${daysRemaining} days to go`}
           </p>
         </div>
       </div>
 
-      {/* Progress Bar */}
-      <div className="space-y-2">
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between text-sm">
-          <span className="text-indigo-100">Spent: {formatCurrency(spent)}</span>
-          <span className="text-indigo-100">
-            {percentageUsed.toFixed(1)}%
-          </span>
-        </div>
-        <div className="w-full bg-white/20 rounded-full h-3">
-          <div
-            className={`h-3 rounded-full transition-all duration-500 ${
-              isOverBudget
-                ? "bg-red-400"
-                : percentageUsed > 80
-                ? "bg-yellow-400"
-                : "bg-green-400"
-            }`}
-            style={{ width: `${Math.min(percentageUsed, 100)}%` }}
-          />
-        </div>
+      <div
+        className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 mb-2"
+        role="progressbar"
+        aria-valuenow={Math.round(percentageUsed)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="Budget used"
+      >
+        <div
+          className={`h-3 rounded-full transition-all duration-500 ${barColor}`}
+          style={{ width: `${Math.min(percentageUsed, 100)}%` }}
+        />
       </div>
-    </div>
+      <div className="flex justify-between items-center gap-2 text-sm">
+        <p className={`font-medium ${statusColor}`}>{percentageUsed.toFixed(1)}% used</p>
+        <p className="text-gray-700 dark:text-gray-300">{formatCurrency(spent)} spent</p>
+      </div>
+    </Card>
   );
 };
 

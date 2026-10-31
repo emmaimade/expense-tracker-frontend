@@ -87,18 +87,10 @@ export const CategoryBudgetsSkeleton = () => (
 // Full Analytics Page Skeleton
 export const AnalyticsPageSkeleton = () => (
   <div className="space-y-6">
-    {/* Header */}
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
-      <div className="flex items-center justify-between">
-        <div>
-          <Skeleton className="h-8 w-48 mb-2" />
-          <Skeleton className="h-4 w-64" />
-        </div>
-        <div className="flex gap-3">
-          <Skeleton className="h-10 w-40 rounded-lg" />
-          <Skeleton className="h-10 w-32 rounded-lg" />
-        </div>
-      </div>
+    {/* Toolbar */}
+    <div className="flex items-center justify-between">
+      <Skeleton className="h-10 w-64 rounded-lg" />
+      <Skeleton className="h-10 w-28 rounded-lg" />
     </div>
 
     {/* Metrics */}
@@ -112,32 +104,20 @@ export const AnalyticsPageSkeleton = () => (
   </div>
 );
 
-// Budget Overview Skeleton
+// Budget Overview Skeleton (matches the white budget card)
 export const BudgetOverviewSkeleton = () => (
-  <div className="bg-gradient-to-br from-indigo-500 to-purple-600 dark:from-indigo-600 dark:to-purple-700 rounded-xl shadow-lg p-8">
-    <div className="flex items-center justify-between mb-6">
-      <Skeleton variant="light" className="h-6 w-48 bg-white/20" />
-      <Skeleton variant="light" className="h-10 w-32 rounded-lg bg-white/20" />
-    </div>
-    
-    <div className="grid md:grid-cols-2 gap-6 mb-6">
+  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+    <div className="flex items-end justify-between mb-4">
       <div>
-        <Skeleton variant="light" className="h-4 w-24 mb-2 bg-white/20" />
-        <Skeleton variant="light" className="h-12 w-40 bg-white/30" />
+        <Skeleton className="h-4 w-36 mb-2" />
+        <Skeleton className="h-10 w-48" />
       </div>
-      <div>
-        <Skeleton variant="light" className="h-4 w-24 mb-2 bg-white/20" />
-        <Skeleton variant="light" className="h-12 w-40 bg-white/30" />
-      </div>
+      <Skeleton className="h-8 w-28" />
     </div>
-
-    <div className="w-full bg-white/20 rounded-full h-4 mb-4">
-      <Skeleton variant="light" className="h-4 w-3/5 bg-white/40 rounded-full" />
-    </div>
-
+    <Skeleton className="h-3 w-full rounded-full mb-2" />
     <div className="flex justify-between">
-      <Skeleton variant="light" className="h-4 w-32 bg-white/20" />
-      <Skeleton variant="light" className="h-4 w-32 bg-white/20" />
+      <Skeleton className="h-4 w-20" />
+      <Skeleton className="h-4 w-24" />
     </div>
   </div>
 );
@@ -161,12 +141,6 @@ export const BudgetStatsSkeleton = () => (
 // Full Budget Page Skeleton
 export const BudgetPageSkeleton = () => (
   <div className="space-y-6">
-    {/* Header */}
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
-      <Skeleton className="h-8 w-48 mb-2" />
-      <Skeleton className="h-4 w-64" />
-    </div>
-
     {/* Overview */}
     <BudgetOverviewSkeleton />
 

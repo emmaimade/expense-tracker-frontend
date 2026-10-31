@@ -1,5 +1,5 @@
 ﻿import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, User, LogOut, HelpCircle } from 'lucide-react';
+import { Bell, User, LogOut, HelpCircle, Plus } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useDashboard } from './hooks/useDashboard';
 import { useDashboardData } from '../../hooks/useDashboardData';
@@ -30,7 +30,6 @@ const DashboardInner = () => {
     userId,
     isDropdownOpen,
     setIsDropdownOpen,
-    currentDateTime,
     initials,
     dropdownRef,
     handleLogout,
@@ -58,10 +57,10 @@ const DashboardInner = () => {
   if (!user) return null;
 
   const titles = {
-    '/dashboard': 'Overview',
-    '/dashboard/expenses': 'Transactions & Expenses',
-    '/dashboard/analytics': 'Spend Analysis',
-    '/dashboard/budgets': 'Budget Tracking',
+    '/dashboard': 'Dashboard',
+    '/dashboard/expenses': 'Expenses',
+    '/dashboard/analytics': 'Analytics',
+    '/dashboard/budgets': 'Budgets',
     '/dashboard/settings': 'Settings'
   };
 
@@ -79,16 +78,23 @@ const DashboardInner = () => {
 
           {/* Left — title */}
           <div className="min-w-0">
-            <h1 className="text-lg md:text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent truncate">
+            {/* Same name as the nav item, so each page has one title */}
+            <h1 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-100 truncate">
               {currentTitle}
             </h1>
-            <p className="hidden md:block text-xs text-gray-500 dark:text-gray-400">
-              {currentDateTime}
-            </p>
           </div>
 
-          {/* Right — bell + profile */}
+          {/* Right — add expense + bell + profile */}
           <div className="flex items-center gap-3 md:gap-4">
+
+            {/* Desktop add button; mobile uses the bottom nav's + */}
+            <button
+              onClick={() => setIsQuickAddOpen(true)}
+              className="hidden lg:inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Add expense
+            </button>
 
             {/* Notification Bell — wrapped in ref for click-outside detection */}
             <div ref={notificationRef} className="relative">
@@ -127,7 +133,7 @@ const DashboardInner = () => {
                 title={user.name}
                 className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
               >
-                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium text-sm">
+                <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white font-medium text-sm">
                   {initials}
                 </div>
               </button>
@@ -181,7 +187,6 @@ const DashboardInner = () => {
               path="expenses"
               element={
                 <ExpensesContent
-                  recentTransactions={currentTransactions}
                   userId={userId}
                   onDataChange={refreshData}
                 />
