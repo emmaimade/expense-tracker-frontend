@@ -11,6 +11,7 @@ const DEFAULT_PREFERENCES = {
   currencyFormat: "symbol",
   language: "en",
   fontSize: "md",
+  sidebarMode: "expanded", // "expanded" | "collapsed" | "hover"
 };
 
 const CURRENCY_SYMBOLS = {
@@ -231,6 +232,7 @@ export const PreferencesProvider = ({ children, userId }) => {
     currencyFormat: preferences.currencyFormat,
     fontSize: preferences.fontSize,
     language: preferences.language,
+    sidebarMode: preferences.sidebarMode || DEFAULT_PREFERENCES.sidebarMode,
   };
 
   return (
