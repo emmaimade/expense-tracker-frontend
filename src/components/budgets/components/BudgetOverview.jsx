@@ -12,13 +12,16 @@ const BudgetOverview = ({
   categoryCount = 0,
   dailyAverage = 0,
   projectedSpending = 0,
+  unbudgetedSpent = 0,
+  onAddBudget,
   }) => {
   const { formatCurrency } = usePreferencesContext();
   const isNearLimit = !isOverBudget && percentageUsed > 80;
   const month = new Date().toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
 
-  // What's left to spend per day for the rest of the month (budget-specific; the dashboard doesn't show it)
+  // daysRemaining counts today, so it's 1 on the last day of the month
   const daysLeft = Math.max(daysRemaining || 0, 1);
+  const isLastDay = daysLeft === 1;
   const safeDaily = remaining > 0 ? remaining / daysLeft : 0;
   const onPaceToOverspend = totalBudget > 0 && !isOverBudget && projectedSpending > totalBudget;
 
@@ -34,9 +37,23 @@ const BudgetOverview = ({
     ? "bg-gradient-to-r from-yellow-500 to-orange-500"
     : "bg-gradient-to-r from-indigo-500 to-indigo-600";
 
+  const paceMessage = () => {
+    if (isOverBudget) return "You've used your whole budget for this month.";
+    if (isLastDay) {
+      return <>Last day of the month: <span className="font-semibold">{formatCurrency(remaining)}</span> left to spend today.</>;
+    }
+    return (
+      <>
+        To stay on budget, keep to{' '}
+        <span className="font-semibold">{formatCurrency(safeDaily)}/day</span> for the next {daysLeft} days
+        {dailyAverage > 0 && <> (you&apos;re averaging {formatCurrency(dailyAverage)}/day{onPaceToOverspend && <>, on pace for {formatCurrency(projectedSpending)}</>})</>}.
+      </>
+    );
+  };
+
   return (
     <Card>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-4 min-w-0">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-4 min-w-0">
         <div className="min-w-0">
           <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400">
             {month} budget
@@ -50,12 +67,13 @@ const BudgetOverview = ({
             </p>
           )}
         </div>
+        {/* Supporting figure: smaller than the budget so the two don't compete */}
         <div className="sm:text-right">
-          <p className={`text-2xl font-bold break-words ${isOverBudget ? statusColor : "text-gray-900 dark:text-gray-100"}`}>
-            {formatCurrency(Math.abs(remaining))}
+          <p className={`text-lg font-semibold break-words ${isOverBudget ? statusColor : "text-gray-900 dark:text-gray-100"}`}>
+            {formatCurrency(Math.abs(remaining))} {isOverBudget ? "over" : "left"}
           </p>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {isOverBudget ? "over budget" : `left · ${daysRemaining} days to go`}
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {isLastDay ? "Last day of the month" : `${daysLeft} days left`}
           </p>
         </div>
       </div>
@@ -79,20 +97,29 @@ const BudgetOverview = ({
       </div>
 
       {totalBudget > 0 && (
-        <p
-          className={`mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 text-sm ${
-            isOverBudget || onPaceToOverspend ? "text-red-600 dark:text-red-400" : "text-gray-600 dark:text-gray-400"
-          }`}
-        >
-          {isOverBudget
-            ? "You've used your whole budget for this month."
-            : <>
-                To stay on budget, keep to{' '}
-                <span className="font-semibold">{formatCurrency(safeDaily)}/day</span> for the next{' '}
-                {daysLeft} {daysLeft === 1 ? 'day' : 'days'}
-                {dailyAverage > 0 && <> (you're averaging {formatCurrency(dailyAverage)}/day{onPaceToOverspend && <>, on pace for {formatCurrency(projectedSpending)}</>})</>}.
-              </>}
-        </p>
+        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 space-y-2 text-sm">
+          <p className={isOverBudget || onPaceToOverspend ? "text-red-600 dark:text-red-400" : "text-gray-600 dark:text-gray-400"}>
+            {paceMessage()}
+          </p>
+          {/* Spending the category budgets don't cover, with a way to fix it */}
+          {unbudgetedSpent > 0 && (
+            <p className="text-gray-600 dark:text-gray-400">
+              {formatCurrency(unbudgetedSpent)} of this month&apos;s spending is in categories without a budget.
+              {onAddBudget && (
+                <>
+                  {' '}
+                  <button
+                    type="button"
+                    onClick={onAddBudget}
+                    className="font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+                  >
+                    Add a budget
+                  </button>
+                </>
+              )}
+            </p>
+          )}
+        </div>
       )}
     </Card>
   );

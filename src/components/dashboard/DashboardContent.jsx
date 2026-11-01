@@ -70,7 +70,7 @@ const DashboardContent = ({ setActiveTab, onAddExpense }) => {
       {isLoading && budget === null ? (
         <BudgetOverviewSkeleton />
       ) : (
-        <BudgetOverview budgetData={budget} />
+        <BudgetOverview budgetData={budget} onManageBudgets={() => navigate('/dashboard/budgets')} />
       )}
 
       {/* Financial Stats Grid - Show skeleton only if loading AND data is null */}
