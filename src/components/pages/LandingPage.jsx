@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
-  Menu, X, ArrowRight, ArrowDownRight, Check, Plus, ChevronDown,
+  Menu, X, ArrowRight, Check, Plus, ChevronDown,
   Receipt, BarChart3, Target, Globe2, Download, ShieldCheck,
-  UserPlus, LineChart, UtensilsCrossed, Car, Lightbulb, Tag, TrendingDown, CalendarClock,
-  Home, CreditCard, Settings, HelpCircle, PanelLeft, Bell,
+  UserPlus, LineChart, Tag, TrendingDown, CalendarClock,
+  Home, CreditCard, Settings, Bell,
 } from "lucide-react";
 import SpendWiseLogo from "../common/SpendWiseLogo";
+import StatCard from "../common/StatCard";
+import BudgetOverview from "../dashboard/components/BudgetOverview";
+import BudgetAlertsSection from "../budgets/components/BudgetAlertsSection";
 import { useAuth } from "../../context/AuthContext";
 import { usePreferencesContext } from "../../context/PreferencesContext";
 
@@ -69,7 +72,33 @@ const SectionHeading = ({ eyebrow, title, subtitle }) => (
   </div>
 );
 
-// ── Hero preview: a scaled-down copy of the real dashboard (same layout and styles) with sample data ──
+// ── Hero previews: the app's real components (BudgetAlertsSection, BudgetOverview, StatCard) with sample
+// data, at real size inside a slim app frame. Using the real components means the preview can't drift
+// from the dashboard; showing only the budget and stats keeps it readable instead of a wall of tiny UI.
+const SAMPLE_BUDGET = {
+  totalSpentThisMonth: 1240,
+  budgetLimit: 2000,
+  totalRemaining: 760,
+  percentageUsed: 62,
+  isOverBudget: false,
+};
+
+const sampleAlerts = [
+  { severity: "medium", message: "Food is at 85% of its budget", suggestion: "You have 9 days to go this month." },
+];
+
+const sampleStats = (fmt) => [
+  { name: "Top category", value: "Food", change: "38% of spending", icon: Tag, style: "info", secondaryValue: fmt(471.2) },
+  {
+    name: "vs. last month", value: "12.0%", trend: "down", change: "Less spent", icon: TrendingDown, style: "success",
+    secondaryValue: `${fmt(169)} less than last month`,
+  },
+  {
+    name: "Daily average", value: fmt(41.33), change: "On track", icon: CalendarClock, style: "info",
+    secondaryValue: `On pace for ${fmt(1281.33)} this month`,
+  },
+];
+
 const PREVIEW_NAV = [
   { label: "Dashboard", icon: Home, active: true },
   { label: "Expenses", icon: CreditCard },
@@ -78,195 +107,56 @@ const PREVIEW_NAV = [
   { label: "Settings", icon: Settings },
 ];
 
-const PreviewNavItem = ({ item }) => (
-  <div
-    className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-[11px] font-medium ${
-      item.active
-        ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400"
-        : "text-gray-600 dark:text-gray-300"
-    }`}
-  >
-    <item.icon className="h-3.5 w-3.5 shrink-0" />
-    {/* Labels from md up, like the expanded sidebar; an icon rail below that */}
-    <span className="hidden md:inline">{item.label}</span>
-  </div>
-);
-
-const PreviewStat = ({ icon, iconClass, label, value, note, noteClass, trend, secondary }) => {
-  const Icon = icon;
-  return (
-    <div className="rounded-lg border border-gray-100 bg-white p-3 dark:border-gray-700 dark:bg-gray-800">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="text-[10px] text-gray-500 dark:text-gray-400">{label}</p>
-          <p className="mt-0.5 truncate text-sm font-bold text-gray-900 dark:text-gray-100">{value}</p>
-        </div>
-        <span className={`rounded-md p-1 ${iconClass}`}>
-          <Icon className="h-3.5 w-3.5" />
+// Top bar shared by both previews (the add button is desktop-only, as in the app)
+const PreviewTopBar = ({ showAdd }) => (
+  <div className="flex h-14 items-center justify-between border-b border-gray-200 bg-white px-4 sm:px-6 dark:border-gray-700 dark:bg-gray-800">
+    <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">Dashboard</p>
+    <div className="flex items-center gap-3">
+      {showAdd && (
+        <span className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white">
+          <Plus className="h-4 w-4" /> Add expense
         </span>
-      </div>
-      <p className={`mt-1 flex items-center text-[10px] font-medium ${noteClass}`}>
-        {trend && <ArrowDownRight className="mr-0.5 h-3 w-3" />}
-        {note}
-      </p>
-      <p className="mt-2 border-t border-gray-100 pt-2 text-[9px] text-gray-500 dark:border-gray-700 dark:text-gray-400">{secondary}</p>
-    </div>
-  );
-};
-
-const PreviewActivity = ({ icon, name, meta, amount }) => {
-  const Icon = icon;
-  return (
-    <li className="flex items-center gap-2 py-1.5">
-      <span className="rounded-md bg-gray-100 p-1 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
-        <Icon className="h-3 w-3" />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-[10px] font-medium text-gray-900 dark:text-gray-100">{name}</span>
-        <span className="block truncate text-[9px] text-gray-500 dark:text-gray-400">{meta}</span>
-      </span>
-      <span className="text-[10px] font-semibold text-gray-900 dark:text-gray-100">-{amount}</span>
-    </li>
-  );
-};
-
-const PreviewCategory = ({ name, amount, pct, bar }) => (
-  <div>
-    <div className="flex justify-between text-[10px]">
-      <span className="font-medium text-gray-700 dark:text-gray-300">{name}</span>
-      <span className="font-semibold text-gray-900 dark:text-gray-100">{amount}</span>
-    </div>
-    <div className="mt-1 h-1 rounded-full bg-gray-200 dark:bg-gray-700">
-      <div className={`h-1 rounded-full ${bar}`} style={{ width: `${pct}%` }} />
+      )}
+      <Bell className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-sm font-medium text-white">AO</span>
     </div>
   </div>
 );
 
 const DashboardPreview = () => {
   const { formatCurrency } = usePreferencesContext();
-  const fmt = (n) => formatCurrency(n);
+  const stats = sampleStats(formatCurrency);
 
   return (
     <div
       role="img"
-      aria-label="Preview of the SpendWise dashboard: sidebar, this month's budget, spending stats, recent activity and top categories"
-      className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl shadow-indigo-500/10 dark:border-gray-700 dark:bg-gray-800"
+      aria-label="Preview of the SpendWise dashboard: a budget alert, this month's budget and spending stats"
+      className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 shadow-2xl shadow-indigo-500/10 dark:border-gray-700 dark:bg-gray-900"
     >
-      <div aria-hidden="true" className="flex text-left">
-        {/* Sidebar */}
-        <div className="hidden w-11 shrink-0 flex-col border-r border-gray-200 bg-white p-2 sm:flex md:w-36 dark:border-gray-700 dark:bg-gray-800">
-          <div className="mb-3 flex h-8 items-center px-1">
-            <SpendWiseLogo className="h-6" showText={false} />
-            <span className="ml-1.5 hidden text-xs font-extrabold text-indigo-600 md:inline dark:text-white">SpendWise</span>
-          </div>
-          <div className="space-y-0.5">
-            {PREVIEW_NAV.map((item) => <PreviewNavItem key={item.label} item={item} />)}
-          </div>
-          <div className="mt-auto space-y-0.5 border-t border-gray-100 pt-2 dark:border-gray-700">
-            <PreviewNavItem item={{ label: "Help & support", icon: HelpCircle }} />
-            <PreviewNavItem item={{ label: "Sidebar", icon: PanelLeft }} />
-          </div>
+      <div aria-hidden="true" inert className="flex text-left">
+        {/* Collapsed sidebar rail */}
+        <div className="flex w-16 shrink-0 flex-col items-center gap-1 border-r border-gray-200 bg-white py-3 dark:border-gray-700 dark:bg-gray-800">
+          <SpendWiseLogo className="mb-3 h-8" showText={false} />
+          {PREVIEW_NAV.map((item) => (
+            <span
+              key={item.label}
+              className={`rounded-lg p-2.5 ${
+                item.active ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400" : "text-gray-500 dark:text-gray-400"
+              }`}
+            >
+              <item.icon className="h-5 w-5" />
+            </span>
+          ))}
         </div>
 
         <div className="min-w-0 flex-1">
-          {/* Top bar */}
-          <div className="flex h-11 items-center justify-between border-b border-gray-200 bg-white px-3 dark:border-gray-700 dark:bg-gray-800">
-            <p className="text-xs font-semibold text-gray-900 dark:text-gray-100">Dashboard</p>
-            <div className="flex items-center gap-2">
-              <span className="hidden items-center gap-1 rounded-md bg-indigo-600 px-2 py-1 text-[10px] font-semibold text-white sm:inline-flex">
-                <Plus className="h-3 w-3" /> Add expense
-              </span>
-              <span className="relative text-gray-500 dark:text-gray-400">
-                <Bell className="h-3.5 w-3.5" />
-                <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-red-500" />
-              </span>
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-[8px] font-semibold text-white">AO</span>
+          <PreviewTopBar showAdd />
+          <div className="space-y-5 p-5 md:p-6">
+            <BudgetAlertsSection budgetAlerts={sampleAlerts} />
+            <BudgetOverview budgetData={SAMPLE_BUDGET} />
+            <div className="grid grid-cols-3 gap-5">
+              {stats.map((stat) => <StatCard key={stat.name} stat={stat} />)}
             </div>
-          </div>
-
-          {/* Content, cropped with a fade like a screenshot */}
-          <div className="relative max-h-[490px] overflow-hidden bg-gray-50 p-3 sm:p-4 dark:bg-gray-900">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between gap-2">
-                <div>
-                  <p className="text-sm font-bold text-gray-900 dark:text-gray-100">Welcome back, Ada</p>
-                  <p className="text-[10px] text-gray-500 dark:text-gray-400">Here&apos;s where your money stands this month</p>
-                </div>
-                <span className="hidden items-center gap-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-[10px] font-medium text-gray-700 sm:inline-flex dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                  View expenses <ArrowRight className="h-3 w-3" />
-                </span>
-              </div>
-
-              {/* Budget card */}
-              <div className="rounded-lg border border-gray-100 bg-white p-3 dark:border-gray-700 dark:bg-gray-800">
-                <div className="flex items-end justify-between gap-2">
-                  <div>
-                    <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400">Spent this month</p>
-                    <p className="text-lg font-bold text-gray-900 sm:text-xl dark:text-gray-100">{fmt(1240)}</p>
-                  </div>
-                  <p className="text-[10px] text-gray-500 dark:text-gray-400">of {fmt(2000)} budget</p>
-                </div>
-                <div className="mt-2 h-1.5 rounded-full bg-gray-200 dark:bg-gray-700">
-                  <div className="h-1.5 w-[62%] rounded-full bg-gradient-to-r from-indigo-500 to-indigo-600" />
-                </div>
-                <div className="mt-1 flex justify-between text-[10px]">
-                  <span className="font-medium text-indigo-600 dark:text-indigo-400">62.0% used</span>
-                  <span className="font-medium text-gray-700 dark:text-gray-300">{fmt(760)} left</span>
-                </div>
-              </div>
-
-              {/* Financial overview */}
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold text-gray-900 dark:text-gray-100">Financial Overview</p>
-                <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-indigo-600 dark:text-indigo-400">
-                  View analytics <ArrowRight className="h-3 w-3" />
-                </span>
-              </div>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                <PreviewStat
-                  icon={Tag}
-                  iconClass="bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400"
-                  label="Top category" value="Food"
-                  note="38% of spending" noteClass="text-gray-500 dark:text-gray-400"
-                  secondary={fmt(471.2)}
-                />
-                <PreviewStat
-                  icon={TrendingDown}
-                  iconClass="bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400"
-                  label="vs. last month" value="12.0%"
-                  note="Less spent" noteClass="text-green-600 dark:text-green-400" trend
-                  secondary={`${fmt(169)} less than last month`}
-                />
-                <PreviewStat
-                  icon={CalendarClock}
-                  iconClass="bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400"
-                  label="Daily average" value={fmt(41.33)}
-                  note="Day 30 of 31" noteClass="text-gray-500 dark:text-gray-400"
-                  secondary={`On pace for ${fmt(1281.33)} this month`}
-                />
-              </div>
-
-              {/* Recent activity + top categories */}
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <div className="rounded-lg border border-gray-100 bg-white p-3 dark:border-gray-700 dark:bg-gray-800">
-                  <p className="text-[11px] font-semibold text-gray-900 dark:text-gray-100">Recent Activity</p>
-                  <ul className="mt-1 divide-y divide-gray-100 dark:divide-gray-700">
-                    <PreviewActivity icon={UtensilsCrossed} name="Groceries" meta="Food · Today" amount={fmt(54)} />
-                    <PreviewActivity icon={Car} name="Ride home" meta="Transportation · Yesterday" amount={fmt(12)} />
-                    <PreviewActivity icon={Lightbulb} name="Electricity" meta="Utilities · Oct 28" amount={fmt(80)} />
-                  </ul>
-                </div>
-                <div className="rounded-lg border border-gray-100 bg-white p-3 dark:border-gray-700 dark:bg-gray-800">
-                  <p className="text-[11px] font-semibold text-gray-900 dark:text-gray-100">Top Spending Categories</p>
-                  <div className="mt-2 space-y-2">
-                    <PreviewCategory name="Food" amount={fmt(471.2)} pct={38} bar="bg-blue-600" />
-                    <PreviewCategory name="Transportation" amount={fmt(310)} pct={25} bar="bg-purple-600" />
-                    <PreviewCategory name="Utilities" amount={fmt(248)} pct={20} bar="bg-orange-600" />
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-gray-50 to-transparent dark:from-gray-900" />
           </div>
         </div>
       </div>
@@ -274,9 +164,7 @@ const DashboardPreview = () => {
   );
 };
 
-// ── Mobile preview: the app's real mobile dashboard at its real sizes (no scaled-down device frame) ──
-// Mirrors the phone layout: top bar, welcome row with both buttons, budget card, Financial Overview,
-// and the bottom nav with the raised + button. The middle is cropped with a fade, like a screenshot.
+// Phones: the same real components edge to edge, with the mobile bottom nav
 const MOBILE_NAV = [
   { label: "Home", icon: Home, active: true },
   { label: "Expenses", icon: CreditCard },
@@ -287,78 +175,22 @@ const MOBILE_NAV = [
 
 const MobilePreview = () => {
   const { formatCurrency } = usePreferencesContext();
-  const fmt = (n) => formatCurrency(n);
+  const [, vsLastMonth] = sampleStats(formatCurrency);
 
   return (
     <div
       role="img"
-      aria-label="Preview of the SpendWise dashboard on a phone: this month's budget and spending overview"
-      // Full-bleed (edge to edge, no side border) so the content is exactly as wide as in the real app;
-      // any inset makes the same UI look squeezed
+      aria-label="Preview of the SpendWise dashboard on a phone: a budget alert, this month's budget and a spending stat"
+      // Full-bleed so the content is exactly as wide as in the real app
       className="overflow-hidden border-y border-gray-200 bg-gray-50 text-left shadow-xl shadow-indigo-500/10 dark:border-gray-700 dark:bg-gray-900"
     >
-      <div aria-hidden="true">
-        {/* Top bar */}
-        <div className="flex h-14 items-center justify-between border-b border-gray-200 bg-white px-4 dark:border-gray-700 dark:bg-gray-800">
-          <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">Dashboard</p>
-          <div className="flex items-center gap-3">
-            <Bell className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-sm font-medium text-white">AO</span>
-          </div>
-        </div>
-
-        {/* Content */}
+      <div aria-hidden="true" inert>
+        <PreviewTopBar />
         <div className="space-y-4 p-4">
-          <div>
-            <p className="text-xl font-bold text-gray-900 dark:text-gray-100">Welcome back, Ada</p>
-            <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">Here&apos;s where your money stands this month</p>
-          </div>
-          <div className="flex gap-2">
-            <span className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white py-2 text-sm font-medium text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-              View expenses <ArrowRight className="h-4 w-4" />
-            </span>
-            <span className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-indigo-600 py-2 text-sm font-medium text-white">
-              <Plus className="h-4 w-4" /> Add expense
-            </span>
-          </div>
-
-          {/* Budget card */}
-          <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Spent this month</p>
-            <p className="mt-1 text-3xl font-bold text-gray-900 dark:text-gray-100">{fmt(1240)}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">of {fmt(2000)} budget</p>
-            <div className="mt-4 h-3 rounded-full bg-gray-200 dark:bg-gray-700">
-              <div className="h-3 w-[62%] rounded-full bg-gradient-to-r from-indigo-500 to-indigo-600" />
-            </div>
-            <div className="mt-2 flex justify-between text-sm">
-              <span className="font-medium text-indigo-600 dark:text-indigo-400">62.0% used</span>
-              <span className="font-medium text-gray-700 dark:text-gray-300">{fmt(760)} left</span>
-            </div>
-          </div>
-
-          {/* Financial overview */}
-          <div className="flex items-center justify-between">
-            <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">Financial Overview</p>
-            <span className="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 dark:text-indigo-400">
-              View analytics <ArrowRight className="h-4 w-4" />
-            </span>
-          </div>
-          <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Top category</p>
-                <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">Food</p>
-              </div>
-              <span className="rounded-lg bg-indigo-50 p-2 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
-                <Tag className="h-5 w-5" />
-              </span>
-            </div>
-            <p className="mt-2 text-sm font-medium text-gray-500 dark:text-gray-400">38% of spending</p>
-            <p className="mt-3 border-t border-gray-100 pt-3 text-xs text-gray-500 dark:border-gray-700 dark:text-gray-400">{fmt(471.2)}</p>
-          </div>
+          <BudgetAlertsSection budgetAlerts={sampleAlerts} />
+          <BudgetOverview budgetData={SAMPLE_BUDGET} />
+          <StatCard stat={vsLastMonth} />
         </div>
-
-        {/* Bottom nav */}
         <div className="flex h-16 items-stretch border-t border-gray-200 bg-white px-1 dark:border-gray-700 dark:bg-gray-800">
           {MOBILE_NAV.map((item, i) =>
             item ? (
@@ -528,11 +360,11 @@ const LandingPage = () => {
               </ul>
             </div>
 
-            {/* Phones see the mobile dashboard at real size; larger screens see the desktop dashboard */}
-            <div className="-mx-4 mt-12 sm:hidden">
+            {/* Below md the edge-to-edge mobile preview; from md the framed desktop one (three stat cards need the width) */}
+            <div className="-mx-4 mt-12 sm:-mx-6 md:hidden">
               <MobilePreview />
             </div>
-            <div className="mx-auto mt-14 hidden max-w-5xl sm:block">
+            <div className="mx-auto mt-14 hidden max-w-5xl md:block">
               <DashboardPreview />
             </div>
           </div>
