@@ -90,7 +90,9 @@ const DashboardContent = ({ setActiveTab, onAddExpense }) => {
           <RecentActivitySkeleton />
         ) : (
           <RecentActivity
-            transactions={transactions.current || []}
+            // Latest expenses regardless of month (this month + last month are already loaded),
+            // so the card isn't empty at the start of a month
+            transactions={[...(transactions.current || []), ...(transactions.previous || [])]}
             onViewAllExpenses={handleViewAllExpenses}
             onAddExpense={handleQuickAdd}
           />

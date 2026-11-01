@@ -1,6 +1,7 @@
 ﻿import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, User, LogOut, HelpCircle, Plus } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useDashboard } from './hooks/useDashboard';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { NotificationProvider, useNotifications } from '../../context/NotificationContext';
@@ -15,9 +16,17 @@ import BudgetsContent from '../budgets/BudgetsContent';
 import SettingsContent from '../settings/SettingsContent';
 import ConnectionErrorBanner from '../common/ConnectionErrorBanner';
 import EmailVerificationBanner from '../common/EmailVerificationBanner';
+import { categoriesQueryOptions } from '../expenses/hooks/useCategories';
 
 // Inner component that has access to notification context
 const DashboardInner = () => {
+  const queryClient = useQueryClient();
+
+  // Load categories as soon as the app opens, so the Add expense dialog never waits for them
+  useEffect(() => {
+    queryClient.prefetchQuery(categoriesQueryOptions);
+  }, [queryClient]);
+
   const location = useLocation();
   const navigate = useNavigate();
   const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false);

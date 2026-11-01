@@ -6,7 +6,8 @@ import { usePreferencesContext } from '../../../context/PreferencesContext';
 import { getCategoryIcon } from '../../../utils/categoryIcons';
 import Card from '../../../components/common/Card';
 
-const RECENT_COUNT = 5;
+// The newest few from any month; "View all" covers the rest
+const RECENT_COUNT = 3;
 
 const formatDay = (value) => {
   const date = new Date(value);

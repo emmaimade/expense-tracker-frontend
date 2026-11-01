@@ -1,87 +1,89 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useCallback, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { categoryService } from "../../../services/categoryService";
 import { normalizeCategories, normalizeCategory } from "../../../utils/categoryUtils";
 
+export const CATEGORIES_QUERY_KEY = ['categories'];
+
+const fetchCategories = async () => {
+  const response = await categoryService.getAllCategories();
+  const categoryList = response?.data || response || [];
+  return Array.isArray(categoryList) ? normalizeCategories(categoryList) : [];
+};
+
+// Categories rarely change, and every change made in the app updates the cache directly,
+// so a long stale time is safe and keeps dropdowns instant
+const CATEGORIES_STALE_TIME = 10 * 60 * 1000;
+
+export const categoriesQueryOptions = {
+  queryKey: CATEGORIES_QUERY_KEY,
+  queryFn: fetchCategories,
+  staleTime: CATEGORIES_STALE_TIME,
+};
+
+/**
+ * Shared, cached category list (TanStack Query). Every component reads the same cache, so the
+ * Add/Edit expense dialogs open with categories already loaded instead of fetching each time.
+ */
 export const useCategories = () => {
-  // Initialize as null, not []
-  const [categories, setCategories] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const queryClient = useQueryClient();
+  const query = useQuery(categoriesQueryOptions);
 
-  const fetchCategories = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await categoryService.getAllCategories();
-      // Use optional chaining and default to empty array
-      const categoryList = response?.data || response || [];
+  const updateCache = useCallback(
+    (updater) => queryClient.setQueryData(CATEGORIES_QUERY_KEY, (prev) => updater(prev || [])),
+    [queryClient]
+  );
 
-      if (Array.isArray(categoryList)) {
-        setCategories(normalizeCategories(categoryList));
-      } else {
-        setCategories([]); // Fallback to empty array (not null) after successful fetch
-      }
-    } catch (err) {
-      console.error("Failed to fetch categories:", err);
-      setError("Server is waking up or unreachable. Please refresh in a moment.");
-      // Set to empty array on error (not null), so we know fetch was attempted
-      setCategories([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const createCategory = async (categoryData) => {
+  const createCategory = useCallback(async (categoryData) => {
     try {
       const response = await categoryService.createCategory(categoryData);
       const newCategory = normalizeCategory(response.data || response, categoryData?.userId);
-      setCategories((prev) => [...(prev || []), newCategory]);
+      updateCache((prev) => [...prev, newCategory]);
       return newCategory;
     } catch (err) {
       throw new Error(err.message || "Failed to create category.");
     }
-  };
+  }, [updateCache]);
 
-  const updateCategory = async (id, updateData) => {
+  const updateCategory = useCallback(async (id, updateData) => {
     try {
       const response = await categoryService.updateCategory(id, updateData);
       const changes = response.data || response;
       // The API returns only { id, name }, so merge onto the existing category to keep userId
-      setCategories((prev) =>
-        (prev || []).map((cat) =>
-          cat._id === id ? normalizeCategory({ ...cat, ...changes }, cat.userId) : cat
-        )
+      updateCache((prev) =>
+        prev.map((cat) => (cat._id === id ? normalizeCategory({ ...cat, ...changes }, cat.userId) : cat))
       );
       return changes;
     } catch (err) {
       throw new Error(err.message || "Failed to update category.");
     }
-  };
+  }, [updateCache]);
 
-  const deleteCategory = async (id) => {
+  const deleteCategory = useCallback(async (id) => {
     try {
       await categoryService.deleteCategory(id);
-      setCategories((prev) => (prev || []).filter((cat) => cat._id !== id));
+      updateCache((prev) => prev.filter((cat) => cat._id !== id));
     } catch (err) {
       throw new Error(err.message || "Failed to delete category.");
     }
-  };
+  }, [updateCache]);
 
-  useEffect(() => {
-    fetchCategories();
-  }, [fetchCategories]);
-  
-  // Use useMemo for stable return object
+  const refreshCategories = useCallback(
+    () => queryClient.invalidateQueries({ queryKey: CATEGORIES_QUERY_KEY }),
+    [queryClient]
+  );
+
+  // Same shape as before: categories is null until the first load finishes
   return useMemo(
     () => ({
-      categories,
-      isLoading,
-      error,
+      categories: query.data ?? null,
+      isLoading: query.isLoading,
+      error: query.error ? "Server is waking up or unreachable. Please refresh in a moment." : null,
       createCategory,
       updateCategory,
       deleteCategory,
-      refreshCategories: fetchCategories,
+      refreshCategories,
     }),
-    [categories, isLoading, error, fetchCategories]
+    [query.data, query.isLoading, query.error, createCategory, updateCategory, deleteCategory, refreshCategories]
   );
 };
