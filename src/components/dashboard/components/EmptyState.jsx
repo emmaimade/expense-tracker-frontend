@@ -26,7 +26,7 @@ const EmptyState = ({
       case 'recent-activity':
         return {
           icon: TrendingUp,
-          title: 'No expenses this month',
+          title: 'No recent expenses',
           description: 'Your latest expenses will show up here.',
           primaryAction: {
             label: 'Add expense',

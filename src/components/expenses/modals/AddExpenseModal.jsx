@@ -195,7 +195,8 @@ const AddExpenseModal = ({ isOpen, onClose, onSubmit, loading, userId }) => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 disabled={loading}
               >
-                <option value="">Select category</option>
+                {/* Say it's loading rather than showing what looks like an empty list */}
+                <option value="">{allCategories === null ? 'Loading categories...' : 'Select category'}</option>
                 {categories.map((category) => (
                   <option key={category._id} value={category._id}>
                     {category.name}
