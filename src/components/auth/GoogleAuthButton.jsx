@@ -2,7 +2,7 @@ export const GoogleAuthButton = ({ onClick, disabled = false, className = "" }) 
   return (
     <button
       type="button"
-      className={`w-full flex justify-center items-center px-4 py-3 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 transition-colors ${
+      className={`w-full h-11 flex justify-center items-center px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 transition-colors ${
         disabled
           ? "opacity-50 cursor-not-allowed"
           : "hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"

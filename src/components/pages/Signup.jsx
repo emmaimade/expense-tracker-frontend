@@ -1,29 +1,37 @@
-﻿import { useState, useEffect } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Link, useNavigate } from 'react-router-dom';
+import { Mail } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import AlertMessage from "../common/AlertMessage";
 import FormInput from "../common/FormInput";
+import { inputClasses } from "../common/inputClasses";
 import PasswordInput from "../common/PasswordInput";
 import GoogleAuthButton from "../auth/GoogleAuthButton";
-import getPasswordStrength from "../../utils/passwordUtils";
+import AuthLayout from '../auth/AuthLayout';
+import AuthDivider from '../auth/AuthDivider';
+import AuthSubmitButton from '../auth/AuthSubmitButton';
+import { meetsPasswordRules } from "../../utils/passwordUtils";
+import { detectCurrencyByLocale } from '../../utils/detectCurrency';
+import { CURRENCIES } from '../settings/currencies';
 import { API_BASE_URL } from '../../services/apiService';
 import SlowServerNotice from '../common/SlowServerNotice';
 
-// Validation schema with currency
+const NAME_PATTERN = /^[\p{L}\s'-]+$/u;
+
 const schema = yup.object({
   firstName: yup
     .string()
     .required('First name is required')
-    .min(2, 'First name must be at least 2 characters')
-    .matches(/^[\p{L}\s'-]+$/u, 'First name can only contain letters, spaces, hyphens and apostrophes'),
+    .min(2, 'At least 2 characters')
+    .matches(NAME_PATTERN, 'Letters, spaces, hyphens and apostrophes only'),
   lastName: yup
     .string()
     .required('Last name is required')
-    .min(2, 'Last name must be at least 2 characters')
-    .matches(/^[\p{L}\s'-]+$/u, 'Last name can only contain letters, spaces, hyphens and apostrophes'),
+    .min(2, 'At least 2 characters')
+    .matches(NAME_PATTERN, 'Letters, spaces, hyphens and apostrophes only'),
   email: yup
     .string()
     .required('Email is required')
@@ -31,49 +39,42 @@ const schema = yup.object({
   password: yup
     .string()
     .required('Password is required')
-    .test('strength', 'Password is too weak', (value) => {
-      if (!value) return false;
-      const { score } = getPasswordStrength(value);
-      return score >= 3;
-    }),
-  confirmPassword: yup
-    .string()
-    .required('Please confirm your password')
-    .oneOf([yup.ref('password')], 'Passwords must match'),
+    .test('rules', "Password doesn't meet all the requirements below", (value) => meetsPasswordRules(value || '')),
   currency: yup
     .string()
-    .required('Please select your preferred currency')
+    .required('Please choose a currency')
     .matches(/^[A-Z]{3}$/, 'Invalid currency code'),
 }).required();
 
-const CURRENCIES = [
-  { code: 'USD', name: 'US Dollar', symbol: '$' },
-  { code: 'EUR', name: 'Euro', symbol: '€' },
-  { code: 'GBP', name: 'British Pound', symbol: '£' },
-  { code: 'NGN', name: 'Nigerian Naira', symbol: '₦' },
-  { code: 'JPY', name: 'Japanese Yen', symbol: '¥' },
-  { code: 'CAD', name: 'Canadian Dollar', symbol: '$' },
-  { code: 'AUD', name: 'Australian Dollar', symbol: '$' },
-  { code: 'INR', name: 'Indian Rupee', symbol: '₹' },
-  { code: 'ZAR', name: 'South African Rand', symbol: 'R' },
-];
+const isSupported = (code) => CURRENCIES.some((c) => c.code === code);
+const describeCurrency = (code) => {
+  const found = CURRENCIES.find((c) => c.code === code);
+  return found ? `${found.code} · ${found.name} (${found.symbol})` : code;
+};
+
+// An instant guess from the browser's locale, so the form never waits on the server
+const localeGuess = () => {
+  const code = detectCurrencyByLocale();
+  return isSupported(code) ? code : 'USD';
+};
 
 function Signup() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [generalError, setGeneralError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
-  const [suggestedCurrency, setSuggestedCurrency] = useState(null);
-  const [isDetecting, setIsDetecting] = useState(true);
+  const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
+  const [currencySource, setCurrencySource] = useState('your browser settings');
+  // Once the user picks a currency, a late server suggestion must not override it
+  const currencyChosenByUser = useRef(false);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    reset,
     setValue,
     setFocus,
+    watch,
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
@@ -81,52 +82,46 @@ function Signup() {
       lastName: '',
       email: '',
       password: '',
-      confirmPassword: '',
-      currency: '',
+      currency: localeGuess(),
     },
   });
+
+  const currency = watch('currency');
 
   useEffect(() => {
     const keys = Object.keys(errors);
     if (keys.length > 0 && typeof setFocus === 'function') {
+      if (keys[0] === 'currency') setShowCurrencyPicker(true);
       setFocus(keys[0]);
     }
   }, [errors, setFocus]);
 
-  // Fetch currency suggestion from backend on mount
+  // Refine the guess with the server's location-based suggestion, in the background.
+  // This can take a while when the API is waking up, so it never blocks the form.
   useEffect(() => {
-    const detectCurrency = async () => {
+    let cancelled = false;
+    const refine = async () => {
       try {
-        const response = await fetch(
-          `${API_BASE_URL}/user/detect-currency`
-        );
-        
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && data.currency) {
-            setSuggestedCurrency({
-              code: data.currency,
-              symbol: data.symbol,
-              reason: data.message || `Detected from your location`
-            });
-            setValue('currency', data.currency);
-          }
+        const response = await fetch(`${API_BASE_URL}/user/detect-currency`);
+        if (!response.ok) return;
+        const data = await response.json();
+        if (!cancelled && data.success && isSupported(data.currency) && !currencyChosenByUser.current) {
+          setValue('currency', data.currency);
+          setCurrencySource('your location');
         }
-      } catch (error) {
-        console.error('Currency detection failed:', error);
-        setValue('currency', 'USD');
-      } finally {
-        setIsDetecting(false);
+      } catch {
+        // Keep the locale guess
       }
     };
-
-    detectCurrency();
+    refine();
+    return () => {
+      cancelled = true;
+    };
   }, [setValue]);
 
   const onSubmit = async (data) => {
     setIsSubmitting(true);
     setGeneralError('');
-    setSuccessMessage('');
 
     try {
       const response = await fetch(
@@ -141,7 +136,8 @@ function Signup() {
             lastName: data.lastName.trim(),
             email: data.email.trim().toLowerCase(),
             password: data.password,
-            confirmPassword: data.confirmPassword,
+            // The API still expects a confirmation; the show-password toggle replaces the second field
+            confirmPassword: data.password,
             currency: data.currency,
           }),
         }
@@ -153,7 +149,6 @@ function Signup() {
         throw new Error(resData.message || 'Signup failed');
       }
 
-
       // Same shape as login and /user/me; the API set the session cookies
       const userObject = {
         ...resData.user,
@@ -164,19 +159,11 @@ function Signup() {
         throw new Error('Invalid response from server - missing user ID');
       }
 
-      // Login user (this updates AuthContext AND localStorage via userService)
       login(userObject);
-
-      setSuccessMessage(`Account created! We sent a confirmation link to ${userObject.email}. Redirecting...`);
-      reset();
-      
-      // Wait a bit for state to update, then redirect
-      setTimeout(() => {
-        navigate('/dashboard', { replace: true });
-      }, 1500);
-
+      // The dashboard's verification banner tells them to check their email
+      navigate('/dashboard', { replace: true });
     } catch (error) {
-      console.error('❌ Signup error:', error);
+      console.error('Signup error:', error);
       setGeneralError(error.message || 'An error occurred during signup');
     } finally {
       setIsSubmitting(false);
@@ -188,250 +175,132 @@ function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8 dark:bg-gray-800">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md px-6">
-          <div className="flex flex-col items-center mb-8">
-            {/* Logo goes back to the landing page */}
-            <Link to="/" className="inline-block mb-5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
-              <img src="/logo.svg" alt="SpendWise home" className="h-10" />
-            </Link>
-            <h2 className="text-2xl font-bold text-center text-gray-900 dark:text-white">Create your account</h2>
-          </div>
+    <AuthLayout
+      title="Create your account"
+      subtitle="Start tracking in under a minute."
+      footer={
+        <>
+          Already have an account?{' '}
+          <Link to="/login" className="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">
+            Sign in
+          </Link>
+        </>
+      }
+    >
+      <GoogleAuthButton onClick={handleGoogleSignup} disabled={isSubmitting} />
+      <AuthDivider />
 
-          <GoogleAuthButton onClick={handleGoogleSignup} disabled={isSubmitting} />
+      <AlertMessage type="error" message={generalError} className="mb-4" />
 
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200 dark:border-gray-700" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-3 bg-white text-gray-400 dark:bg-gray-800">or continue with email</span>
-            </div>
-          </div>
+      <form className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
+        <fieldset className="grid grid-cols-2 gap-3">
+          <legend className="sr-only">Your name</legend>
+          <FormInput
+            label="First name"
+            name="firstName"
+            register={register}
+            error={errors.firstName?.message}
+            disabled={isSubmitting}
+            autoComplete="given-name"
+            aria-required="true"
+          />
+          <FormInput
+            label="Last name"
+            name="lastName"
+            register={register}
+            error={errors.lastName?.message}
+            disabled={isSubmitting}
+            autoComplete="family-name"
+            aria-required="true"
+          />
+        </fieldset>
 
-          {generalError && (
-            <AlertMessage
-              type="error"
-              message={generalError}
-              className="mb-4"
-            />
-          )}
-          {successMessage && (
-            <AlertMessage
-              type="success"
-              message={successMessage}
-              className="mb-4"
-            />
-          )}
+        <FormInput
+          label="Email address"
+          name="email"
+          type="email"
+          icon={Mail}
+          register={register}
+          error={errors.email?.message}
+          disabled={isSubmitting}
+          autoComplete="email"
+          aria-required="true"
+        />
 
-          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-            {/* Name Fields */}
-            <fieldset
-              className="grid grid-cols-1 sm:grid-cols-2 gap-4"
-              aria-labelledby="name-fieldset"
-            >
-              <legend id="name-fieldset" className="sr-only">
-                Full name
-              </legend>
-              <FormInput
-                label="First Name"
-                name="firstName"
-                register={register}
-                error={errors.firstName?.message}
-                placeholder="John"
+        <PasswordInput
+          label="Password"
+          name="password"
+          register={register}
+          error={errors.password?.message}
+          disabled={isSubmitting}
+          showChecklist={true}
+          autoComplete="new-password"
+          aria-required="true"
+        />
+
+        {/* Currency: detected for you, one line; "Change" opens the full list */}
+        <div>
+          <div className="mb-1.5 flex items-center justify-between gap-2">
+            <label htmlFor="currency" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Currency
+            </label>
+            {!showCurrencyPicker && (
+              <button
+                type="button"
+                onClick={() => setShowCurrencyPicker(true)}
+                className="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400"
                 disabled={isSubmitting}
-                autoComplete="given-name"
-                aria-required="true"
-              />
-              <FormInput
-                label="Last Name"
-                name="lastName"
-                register={register}
-                error={errors.lastName?.message}
-                placeholder="Doe"
-                disabled={isSubmitting}
-                autoComplete="family-name"
-                aria-required="true"
-              />
-            </fieldset>
-
-            {/* Email Input */}
-            <FormInput
-              label="Email address"
-              name="email"
-              type="email"
-              register={register}
-              error={errors.email?.message}
-              placeholder="email@example.com"
-              disabled={isSubmitting}
-              autoComplete="email"
-              aria-required="true"
-            />
-
-            {/* Password Fields */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <PasswordInput
-                label="Password"
-                name="password"
-                register={register}
-                error={errors.password?.message}
-                placeholder="Enter your password"
-                disabled={isSubmitting}
-                showStrength={true}
-                autoComplete="new-password"
-                aria-required="true"
-              />
-              <PasswordInput
-                label="Confirm Password"
-                name="confirmPassword"
-                register={register}
-                error={errors.confirmPassword?.message}
-                placeholder="Confirm your password"
-                disabled={isSubmitting}
-                autoComplete="new-password"
-                aria-required="true"
-              />
-            </div>
-
-            {/* Currency Selection */}
-            <div>
-              <label
-                htmlFor="currency"
-                className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300"
               >
-                Preferred Currency <span className="text-red-500">*</span>
-              </label>
-
-              {suggestedCurrency && !isDetecting && (
-                <div className="mb-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm text-blue-800">
-                    <strong>Suggested:</strong> {suggestedCurrency.code} (
-                    {suggestedCurrency.symbol})
-                  </p>
-                  <p className="text-xs text-blue-600 mt-1">
-                    {suggestedCurrency.reason}
-                  </p>
-                </div>
-              )}
-
-              {isDetecting ? (
-                <div className="flex items-center gap-2 p-3 border border-gray-300 rounded-lg bg-gray-50 dark:border-gray-600 dark:bg-gray-900">
-                  <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Detecting your currency...
-                  </span>
-                </div>
-              ) : (
-                <select
-                  id="currency"
-                  {...register("currency")}
-                  disabled={isSubmitting}
-                  aria-required="true"
-                  aria-invalid={errors.currency ? "true" : "false"}
-                  aria-describedby={
-                    errors.currency ? "currency-error" : undefined
-                  }
-                  className={`w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                    errors.currency ? "border-red-500" : "border-gray-300"
-                  } ${
-                    isSubmitting ? "bg-gray-100 cursor-not-allowed" : "bg-white"
-                  } dark:bg-gray-700 dark:text-white`}
-                >
-                  <option value="">-- Select Currency --</option>
-
-                  {suggestedCurrency && (
-                    <>
-                      <option value={suggestedCurrency.code}>
-                        {suggestedCurrency.code} -{" "}
-                        {
-                          CURRENCIES.find(
-                            (c) => c.code === suggestedCurrency.code,
-                          )?.name
-                        }{" "}
-                        ({suggestedCurrency.symbol}) - Suggested
-                      </option>
-                      <option disabled>──────────────</option>
-                    </>
-                  )}
-
-                  {CURRENCIES.map((curr) => (
-                    <option key={curr.code} value={curr.code}>
-                      {curr.code} - {curr.name} ({curr.symbol})
-                    </option>
-                  ))}
-                </select>
-              )}
-
-              {errors.currency && (
-                <p
-                  id="currency-error"
-                  className="mt-1 text-sm text-red-600 dark:text-red-400"
-                  role="alert"
-                  aria-live="assertive"
-                >
-                  {errors.currency.message}
-                </p>
-              )}
-            </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isSubmitting || isDetecting}
-              aria-busy={isSubmitting}
-              className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
-                isSubmitting || isDetecting
-                  ? "opacity-75 cursor-not-allowed"
-                  : ""
-              }`}
-            >
-              {isSubmitting ? (
-                <>
-                  <svg
-                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
-                  Creating Account...
-                </>
-              ) : isDetecting ? (
-                "Detecting Currency..."
-              ) : (
-                "Sign Up"
-              )}
-            </button>
-            <SlowServerNotice active={isSubmitting} />
-            <p className="text-center text-xs text-gray-500 dark:text-gray-400">
-              By creating an account, you agree to our{' '}
-              <Link to="/privacy" className="text-indigo-600 hover:text-indigo-500 underline dark:text-indigo-400">Privacy Policy</Link>.
-            </p>
-          </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Already have an account?{" "}
-              <button type="button" className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400" onClick={() => navigate("/login")} disabled={isSubmitting}>
-                Sign in
+                Change
               </button>
-            </p>
+            )}
           </div>
-      </div>
-    </div>
+          {showCurrencyPicker ? (
+            <select
+              id="currency"
+              {...register("currency", {
+                onChange: () => {
+                  currencyChosenByUser.current = true;
+                },
+              })}
+              disabled={isSubmitting}
+              aria-invalid={!!errors.currency}
+              aria-describedby={errors.currency ? "currency-error" : undefined}
+              className={inputClasses(errors.currency)}
+            >
+              {CURRENCIES.map((curr) => (
+                <option key={curr.code} value={curr.code}>
+                  {curr.code} - {curr.name} ({curr.symbol})
+                </option>
+              ))}
+            </select>
+          ) : (
+            <>
+              <input type="hidden" {...register("currency")} />
+              <p className="text-sm text-gray-900 dark:text-gray-100">
+                {describeCurrency(currency)}
+                <span className="text-gray-500 dark:text-gray-400"> · based on {currencySource}</span>
+              </p>
+            </>
+          )}
+          {errors.currency && (
+            <p id="currency-error" className="mt-1.5 text-sm text-red-600 dark:text-red-400" role="alert">
+              {errors.currency.message}
+            </p>
+          )}
+        </div>
+
+        <AuthSubmitButton loading={isSubmitting} loadingText="Creating account...">
+          Create account
+        </AuthSubmitButton>
+        <SlowServerNotice active={isSubmitting} />
+
+        <p className="text-center text-xs text-gray-500 dark:text-gray-400">
+          By creating an account, you agree to our{' '}
+          <Link to="/privacy" className="text-indigo-600 underline hover:text-indigo-500 dark:text-indigo-400">Privacy Policy</Link>.
+        </p>
+      </form>
+    </AuthLayout>
   );
 }
 
