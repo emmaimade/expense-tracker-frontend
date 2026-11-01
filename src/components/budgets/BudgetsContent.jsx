@@ -41,7 +41,14 @@ const BudgetsContent = ({ recentTransactions = [] }) => {
     projectedSpending,
     daysRemaining,
     categorySpending,
+    unbudgetedSpent,
   } = calculations || {};
+
+  // "Add a budget" in the total card opens the form in the category section and brings it into view
+  const openAddBudget = () => {
+    setShowAddCategory(true);
+    document.getElementById('category-budgets')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
 
 
@@ -66,6 +73,8 @@ const BudgetsContent = ({ recentTransactions = [] }) => {
           categoryCount={categoryBudgets?.length || 0}
           dailyAverage={dailyAverage}
           projectedSpending={projectedSpending}
+          unbudgetedSpent={unbudgetedSpent}
+          onAddBudget={openAddBudget}
         />
       )}
 

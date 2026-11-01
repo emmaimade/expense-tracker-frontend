@@ -182,12 +182,23 @@ export const useBudget = (recentTransactions = []) => {
 
       });
 
-    // Get totals from budget overview
+    // Budgets belong to categories and the monthly budget is their total, so the total card
+    // measures spending in budgeted categories (same as the dashboard); the rest is reported separately.
     const totalBudget = budget.totalBudget || 0;
-    const spent = budget.totalSpent || 0;
-    const remaining = budget.totalRemaining || 0;
+    const budgetedCategoryIds = new Set(
+      (categoryBudgets || []).map((b) =>
+        String(b.categoryId?._id || b.categoryId?.id || b.category?._id || b.category?.id || b.categoryId || b.category)
+      )
+    );
+    let spent = 0;
+    let unbudgetedSpent = 0;
+    Object.entries(categorySpending).forEach(([categoryId, amount]) => {
+      if (budgetedCategoryIds.has(String(categoryId))) spent += amount;
+      else unbudgetedSpent += amount;
+    });
+    const remaining = totalBudget - spent;
     const percentageUsed = totalBudget > 0 ? (spent / totalBudget) * 100 : 0;
-    const isOverBudget = percentageUsed > 100;
+    const isOverBudget = totalBudget > 0 && spent > totalBudget;
 
     // Calculate daily average and projection
     const currentDay = new Date().getDate();
@@ -198,7 +209,8 @@ export const useBudget = (recentTransactions = []) => {
     ).getDate();
     const dailyAverage = currentDay > 0 ? spent / currentDay : 0;
     const projectedSpending = dailyAverage * daysInMonth;
-    const daysRemaining = daysInMonth - currentDay;
+    // Days left including today (1 on the last day of the month)
+    const daysRemaining = daysInMonth - currentDay + 1;
 
 
     return {
@@ -213,8 +225,9 @@ export const useBudget = (recentTransactions = []) => {
       projectedSpending,
       daysRemaining,
       categorySpending,
+      unbudgetedSpent,
     };
-  }, [recentTransactions, budget]);
+  }, [recentTransactions, budget, categoryBudgets]);
 
   // Combine loading states
   const totalLoading = loading || categoriesLoading;

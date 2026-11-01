@@ -1,6 +1,7 @@
 import { Plus } from 'lucide-react';
 import AddCategoryForm from './AddCategoryForm';
 import CategoryBudgetItem from './CategoryBudgetItem';
+import { COLUMN } from './budgetColumns';
 
 const CategoryBudgetsSection = ({
   categoryBudgets,
@@ -21,7 +22,7 @@ const CategoryBudgetsSection = ({
   handleDeleteBudget,
 }) => {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+    <div id="category-budgets" className="scroll-mt-20 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-6 border-b border-gray-100 dark:border-gray-700">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -32,7 +33,7 @@ const CategoryBudgetsSection = ({
           className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
         >
           <Plus className="w-4 h-4" />
-          Add Budget
+          Add budget
         </button>
       </div>
 
@@ -49,33 +50,16 @@ const CategoryBudgetsSection = ({
         </div>
       )}
 
-      {/* Table Header */}
+      {/* Table header: same column widths as the rows (budgetColumns.js) */}
       {categoryBudgets && categoryBudgets.length > 0 && (
-        <div className="hidden sm:flex items-center gap-4 px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700">
-          <div className="min-w-[200px] flex-1">
-            <span className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase">
-              Category
-            </span>
+        <div className="hidden sm:flex items-center gap-4 px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700 text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-400">
+          <div className="flex-1">Category</div>
+          <div className={COLUMN.budget}>Budget</div>
+          <div className={COLUMN.progress}>Spent / remaining</div>
+          <div className={`${COLUMN.percent} text-right`}>% used</div>
+          <div className={`${COLUMN.actions} text-right`}>
+            <span className="sr-only">Actions</span>
           </div>
-
-          <div className="min-w-[140px]">
-            <span className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase">
-              Budget
-            </span>
-          </div>
-
-          <div className="flex-1 min-w-[200px]">
-            <span className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase">
-              Spent / Remaining
-            </span>
-          </div>
-
-          <div className="min-w-[60px] flex justify-center">
-            <span className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase">
-              % Used
-            </span>
-          </div>
-          <div className="min-w-[20px]"></div>
         </div>
       )}
 
@@ -85,7 +69,7 @@ const CategoryBudgetsSection = ({
           <div className="text-center py-12 text-gray-500 dark:text-gray-400">
             <p className="text-sm">No category budgets set yet.</p>
             <p className="text-xs mt-1 text-gray-400 dark:text-gray-500">
-              Click "Add Budget" to create your first budget.
+              Use &ldquo;Add budget&rdquo; to set your first one.
             </p>
           </div>
         ) : (

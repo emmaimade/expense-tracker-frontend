@@ -16,7 +16,9 @@ export const useDashboardData = () => {
     queries: [
       {
         queryKey: ['currentMonthTransactions'],
-        queryFn: () => expenseService.getTransactionsByDateRange("monthly"),
+        // Calendar month (1st to today). The API's "monthly" range is the last 30 days,
+        // which on the 1st still counted all of last month as "this month".
+        queryFn: () => expenseService.getTransactionsByDateRange("custom", getCurrentMonthDateRange()),
         select: (response) => Array.isArray(response) ? response : response?.data || [], // adjust if needed based on response shape
         placeholderData: [],
         staleTime: 1000 * 60 * 5, // 5 minutes
@@ -39,6 +41,13 @@ export const useDashboardData = () => {
         select: (response) => response?.data?.totalBudget ?? response?.totalBudget ?? 0,
         placeholderData: 0,
       },
+      {
+        // Which categories have a budget this month
+        queryKey: ['budgetOverview'],
+        queryFn: () => budgetService.getBudgetOverview(),
+        select: (response) => (response?.data ?? response ?? {}).categories || [],
+        placeholderData: [],
+      },
     ],
   });
 
@@ -46,28 +55,39 @@ export const useDashboardData = () => {
     { data: currentTransactions, isLoading: loading1, error: error1 },
     { data: prevTransactions, isLoading: loading2, error: error2 },
     { data: totalBudget, isLoading: loading3, error: error3 },
+    { data: budgetCategories, isLoading: loading4, error: error4 },
   ] = queries;
 
-  const isLoading = loading1 || loading2 || loading3;
-  const error = error1 || error2 || error3;
+  const isLoading = loading1 || loading2 || loading3 || loading4;
+  const error = error1 || error2 || error3 || error4;
 
   const memoizedData = useMemo(() => {
     const current = currentTransactions || [];
     const previous = prevTransactions || [];
 
-    // Budget card: everything spent this month against the total budget.
-    // (The API's budget overview only counts categories that have a budget, so
-    // spending in other categories showed up as 0 here.)
+    // Budgets belong to categories and the monthly budget is their total, so the budget card
+    // measures spending in budgeted categories only; other spending is reported separately.
     const budgetLimit = parseFloat(totalBudget) || 0;
+    const budgetedIds = new Set((budgetCategories || []).map((b) => String(b.category?.id || b.category?._id || '')));
+    const categoryIdOf = (t) => String(t.category?._id || t.category?.id || t.category || '');
     const totalSpent = current.reduce((sum, t) => sum + Math.abs(t.amount || 0), 0);
-    const totalRemaining = budgetLimit - totalSpent;
-    const percentageUsed = budgetLimit > 0 ? (totalSpent / budgetLimit) * 100 : 0;
-    const isOverBudget = budgetLimit > 0 && totalSpent > budgetLimit;
+    const budgetedSpent = current
+      .filter((t) => budgetedIds.has(categoryIdOf(t)))
+      .reduce((sum, t) => sum + Math.abs(t.amount || 0), 0);
+    const unbudgetedSpent = totalSpent - budgetedSpent;
+    const totalRemaining = budgetLimit - budgetedSpent;
+    const percentageUsed = budgetLimit > 0 ? (budgetedSpent / budgetLimit) * 100 : 0;
+    const isOverBudget = budgetLimit > 0 && budgetedSpent > budgetLimit;
+
+    // Compare this month so far with the same point last month (1st to the same day),
+    // otherwise early in the month a full previous month always looks like a big drop
+    const today = new Date().getDate();
+    const previousToDate = previous.filter((t) => new Date(t.date).getDate() <= today);
 
     // Calculate stats
     const stats = calculateFinancialStats(
       current,
-      previous,
+      previousToDate,
       budgetLimit,
       formatCurrency
     );
@@ -76,6 +96,8 @@ export const useDashboardData = () => {
       // Budget overview data
       budget: {
         totalSpentThisMonth: totalSpent.toFixed(2),
+        budgetedSpent: budgetedSpent.toFixed(2),
+        unbudgetedSpent: unbudgetedSpent.toFixed(2),
         budgetLimit,
         totalRemaining: totalRemaining.toFixed(2),
         percentageUsed,
@@ -91,7 +113,7 @@ export const useDashboardData = () => {
         previous,
       },
     };
-  }, [currentTransactions, prevTransactions, totalBudget, formatCurrency]);
+  }, [currentTransactions, prevTransactions, totalBudget, budgetCategories, formatCurrency]);
 
   // Refetch everything (used after currency changes and by the Retry button)
   const refreshData = () => Promise.all(queries.map((query) => query.refetch()));
@@ -101,6 +123,17 @@ export const useDashboardData = () => {
     isLoading,
     error,
     refreshData,
+  };
+};
+
+/**
+ * Helper to get the current calendar month so far (1st to today)
+ */
+const getCurrentMonthDateRange = () => {
+  const today = new Date();
+  return {
+    startDate: dateUtils.toLocalDateString(new Date(today.getFullYear(), today.getMonth(), 1)),
+    endDate: dateUtils.toLocalDateString(today),
   };
 };
 
@@ -209,12 +242,12 @@ const calculateFinancialStats = (
         ? 'More spent'
         : momChangeDirection === 'down'
         ? 'Less spent'
-        : hasPreviousMonth ? 'No change' : 'No spending last month',
+        : hasPreviousMonth ? 'No change' : 'No spending by this point last month',
       icon: momChangeDirection === 'up' ? TrendingUp : momChangeDirection === 'down' ? TrendingDown : Minus,
       style: momChangeDirection === 'up' ? 'danger' : momChangeDirection === 'down' ? 'success' : 'info',
       secondaryValue: momChangeDirection === 'flat'
         ? ''
-        : `${formatCurrency(Math.abs(currentMonthSpending - prevMonthSpending))} ${momChangeDirection === 'up' ? 'more' : 'less'} than last month`
+        : `${formatCurrency(Math.abs(currentMonthSpending - prevMonthSpending))} ${momChangeDirection === 'up' ? 'more' : 'less'} than by this point last month`
     },
     {
       name: 'Daily average',
