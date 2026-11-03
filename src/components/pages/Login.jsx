@@ -12,7 +12,7 @@ import AuthSubmitButton from '../auth/AuthSubmitButton';
 import FormInput from '../common/FormInput';
 import PasswordInput from '../common/PasswordInput';
 import AlertMessage from '../common/AlertMessage';
-import { API_BASE_URL } from '../../services/apiService';
+import { API_BASE_URL, apiService } from '../../services/apiService';
 import SlowServerNotice from '../common/SlowServerNotice';
 
 // Sign-in only checks that something was entered; password rules apply when a password is created
@@ -56,26 +56,12 @@ function Login() {
     setServerError('');
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/user/login`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify({
-            email: data.email.trim().toLowerCase(),
-            password: data.password,
-          }),
-        }
+      // skipRefresh: a 401 here means wrong details, not an expired session
+      const resData = await apiService.post(
+        '/user/login',
+        { email: data.email.trim().toLowerCase(), password: data.password },
+        { skipRefresh: true }
       );
-
-      const resData = await response.json();
-
-      if (!response.ok) {
-        throw new Error(resData.message || 'Login failed');
-      }
 
       // The API set the session cookies; we only keep the profile
       login({

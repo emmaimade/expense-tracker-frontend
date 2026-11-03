@@ -18,6 +18,9 @@ export const useBudget = (recentTransactions = []) => {
   const [budget, setBudget] = useState({});
   const [categoryBudgets, setCategoryBudgets] = useState([]);
   const [budgetAlerts, setBudgetAlerts] = useState([]);
+  // Set when the budgets themselves can't be loaded, so the page shows an error instead of
+  // "No budgets set yet" (which looks like the budgets were deleted)
+  const [loadError, setLoadError] = useState(null);
   const [isEditingCategory, setIsEditingCategory] = useState(false);
   const [editingCategoryId, setEditingCategoryId] = useState(null);
   const [tempCategoryBudget, setTempCategoryBudget] = useState("");
@@ -34,19 +37,23 @@ export const useBudget = (recentTransactions = []) => {
   // Fetch all budget data
   const fetchBudgetData = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       const [budgets, alerts] = await Promise.all([
-        budgetService.getBudgetOverview().catch(() => ({ data: {} })),
-        budgetService.getBudgetAlerts().catch(() => ({ data: [] })),
+        budgetService.getBudgetOverview(),
+        // Alerts are an extra: if only they fail, show the budgets without them
+        budgetService.getBudgetAlerts().catch((error) => {
+          console.error("Error fetching budget alerts:", error);
+          return { data: [] };
+        }),
       ]);
-
 
       setBudget(budgets?.data || {});
       setCategoryBudgets(budgets?.data?.categories || []);
       setBudgetAlerts(alerts?.data || []);
     } catch (error) {
       console.error("Error fetching budget data:", error);
-      toast.error("Failed to load budget data");
+      setLoadError(error.message || "Couldn't load your budgets");
       setBudgetAlerts([]);
     } finally {
       setLoading(false);
@@ -100,7 +107,7 @@ export const useBudget = (recentTransactions = []) => {
       await fetchBudgetData();
     } catch (error) {
       console.error("Error adding category budget:", error);
-      toast.error(error?.response?.data?.message || "Failed to add category budget");
+      toast.error(error?.message || "Failed to add category budget");
     }
   };
 
@@ -134,7 +141,7 @@ export const useBudget = (recentTransactions = []) => {
       await fetchBudgetData();
     } catch (error) {
       console.error("Error saving category budget:", error);
-      toast.error(error?.response?.data?.message || "Failed to save budget");
+      toast.error(error?.message || "Failed to save budget");
     }
   };
 
@@ -147,7 +154,7 @@ export const useBudget = (recentTransactions = []) => {
       await fetchBudgetData(); // Re-fetch data to update the list
     } catch (error) {
       console.error("Error deleting budget:", error);
-      toast.error(error?.response?.data?.message || "Failed to delete budget");
+      toast.error(error?.message || "Failed to delete budget");
     }
   };
 
@@ -235,6 +242,8 @@ export const useBudget = (recentTransactions = []) => {
   return {
     // State
     loading: totalLoading,
+    loadError,
+    retry: fetchBudgetData,
     categoryBudgets,
     budgetAlerts,
     isEditingCategory,

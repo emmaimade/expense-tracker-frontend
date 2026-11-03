@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import ErrorBoundary from './components/common/ErrorBoundary';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { QueryProvider } from './providers/QueryProvider';
@@ -107,11 +108,14 @@ function AppContent() {
 // Main App - Wrap with QueryProvider first
 function App() {
   return (
-    <QueryProvider>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </QueryProvider>
+    // Outermost, so even a crash in a provider shows a way out instead of a blank screen
+    <ErrorBoundary fullPage>
+      <QueryProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </QueryProvider>
+    </ErrorBoundary>
   );
 }
 

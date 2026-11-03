@@ -17,6 +17,7 @@ import SettingsContent from '../settings/SettingsContent';
 import HelpContent from '../support/HelpContent';
 import ConnectionErrorBanner from '../common/ConnectionErrorBanner';
 import EmailVerificationBanner from '../common/EmailVerificationBanner';
+import ErrorBoundary from '../common/ErrorBoundary';
 import { categoriesQueryOptions } from '../expenses/hooks/useCategories';
 
 // Inner component that has access to notification context
@@ -191,6 +192,8 @@ const DashboardInner = () => {
         <main className="flex-1 overflow-y-auto p-4 md:p-6 pb-[calc(6rem+env(safe-area-inset-bottom))] lg:pb-6 bg-gray-50 dark:bg-gray-900/50">
           <EmailVerificationBanner />
           {dataError && <ConnectionErrorBanner onRetry={refreshData} />}
+          {/* A crash in one page shows an error here and keeps the sidebar usable; navigating clears it */}
+          <ErrorBoundary resetKey={location.pathname}>
           <Routes>
             <Route index element={<DashboardContent onDataChange={refreshData} onAddExpense={() => setIsQuickAddOpen(true)} />} />
 
@@ -232,6 +235,7 @@ const DashboardInner = () => {
 
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
+          </ErrorBoundary>
         </main>
       </div>
 

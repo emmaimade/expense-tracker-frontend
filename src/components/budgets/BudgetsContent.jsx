@@ -3,6 +3,7 @@ import BudgetOverview from './components/BudgetOverview';
 import CategoryBudgetsSection from './components/CategoryBudgetsSection';
 import BudgetAlertsSection from './components/BudgetAlertsSection';
 import BudgetTips from './components/BudgetTips';
+import LoadErrorCard from '../common/LoadErrorCard';
 import {
   BudgetPageSkeleton,
   BudgetOverviewSkeleton,
@@ -12,6 +13,8 @@ import {
 const BudgetsContent = ({ recentTransactions = [] }) => {
   const {
     loading,
+    loadError,
+    retry,
     categoryBudgets,
     budgetAlerts,
     isEditingCategory,
@@ -55,6 +58,10 @@ const BudgetsContent = ({ recentTransactions = [] }) => {
   // Show full page skeleton on initial load
   if (loading && !calculations) {
     return <BudgetPageSkeleton />;
+  }
+
+  if (loadError && !loading) {
+    return <LoadErrorCard title="Couldn't load your budgets" message={loadError} onRetry={retry} />;
   }
 
   return (

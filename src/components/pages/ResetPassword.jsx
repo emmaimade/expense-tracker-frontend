@@ -4,7 +4,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { CircleAlert, CircleCheck, Eye, EyeOff, Lock } from 'lucide-react';
-import { API_BASE_URL } from '../../services/apiService';
+import { apiService } from '../../services/apiService';
 
 const schema = yup.object({
   password: yup
@@ -62,26 +62,11 @@ function ResetPassword() {
     setServerError('');
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/user/reset-password?token=${token}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-          },
-          body: JSON.stringify({
-            password: data.password,
-            confirmPassword: data.confirmPassword,
-          }),
-        }
+      await apiService.post(
+        `/user/reset-password?token=${encodeURIComponent(token)}`,
+        { password: data.password, confirmPassword: data.confirmPassword },
+        { skipRefresh: true }
       );
-
-      const resData = await response.json();
-
-      if (!response.ok) {
-        throw new Error(resData.message || 'Failed to reset password');
-      }
 
       setSuccess(true);
     } catch (error) {
