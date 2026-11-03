@@ -185,7 +185,7 @@ const Sidebar = () => {
           {/* Help and the sidebar control sit at the bottom, below the main nav */}
           <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-700 space-y-1">
             <SidebarLink
-              item={{ label: "Help & support", icon: HelpCircle, path: "/support" }}
+              item={{ label: "Help & support", icon: HelpCircle, path: "/dashboard/help" }}
               isOpen={isOpen}
               showTooltip={showTooltip}
             />

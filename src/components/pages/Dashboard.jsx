@@ -14,6 +14,7 @@ import ExpensesContent from '../expenses/ExpensesContent';
 import AnalyticsContent from '../analytics/AnalyticsContent';
 import BudgetsContent from '../budgets/BudgetsContent';
 import SettingsContent from '../settings/SettingsContent';
+import HelpContent from '../support/HelpContent';
 import ConnectionErrorBanner from '../common/ConnectionErrorBanner';
 import EmailVerificationBanner from '../common/EmailVerificationBanner';
 import { categoriesQueryOptions } from '../expenses/hooks/useCategories';
@@ -70,7 +71,8 @@ const DashboardInner = () => {
     '/dashboard/expenses': 'Expenses',
     '/dashboard/analytics': 'Analytics',
     '/dashboard/budgets': 'Budgets',
-    '/dashboard/settings': 'Settings'
+    '/dashboard/settings': 'Settings',
+    '/dashboard/help': 'Help'
   };
 
   const currentTitle = titles[location.pathname] || 'Dashboard';
@@ -164,7 +166,7 @@ const DashboardInner = () => {
                   </button>
                   <button
                     onClick={() => {
-                      navigate('/support');
+                      navigate('/dashboard/help');
                       setIsDropdownOpen(false);
                     }}
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
@@ -224,6 +226,9 @@ const DashboardInner = () => {
               path="settings"
               element={<SettingsContent userId={userId} onDataChange={refreshData} />}
             />
+
+            {/* Help inside the app, so signed-in users keep the sidebar and top bar */}
+            <Route path="help" element={<HelpContent />} />
 
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
