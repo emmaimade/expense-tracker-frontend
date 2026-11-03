@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
-  Menu, X, ArrowRight, Check, Plus, ChevronDown,
+  Menu, X, ArrowRight, Check, Plus,
   Receipt, BarChart3, Target, Globe2, Download, ShieldCheck,
   UserPlus, LineChart, Tag, TrendingDown, CalendarClock,
   Home, CreditCard, Settings, Bell,
@@ -12,6 +12,8 @@ import BudgetOverview from "../dashboard/components/BudgetOverview";
 import BudgetAlertsSection from "../budgets/components/BudgetAlertsSection";
 import { useAuth } from "../../context/AuthContext";
 import { usePreferencesContext } from "../../context/PreferencesContext";
+import FaqItem from "../common/FaqItem";
+import { LANDING_FAQS } from "../../data/faqs";
 
 const NAV_LINKS = [
   { label: "Features", href: "#features" },
@@ -34,14 +36,6 @@ const STEPS = [
   { icon: LineChart, title: "See the full picture", desc: "Your dashboard shows where you stand this month and how your spending changes over time." },
 ];
 
-const FAQS = [
-  { q: "Is SpendWise really free?", a: "Yes. There's no paid plan, no credit card and no ads. Every feature is available to everyone." },
-  { q: "Is my financial data safe?", a: "Passwords are hashed and never stored in plain text, all traffic uses HTTPS, and your session lives in a secure, http-only cookie. You can also sign in with Google. We never sell or share your data." },
-  { q: "Which currencies are supported?", a: "Nine, including the Naira, US Dollar, Euro, British Pound, Japanese Yen, Indian Rupee and South African Rand. Your currency is detected when you sign up and can be changed any time in settings." },
-  { q: "What happens if I change my currency?", a: "You choose: convert your existing expenses and budgets at live exchange rates, or keep the numbers as they are and use the new currency from now on." },
-  { q: "Can I use it on my phone?", a: "Yes. SpendWise works in any modern browser on phones, tablets and computers, in light or dark mode." },
-  { q: "Can I export my data?", a: "Yes. You can download your expenses as CSV or PDF for any date range, and delete your account and all its data from settings." },
-];
 
 const smoothScroll = (e, href) => {
   e.preventDefault();
@@ -219,41 +213,11 @@ const MobilePreview = () => {
   );
 };
 
-// ── FAQ item: button + region, announced to screen readers ──
-const FaqItem = ({ id, q, a, isOpen, onToggle }) => (
-  <div className="border-b border-gray-200 dark:border-gray-700">
-    <h3>
-      <button
-        onClick={onToggle}
-        aria-expanded={isOpen}
-        aria-controls={`faq-panel-${id}`}
-        id={`faq-button-${id}`}
-        className="flex w-full items-center justify-between gap-4 py-5 text-left"
-      >
-        <span className="text-base font-semibold text-gray-900 dark:text-gray-100">{q}</span>
-        <ChevronDown
-          className={`h-5 w-5 shrink-0 text-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180 text-indigo-600 dark:text-indigo-400" : ""}`}
-        />
-      </button>
-    </h3>
-    {/* Grid-rows animation fits any answer length (no fixed max-height) */}
-    <div
-      id={`faq-panel-${id}`}
-      role="region"
-      aria-labelledby={`faq-button-${id}`}
-      className={`grid transition-[grid-template-rows] duration-300 ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
-    >
-      <div className="overflow-hidden">
-        <p className="pb-5 text-sm leading-relaxed text-gray-600 dark:text-gray-400">{a}</p>
-      </div>
-    </div>
-  </div>
-);
 
 const LandingPage = () => {
   const { user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [openFaq, setOpenFaq] = useState(0);
+  const [openFaq, setOpenFaq] = useState(LANDING_FAQS[0]?.id ?? null);
   const scrolled = useScrolled();
 
   // Signed-in visitors get a way back into the app instead of "Log in"
@@ -422,14 +386,15 @@ const LandingPage = () => {
           <div className="mx-auto max-w-3xl">
             <SectionHeading eyebrow="FAQ" title="Questions, answered" />
             <div className="mt-10">
-              {FAQS.map((item, i) => (
+              {/* Shared with the Help page (src/data/faqs.js) so the answers can't drift apart */}
+              {LANDING_FAQS.map((item) => (
                 <FaqItem
-                  key={item.q}
-                  id={i}
+                  key={item.id}
+                  id={item.id}
                   q={item.q}
                   a={item.a}
-                  isOpen={openFaq === i}
-                  onToggle={() => setOpenFaq(openFaq === i ? null : i)}
+                  isOpen={openFaq === item.id}
+                  onToggle={() => setOpenFaq(openFaq === item.id ? null : item.id)}
                 />
               ))}
             </div>
