@@ -33,6 +33,8 @@ function Login() {
   const accountDeleted = searchParams.get('deleted') === '1';
   // Set when a session can't be renewed (see apiService)
   const sessionExpired = searchParams.get('expired') === '1';
+  // Set by Sign out (see useDashboard)
+  const signedOut = searchParams.get('signedout') === '1';
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState('');
@@ -106,6 +108,9 @@ function Login() {
       }
     >
       {/* Page-level notices sit above everything, since they apply to both sign-in methods */}
+      {signedOut && !serverError && (
+        <AlertMessage type="success" message="You've signed out." className="mb-6" />
+      )}
       {sessionExpired && !serverError && (
         <AlertMessage type="info" message="Your session has ended. Please sign in again." className="mb-6" />
       )}
