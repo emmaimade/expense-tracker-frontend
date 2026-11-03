@@ -1,10 +1,8 @@
 // useDashboard.js - Refactored to focus on UI & Auth State
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 
 export const useDashboard = () => {
-  const navigate = useNavigate();
   const { user, logout } = useAuth();
   
   // UI States
@@ -48,9 +46,9 @@ export const useDashboard = () => {
 
   // Action: Handle logout
   const handleLogout = () => {
+    // logout() ends the session and does a full page load to the login page with a
+    // "You've signed out." notice; navigating here too caused a flash and a second load
     logout();
-    // Login page with a confirmation, so people on shared devices know it worked
-    navigate('/login?signedout=1');
   };
 
   return {

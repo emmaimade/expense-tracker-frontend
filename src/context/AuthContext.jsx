@@ -77,7 +77,9 @@ export const AuthProvider = ({ children }) => {
       .finally(() => {
         userService.clearUser();
         setUser(null);
-        window.location.href = '/login';
+        // A full page load (not client-side navigation) clears every in-memory cache, so the
+        // next person on a shared device can't see this account's data. The notice confirms it.
+        window.location.href = '/login?signedout=1';
       });
   }, []);
 
