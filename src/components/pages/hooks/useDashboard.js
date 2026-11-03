@@ -49,7 +49,8 @@ export const useDashboard = () => {
   // Action: Handle logout
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    // Login page with a confirmation, so people on shared devices know it worked
+    navigate('/login?signedout=1');
   };
 
   return {

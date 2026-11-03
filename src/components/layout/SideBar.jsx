@@ -1,6 +1,6 @@
 ﻿import { useState, useRef, useEffect } from 'react';
 import { Home, CreditCard, BarChart3, Target, Settings, HelpCircle, PanelLeft, Check } from 'lucide-react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import SpendWiseLogo from '../common/SpendWiseLogo';
 import { usePreferencesContext } from '../../context/PreferencesContext';
 
@@ -172,7 +172,14 @@ const Sidebar = () => {
         } ${isHoverMode && isOpen ? "shadow-xl" : ""}`}
       >
         <div className={`h-16 flex items-center shrink-0 ${isOpen ? "px-6" : "justify-center"}`}>
-          <SpendWiseLogo showText={isOpen} className="h-8" />
+          {/* Logo goes to the dashboard, as users expect inside the app */}
+          <Link
+            to="/dashboard"
+            aria-label="SpendWise dashboard"
+            className="rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+          >
+            <SpendWiseLogo showText={isOpen} className="h-8" />
+          </Link>
         </div>
 
         <nav aria-label="Primary" className="flex-1 flex flex-col px-3 py-4 min-h-0">
