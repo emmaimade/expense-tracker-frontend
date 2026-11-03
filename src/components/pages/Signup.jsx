@@ -16,7 +16,7 @@ import AuthSubmitButton from '../auth/AuthSubmitButton';
 import { meetsPasswordRules } from "../../utils/passwordUtils";
 import { detectCurrencyByLocale } from '../../utils/detectCurrency';
 import { CURRENCIES } from '../settings/currencies';
-import { API_BASE_URL } from '../../services/apiService';
+import { API_BASE_URL, apiService } from '../../services/apiService';
 import SlowServerNotice from '../common/SlowServerNotice';
 
 const NAME_PATTERN = /^[\p{L}\s'-]+$/u;
@@ -124,30 +124,19 @@ function Signup() {
     setGeneralError('');
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/user/register`,
+      const resData = await apiService.post(
+        '/user/register',
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            firstName: data.firstName.trim(),
-            lastName: data.lastName.trim(),
-            email: data.email.trim().toLowerCase(),
-            password: data.password,
-            // The API still expects a confirmation; the show-password toggle replaces the second field
-            confirmPassword: data.password,
-            currency: data.currency,
-          }),
-        }
+          firstName: data.firstName.trim(),
+          lastName: data.lastName.trim(),
+          email: data.email.trim().toLowerCase(),
+          password: data.password,
+          // The API still expects a confirmation; the show-password toggle replaces the second field
+          confirmPassword: data.password,
+          currency: data.currency,
+        },
+        { skipRefresh: true }
       );
-
-      const resData = await response.json();
-
-      if (!response.ok) {
-        throw new Error(resData.message || 'Signup failed');
-      }
 
       // Same shape as login and /user/me; the API set the session cookies
       const userObject = {

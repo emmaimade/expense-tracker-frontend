@@ -45,7 +45,10 @@ export const useAnalytics = (timeRange = '6months') => {
       setError(null);
 
       const [overview] = await Promise.all([
-        budgetService.getBudgetOverview().catch(() => ({ data: {} })),
+        budgetService.getBudgetOverview().catch((err) => {
+          console.error('Analytics: budget overview failed, showing charts without budget data:', err);
+          return { data: {} };
+        }),
       ]);
 
       setBudgetData(overview?.data || {});

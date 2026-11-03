@@ -93,7 +93,7 @@ export const useProfile = () => {
       console.error("❌ Update profile error:", err);
       console.error("❌ Error response:", err.response?.data);
       
-      const msg = err.response?.data?.message || err.message || 'Failed to update profile';
+      const msg = err.message || 'Failed to update profile';
       toast.error(`❌ ${msg}`, {
         position: 'top-right',
         autoClose: 4000,
@@ -117,7 +117,7 @@ export const useProfile = () => {
         autoClose: 3000,
       });
     } catch (err) {
-      const msg = err.response?.data?.message || err.message || 'Failed to change password';
+      const msg = err.message || 'Failed to change password';
       toast.error(`❌ ${msg}`, {
         position: 'top-right',
         autoClose: 4000,

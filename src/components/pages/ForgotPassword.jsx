@@ -4,7 +4,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CircleAlert, CircleCheck, Mail } from 'lucide-react';
-import { API_BASE_URL } from '../../services/apiService';
+import { apiService } from '../../services/apiService';
 
 const schema = yup.object({
   email: yup.string().required('Email is required').email('Email is invalid'),
@@ -27,25 +27,13 @@ function ForgotPassword() {
     setSuccessMessage('');
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/user/forgot-password`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-          },
-          body: JSON.stringify({ email: data.email.trim().toLowerCase() }),
-        }
+      const resData = await apiService.post(
+        '/user/forgot-password',
+        { email: data.email.trim().toLowerCase() },
+        { skipRefresh: true }
       );
 
-      const resData = await response.json();
-
-      if (!response.ok) {
-        throw new Error(resData.message || 'Something went wrong');
-      }
-
-      setSuccessMessage(resData.message || 'Password reset link sent! Check your email.');
+      setSuccessMessage(resData?.message || 'Password reset link sent! Check your email.');
     } catch (error) {
       setServerError(error.message || 'An error occurred');
     } finally {

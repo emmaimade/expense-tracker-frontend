@@ -23,8 +23,9 @@ export const QueryProvider = ({ children }) => {
             refetchOnReconnect: true,
           },
           mutations: {
-            // Retry failed mutations once
-            retry: 1,
+            // Never retry saves automatically: a request that reached the server but failed on the
+            // way back would be sent twice (e.g. a duplicate expense). Users retry by hand instead.
+            retry: 0,
             // Don't throw errors (handle in onError callbacks)
             throwOnError: false,
             // Network mode

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { CircleAlert, CircleCheck } from 'lucide-react';
-import { API_BASE_URL } from '../../services/apiService';
+import { apiService } from '../../services/apiService';
 import { useAuth } from '../../context/AuthContext';
 import SlowServerNotice from '../common/SlowServerNotice';
 
@@ -24,16 +24,10 @@ function VerifyEmail() {
 
     const confirmEmail = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/user/verify-email`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token }),
-        });
-        const resData = await response.json();
-        if (!response.ok) throw new Error(resData.message || 'Could not confirm your email');
+        const resData = await apiService.post('/user/verify-email', { token }, { skipRefresh: true });
 
         // Update the signed-in user in this browser so the reminder banner disappears
-        if (user && user.email === resData.user?.email) {
+        if (user && user.email === resData?.user?.email) {
           updateUser({ emailVerified: true });
         }
         setStatus('success');
