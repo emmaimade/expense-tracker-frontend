@@ -49,18 +49,24 @@ const BrandPanel = () => {
 // Shared shell for login and sign up: form column, plus a brand panel from lg up
 const AuthLayout = ({ title, subtitle, children, footer }) => (
   <div className="min-h-screen bg-white lg:grid lg:grid-cols-2 dark:bg-gray-900">
-    <main className="flex flex-col justify-center px-6 py-10 sm:px-10">
+    {/* Full screen height so short forms (login) centre vertically on phones too; the larger
+        bottom padding lifts the form slightly above true centre, which looks balanced */}
+    <main className="flex min-h-[100dvh] flex-col justify-center px-6 pb-16 pt-10 sm:px-10">
       <div className="mx-auto w-full max-w-md">
-        {/* Logo goes back to the landing page */}
-        <Link
-          to="/"
-          aria-label="SpendWise home"
-          className="mb-8 inline-block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-        >
-          <SpendWiseLogo className="h-9" showText={true} />
-        </Link>
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{title}</h1>
-        {subtitle && <p className="mt-1.5 text-sm text-gray-600 dark:text-gray-400">{subtitle}</p>}
+        {/* Centred in the single-column layout (matches the centred divider and footer);
+            left-aligned beside the brand panel from lg up */}
+        <div className="text-center lg:text-left">
+          {/* Logo goes back to the landing page */}
+          <Link
+            to="/"
+            aria-label="SpendWise home"
+            className="mb-8 inline-block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+          >
+            <SpendWiseLogo className="h-9" showText={true} />
+          </Link>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{title}</h1>
+          {subtitle && <p className="mt-1.5 text-sm text-gray-600 dark:text-gray-400">{subtitle}</p>}
+        </div>
         <div className="mt-8">{children}</div>
         {footer && <div className="mt-8 text-center text-sm text-gray-600 dark:text-gray-400">{footer}</div>}
       </div>
