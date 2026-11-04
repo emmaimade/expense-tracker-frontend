@@ -53,7 +53,7 @@ function PrivacyPolicy() {
             offline country database), and kept briefly in memory to limit repeated sign-in attempts. We don't store
             it with your account.</p>
           <p>We don&apos;t collect payment details, bank account information or government IDs, and we don&apos;t use
-            analytics, advertising or tracking tools.</p>
+            analytics, advertising or tracking tools. We do use an error-reporting service, described below.</p>
         </Section>
 
         <Section title="How we use it">
@@ -75,6 +75,8 @@ function PrivacyPolicy() {
             <li><strong>Brevo</strong> - delivers our emails (your name and email address are sent with each message).</li>
             <li><strong>Google</strong> - only if you choose &quot;Continue with Google&quot; to sign in.</li>
             <li><strong>Cloudinary</strong> - hosts the logo shown in our emails; your email app loads it from there.</li>
+            <li><strong>Sentry</strong> - receives technical reports when something breaks in the app (the error, the
+              page, and your browser and device type). We turn off IP address collection and session recording.</li>
             <li><strong>Exchange-rate services</strong> - receive only currency codes (such as USD to NGN), never your
               personal data.</li>
           </ul>

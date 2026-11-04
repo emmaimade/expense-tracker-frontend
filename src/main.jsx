@@ -1,5 +1,7 @@
+import './instrument'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { reactErrorHandler } from '@sentry/react'
 import './index.css'
 import App from './App.jsx'
 import { reloadOnce } from './utils/reloadOnce'
@@ -9,7 +11,12 @@ window.addEventListener('vite:preloadError', (event) => {
   if (reloadOnce()) event.preventDefault()
 })
 
-createRoot(document.getElementById('root')).render(
+// React 19 reports render errors here, including ones our ErrorBoundary catches
+createRoot(document.getElementById('root'), {
+  onUncaughtError: reactErrorHandler(),
+  onCaughtError: reactErrorHandler(),
+  onRecoverableError: reactErrorHandler(),
+}).render(
   <StrictMode>
     <App />
   </StrictMode>,
