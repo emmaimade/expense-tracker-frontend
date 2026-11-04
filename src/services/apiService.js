@@ -1,4 +1,6 @@
-﻿// Requests go to /api on the app's own origin; Vercel (vercel.json) and the
+﻿import { captureException } from '@sentry/react';
+
+// Requests go to /api on the app's own origin; Vercel (vercel.json) and the
 // Vite dev server (vite.config.js) forward them to the API. Keeping API calls
 // same-origin is what allows secure first-party cookies.
 export const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
@@ -35,7 +37,10 @@ const handleApiResponse = async (response) => {
     const fallback = response.status >= 500
       ? 'SpendWise is having trouble right now. Please try again in a moment.'
       : `Request failed (${response.status})`;
-    throw apiError(serverMessage || fallback, response.status, errorData);
+    const err = apiError(serverMessage || fallback, response.status, errorData);
+    // Server failures are shown as a toast, so report them; 4xx and offline are expected
+    if (response.status >= 500) captureException(err);
+    throw err;
   }
   return response;
 };
