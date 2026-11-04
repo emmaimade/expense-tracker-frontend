@@ -11,9 +11,17 @@ if (dsn) {
   Sentry.init({
     dsn,
     environment: import.meta.env.MODE,
-    // This is a finance app: no IP addresses or cookies, no session replay, no performance
-    // tracing. Errors only, without the amounts or names on screen.
-    sendDefaultPii: false,
+    // This is a finance app: errors only, no personal data. No session replay or performance
+    // tracing. SDK v11 collects all of this by default and ignores the old sendDefaultPii option,
+    // so each category is switched off here (userInfo: false also stops Sentry storing the IP).
+    dataCollection: {
+      userInfo: false,
+      cookies: false,
+      httpHeaders: false, // includes Referer, which can hold a full URL with a token
+      httpBodies: [],
+      urlQueryParams: false,
+      stackFrameVariables: false,
+    },
     integrations: (defaults) => defaults.filter((integration) => integration.name !== 'Breadcrumbs').concat(
       // Page and request breadcrumbs help debugging; console logs and clicked text could hold user data
       Sentry.breadcrumbsIntegration({ console: false, dom: false })
@@ -28,7 +36,12 @@ if (dsn) {
     },
     beforeSend(event) {
       if (event.request?.url) event.request.url = stripQuery(event.request.url);
-      if (event.request) delete event.request.query_string;
+      if (event.request) {
+        delete event.request.query_string;
+        delete event.request.headers;
+        delete event.request.cookies;
+      }
+      if (event.user) delete event.user.ip_address;
       return event;
     },
   });
